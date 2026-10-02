@@ -12,6 +12,7 @@ from app.roles import MARKETERS
 MAX_TITLE_CHARS = 120
 MAX_COPY_CHARS = 10_000
 MAX_NOTES_CHARS = 2_000
+MAX_VERSIONS = 10  # per submission, for the same reason
 MAX_SUBMISSIONS = 300  # the demo database is shared and public: a script must not be able to fill it
 MAX_YEARS_AHEAD_DAYS = 2 * 365
 MAX_DAYS_BACK = 365
@@ -210,7 +211,11 @@ def precheck(product, channel, copy):
 # ---- create ----
 
 class SubmitError(Exception):
-    """A refused submission. `code` is one of capacity, duplicate, bad_marketer; fixed text only."""
+    """A refused submission or resubmission. `code` is a fixed word, never text from the request.
+
+    create_submission: capacity, duplicate, bad_marketer. create_version: not_found, not_owner,
+    stale_version, not_resubmittable, unchanged, capacity.
+    """
 
     def __init__(self, code, existing_id=None):
         super().__init__(code)
@@ -264,3 +269,73 @@ def create_submission(conn, fields, submitted_by, now):
         raise
     conn.commit()
     return sid
+
+
+RESUBMITTABLE_STATUSES = ("changes_requested", "rejected")
+
+
+def _is_int(value):
+    return type(value) is int
+
+
+def create_version(conn, submission_id, base_version, fields, submitted_by, now):
+    """Add the next version of a submission and return its number. The only place that does.
+
+    `fields` holds the new copy, notes and launch date (title, product and channel never change
+    here; anything else in `fields` is ignored). They are checked again here. Takes the write
+    lock before reading, then refuses in this order, writing nothing: no such submission
+    (`not_found`); a different marketer (`not_owner`); `base_version` is not the current version,
+    which is what a second tab or a double click looks like (`stale_version`); the submission is
+    not waiting on the marketer, meaning its status is not changes requested or rejected or the
+    current version has no decision (`not_resubmittable`); the copy is the same as the previous
+    version's (`unchanged`); too many versions already (`capacity`).
+
+    On success the new version, its flags, the new current version, the status `in_review` and
+    the launch date are written in one transaction and committed here. Earlier versions, their
+    flags, decisions, dismissals and comments are never touched. Any failure rolls back everything.
+    """
+    from app import seed
+
+    today = now.date()
+    copy, copy_error = _copy(fields.get("copy"))
+    notes, notes_error = _notes(fields.get("notes"))
+    launch, launch_error = _launch(fields.get("launch_date"), today)
+    if copy_error or notes_error or launch_error:
+        raise ValueError("fields did not validate")
+    if conn.in_transaction:
+        raise RuntimeError("create_version needs a connection with no open transaction")
+
+    stamp = seed.format_timestamp(now)
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        row = conn.execute("SELECT status, current_version, submitted_by FROM submission WHERE id = ?",
+                           (submission_id,)).fetchone() if _is_int(submission_id) else None
+        if row is None:
+            raise SubmitError("not_found")
+        if not isinstance(submitted_by, str) or submitted_by != row["submitted_by"]:
+            raise SubmitError("not_owner")
+        current = row["current_version"]
+        if not _is_int(base_version) or base_version != current:
+            raise SubmitError("stale_version")
+        decided = conn.execute("SELECT 1 FROM decision WHERE submission_id = ? AND version_number = ?",
+                               (submission_id, current)).fetchone()
+        if row["status"] not in RESUBMITTABLE_STATUSES or decided is None:
+            raise SubmitError("not_resubmittable")
+        previous = conn.execute("SELECT copy FROM version WHERE submission_id = ? AND version_number = ?",
+                                (submission_id, current)).fetchone()
+        if previous is not None and normalize_copy(previous["copy"]) == copy:
+            raise SubmitError("unchanged")
+        if current >= MAX_VERSIONS:
+            raise SubmitError("capacity")
+        number = current + 1
+        vid = conn.execute(
+            "INSERT INTO version (submission_id, version_number, copy, notes, created_at) VALUES (?, ?, ?, ?, ?)",
+            (submission_id, number, copy, notes, stamp)).lastrowid
+        flags.store_flags(conn, vid, flags.evaluate_version(conn, vid))
+        conn.execute("UPDATE submission SET current_version = ?, status = 'in_review', launch_date = ? WHERE id = ?",
+                     (number, launch.isoformat(), submission_id))
+    except BaseException:
+        conn.rollback()
+        raise
+    conn.commit()
+    return number
