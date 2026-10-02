@@ -122,14 +122,7 @@ def test_status_label_is_text_and_never_the_raw_database_word(views):
 
 # ---- flag column ----
 
-def test_flags_show_a_dash_with_an_explanation_until_phase_3():
-    v = row_view(make(flag_count=0), THU)
-    assert v["flags_text"] == "-" and "phase 3" in v["flags_title"]
-    assert row_view(make(flag_count=5), THU)["flags_text"] == "-"   # never a misleading count
-
-
-def test_flags_show_the_count_once_phase_3_enables_them(monkeypatch):
-    monkeypatch.setattr(queue_module, "FLAGS_READY", True)
+def test_flags_show_the_count():
     v = row_view(make(flag_count=3), THU)
     assert (v["flags_text"], v["flags_title"]) == ("3", "")
     assert row_view(make(flag_count=0), THU)["flags_text"] == "0"

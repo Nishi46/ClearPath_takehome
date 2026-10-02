@@ -26,11 +26,6 @@ FILTER_OPTIONS = {
     ),
 }
 
-# Phase 3 turns this on once flags are computed. Until then a dash is honest; a "0" would claim
-# the item was checked and found clean.
-FLAGS_READY = False
-FLAGS_PENDING_TITLE = "Flags are computed in phase 3"
-
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 # One constant query. Each filter is "no filter (NULL) or an exact match", so a request value is
@@ -38,8 +33,10 @@ MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
 sql_queue = """
 SELECT s.id, s.title, s.product, s.channel, s.launch_date, s.status, s.submitted_by,
        s.created_at, s.current_version AS version_number,
-       (SELECT count(*) FROM flag f JOIN version v ON v.id = f.version_id
-         WHERE v.submission_id = s.id AND v.version_number = s.current_version) AS flag_count
+       (SELECT count(DISTINCT f.rule_id) FROM flag f JOIN version v ON v.id = f.version_id
+         WHERE v.submission_id = s.id AND v.version_number = s.current_version
+           AND NOT EXISTS (SELECT 1 FROM flag_dismissal d
+                            WHERE d.version_id = f.version_id AND d.rule_id = f.rule_id)) AS flag_count
   FROM submission s
  WHERE (? IS NULL OR s.status = ?)
    AND (? IS NULL OR s.product = ?)
@@ -120,11 +117,6 @@ def row_view(row, today=None):
         except ValueError:
             kind = None
 
-    if FLAGS_READY:
-        flags_text, flags_title = str(row["flag_count"]), ""
-    else:
-        flags_text, flags_title = "-", FLAGS_PENDING_TITLE
-
     return {
         "id": row["id"],
         "title": row["title"],
@@ -143,8 +135,8 @@ def row_view(row, today=None):
         "urgency_label": _urgency_label(kind, today, launch) if kind else "",
         "urgency_class": "urgency-" + kind if kind else "",
         "needs_attention": kind is not None,
-        "flags_text": flags_text,
-        "flags_title": flags_title,
+        "flags_text": str(row["flag_count"]),
+        "flags_title": "",
     }
 
 

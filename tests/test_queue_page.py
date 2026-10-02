@@ -100,9 +100,10 @@ def test_status_and_urgency_are_words_in_the_markup_not_only_classes(client):
     assert "in_review" not in shown and "changes_requested" not in shown   # raw words only inside class names
 
 
-def test_flags_show_a_dash_with_a_title(client):
+def test_flags_show_the_live_count(client):
     row = row_for(client.get("/").text, 1)
-    assert re.search(r'<span title="Flags are computed in phase 3">-</span>', row)
+    assert re.search(r'<td data-label="Flags"><span>3</span></td>', row)
+    assert "phase 3" not in client.get("/").text
 
 
 def test_reset_banner_still_works_on_the_queue(client):
