@@ -246,3 +246,24 @@ def resolve_times(data, now):
             for item in s[key]:
                 item["createdAt"] = ago(item.pop("hoursAgo"))
     return out
+
+
+# ---- database inserts (all values bound as parameters, never built into SQL text) ----
+
+def insert_submission(conn, sub):
+    """Insert one resolved submission and its versions, using seedId as the row id.
+
+    Does not commit: the caller owns the transaction. Flags are not inserted here.
+    """
+    conn.execute(
+        "INSERT INTO submission (id, title, product, channel, status, launch_date,"
+        " submitted_by, created_at, current_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (sub["seedId"], sub["title"], sub["product"], sub["channel"], sub["status"],
+         sub["launchDate"], sub["submittedBy"], sub["createdAt"], sub["currentVersion"]),
+    )
+    conn.executemany(
+        "INSERT INTO version (submission_id, version_number, copy, notes, created_at)"
+        " VALUES (?, ?, ?, ?, ?)",
+        [(sub["seedId"], v["versionNumber"], v["copy"], v.get("notes"), v["createdAt"])
+         for v in sub["versions"]],
+    )
