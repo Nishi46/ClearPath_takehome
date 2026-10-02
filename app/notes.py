@@ -1,6 +1,6 @@
 import unicodedata
 
-from app.textclean import clean_text
+from app.textclean import clean_text, has_bidi_control
 
 # Validation for a flag dismissal note. Pure: no database, clock or network.
 
@@ -10,7 +10,7 @@ CODES = ("note_required", "note_too_long", "note_bad_chars")
 MESSAGES = {
     "note_required": "Add a note saying why this flag doesn't apply.",
     "note_too_long": "Keep the note to 1,000 characters or fewer.",
-    "note_bad_chars": "The note can't contain control characters.",
+    "note_bad_chars": "The note can't contain control or text-direction characters.",
 }
 
 
@@ -18,7 +18,7 @@ def _validate(raw, limit, required, too_long, bad_chars):
     if not isinstance(raw, str):
         return None, required
     text = raw.replace("\r\n", "\n").replace("\r", "\n")
-    if any(unicodedata.category(ch) == "Cc" and ch not in "\t\n" for ch in text):
+    if has_bidi_control(text) or any(unicodedata.category(ch) == "Cc" and ch not in "\t\n" for ch in text):
         return None, bad_chars
     clean = clean_text(text)
     if clean is None:
@@ -45,7 +45,7 @@ COMMENT_CODES = ("text_required", "text_too_long", "text_bad_chars")
 COMMENT_MESSAGES = {
     "text_required": "Write a comment before posting.",
     "text_too_long": "Keep the comment to 2,000 characters or fewer.",
-    "text_bad_chars": "The comment can't contain control characters.",
+    "text_bad_chars": "The comment can't contain control or text-direction characters.",
 }
 
 

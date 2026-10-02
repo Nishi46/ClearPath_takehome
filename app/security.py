@@ -44,12 +44,17 @@ class SecurityHeadersMiddleware:
             return
 
         is_static = scope["path"].startswith("/static/")
+        # Render terminates TLS at its proxy and says so in this header. HSTS is never sent over plain http,
+        # so a local copy of the app keeps working.
+        over_tls = dict(scope["headers"]).get(b"x-forwarded-proto") == b"https"
 
         async def send_with_headers(message):
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
                 for name, value in SECURITY_HEADERS.items():
                     headers[name] = value
+                if over_tls:
+                    headers["Strict-Transport-Security"] = "max-age=31536000"
                 # Without this a browser may keep using an old stylesheet for hours after a
                 # change or a redeploy. "no-cache" still allows caching, but only after the
                 # server confirms via the ETag that the file is unchanged.

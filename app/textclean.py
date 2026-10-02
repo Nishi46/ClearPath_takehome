@@ -1,4 +1,14 @@
+import re
 import unicodedata
+
+# Embeddings, overrides and isolates (U+202A-202E, U+2066-2069) change how text reads without changing what is
+# stored, so a reviewer could approve copy that says something else. Nothing a person types may contain them.
+BIDI_CONTROLS = re.compile("[\u202a-\u202e\u2066-\u2069]")
+
+
+def has_bidi_control(value):
+    return BIDI_CONTROLS.search(value) is not None
+
 
 # Characters that carry no visible text: control, format (zero-width), and Unicode space separators.
 _INVISIBLE = ("Cc", "Cf", "Zs", "Zl", "Zp")

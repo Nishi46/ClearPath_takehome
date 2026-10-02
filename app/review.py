@@ -1,9 +1,10 @@
 import re
 import sqlite3
+import unicodedata
 
 from app.notes import (COMMENT_MESSAGES, MAX_COMMENT_CHARS, MAX_NOTE_CHARS, MESSAGES as NOTE_MESSAGES,
                        validate_comment, validate_note)
-from app.textclean import clean_text
+from app.textclean import clean_text, has_bidi_control
 
 # Review screen logic. Routes only parse input, call these functions and render.
 
@@ -546,7 +547,7 @@ REASON_REQUIRED = ("changes_requested", "rejected")
 class DecisionError(Exception):
     """A decision was refused. `code` is one of a fixed set; the message is never user text."""
 
-    CODES = ("bad_outcome", "reason_required", "reason_too_long", "not_found", "stale_version",
+    CODES = ("bad_outcome", "reason_required", "reason_too_long", "reason_bad_chars", "not_found", "stale_version",
              "already_decided", "locked")
 
     def __init__(self, code):
@@ -585,6 +586,9 @@ def record_decision(conn, submission_id, version_number, outcome, reason, review
         raise DecisionError("reason_required")
     if reason is not None and len(reason) > MAX_REASON_CHARS:
         raise DecisionError("reason_too_long")
+    if reason is not None and (has_bidi_control(reason) or any(
+            unicodedata.category(ch) == "Cc" and ch not in "\t\n\r" for ch in reason)):
+        raise DecisionError("reason_bad_chars")
     if not isinstance(reviewer, str) or not reviewer.strip():
         raise ValueError("reviewer must be a non-blank name")
     if not hasattr(now, "tzinfo"):
@@ -730,12 +734,13 @@ def dismiss_form_view(data, back="/"):
 
 
 # What the page says for each refusal, and the HTTP status that goes with it. Fixed text only.
-DECISION_STATUS = {"bad_outcome": 422, "reason_required": 422, "reason_too_long": 422, "not_found": 404,
+DECISION_STATUS = {"bad_outcome": 422, "reason_required": 422, "reason_too_long": 422, "reason_bad_chars": 422, "not_found": 404,
                    "stale_version": 409, "already_decided": 409, "locked": 409}
 DECISION_MESSAGES = {
     "bad_outcome": "Choose Approve, Request changes or Reject.",
     "reason_required": "A reason is required to request changes or reject.",
     "reason_too_long": "Keep the reason to {:,} characters or fewer.".format(MAX_REASON_CHARS),
+    "reason_bad_chars": "The reason can't contain control or text-direction characters.",
     "stale_version": "A newer version exists, so this page was out of date. Your decision was not saved. Reload the page to see the latest version.",
     "locked": "This version is locked. Your decision was not saved.",
     "bad_form": "This form was incomplete or out of date. Reload the page and try again.",

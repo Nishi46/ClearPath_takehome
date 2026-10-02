@@ -310,12 +310,18 @@ def test_primary_controls_are_at_least_44px_tall_on_a_phone(client):
         small = evaluate(render(client, role, who, path), 375, 700, """
           var out = [];
           d.querySelectorAll('button, .button-link, select, input[type=text], input[type=date], summary, .role-option').forEach(function (e) {
+            if (e.matches('.flag-dismiss:not([open]) summary')) return;     // a pseudo-element supplies its touch area
             var r = e.getBoundingClientRect();
             if (r.width > 0 && r.height > 0 && r.height < 44 && !e.closest('.visually-hidden')) out.push(e.tagName + '.' + e.className + ':' + Math.round(r.height));
           });
           return out;
         """)
         assert small == [], (path, small)
+
+
+@needs_chrome
+def test_the_closed_dismiss_toggle_has_a_44px_touch_area_without_changing_the_layout():
+    assert re.search(r"\.flag-dismiss summary::after \{[^}]*inset: -0\.75rem", CSS)
 
 
 @needs_chrome

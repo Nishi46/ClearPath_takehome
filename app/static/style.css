@@ -433,10 +433,14 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 
 /* Touch: every button, field and the details toggle is at least 44px tall on a phone. */
 @media (max-width: 40rem) {
-  button, .button-link, select, summary, .role-option, .reset-demo,
+  button, .button-link, select, .role-option, .reset-demo,
   input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]) { min-height: 44px; }
   .button-link, .reset-demo { display: inline-flex; align-items: center; }
-  summary { display: flex; align-items: center; }
+  /* The closed dismiss toggle sits on the severity line, so its box stays one line tall and an invisible
+     pseudo-element supplies the rest of the 44px touch area. */
+  .flag-dismiss summary { position: relative; }
+  .flag-dismiss summary::after { content: ""; position: absolute; inset: -0.75rem -0.5rem; }
+  .flag-dismiss[open] summary { min-height: 44px; display: flex; align-items: center; }
 }
 
 /* Windows high-contrast and other forced-color modes drop our colors: keep every edge, marker and the focus ring. */

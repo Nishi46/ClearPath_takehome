@@ -38,7 +38,7 @@ MESSAGES = {
 # Spaces and the invisible characters the rules engine also ignores. A value made only of these is blank.
 _BLANK = re.compile(r"[\s​-‍⁠﻿]*")
 # Control characters except tab and newline (carriage returns are turned into newlines first).
-_CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
+_CONTROL = re.compile("[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\x7f-\\x9f\\u202a-\\u202e\\u2066-\\u2069]")
 _ISO_DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 
 

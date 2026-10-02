@@ -67,6 +67,9 @@ def _is_https(request):
 
 @router.post("/role")
 def set_role(request: Request, role: str = Form("")):
+    # The cookie only picks a view, but a page on another site must not be able to switch it.
+    if not same_origin(request):
+        return error_response(request, 403, "This must be started from this site. Reload the page and try again.")
     if role not in ROLES:
         # Do not echo the submitted value back.
         return error_response(request, 400, "Unknown role. Use the Role buttons above.")
