@@ -25,6 +25,11 @@ severity (H, M or L). Flags assist a reviewer and never decide anything. The rul
 not legal advice, and are deliberately simple keyword checks; what they miss is listed in
 [documentation/rules-engine.md](documentation/rules-engine.md).
 
+**Reviewing.** Open any row to see the copy, the flags and a decision form. A reviewer can approve, request
+changes or reject; a reason is required for the last two. Once a version has a decision it is locked, and
+the server refuses a second one even if the page is stale or the request is sent directly. Decisions are
+recorded as one fixed demo reviewer, and the Reviewer/Marketer switch is a demo label, not a login.
+
 Run the tests (from the project root, with the venv active):
 
 ```bash

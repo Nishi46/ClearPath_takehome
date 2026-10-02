@@ -33,6 +33,7 @@ Assumptions fall into five groups: users and process, assets, rules and flags, w
 - **Why:** Login is not what is being evaluated. The prompt says reviewers are judged on product intuition and detail, not architecture. A role switcher in the header demonstrates both views.
 - **Tradeoff:** Saves meaningful time and keeps the demo frictionless for evaluators. Gives up real accountability: with no identity, "who approved this" is a label, not a verified fact, which matters for a real audit trail.
 - **Revisit if:** Moving beyond a demo. Real identity is a prerequisite for a defensible audit record.
+- **In the build:** the review screen records decisions as one fixed demo reviewer (Alex Rivera), and only the reviewer role can post a decision. That is a product guard (a marketer should not approve their own copy), not authorization: anyone can switch the role in the header or send a request with no cookie, which counts as reviewer.
 
 ### A5. Launch date is the main urgency signal
 - **Why:** Marketing deadlines are the most concrete, universal reason a review is urgent, and the field is easy for marketers to supply accurately.
