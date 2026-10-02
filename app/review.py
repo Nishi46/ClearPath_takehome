@@ -233,3 +233,63 @@ def dismissals_view(data):
         out.append({"rule_id": info["rule_id"], "name": info["name"], "by": d["dismissed_by"],
                     "when": when_text(d["created_at"]), "note": d["note"]})
     return out
+
+
+def day_text(timestamp):
+    """'Oct 2, 2026' from a stored UTC timestamp, or 'unknown date'."""
+    text = when_text(timestamp)
+    return "unknown date" if text == "unknown time" else text.rsplit(" ", 2)[0]
+
+
+def _outcome_label(outcome):
+    from app.queue import _label
+
+    return _label("status", outcome)
+
+
+_LOCK_TEXT = {
+    "approved": "Locked: Approved by %s, %s.",
+    "changes_requested": "Changes requested by %s, %s. Locked until the marketer resubmits.",
+    "rejected": "Locked: Rejected by %s, %s. A new version must be submitted.",
+}
+
+
+def versions_view(data):
+    """The version selector: one link per version, the viewed one and the current one marked."""
+    sid = data["submission"]["id"]
+    current = data["submission"]["current_version"]
+    shown = data["version"]["version_number"]
+    return [{"text": "v%d" % n, "current": n == current, "selected": n == shown,
+             "href": "/review/%d" % sid if n == current else "/review/%d?v=%d" % (sid, n)}
+            for n in data["version_numbers"]]
+
+
+def notices_view(data):
+    """Banners for the selected version: an old-version notice and a lock banner, either may be None."""
+    sid = data["submission"]["id"]
+    current = data["submission"]["current_version"]
+    shown = data["version"]["version_number"]
+    old = None
+    if shown != current:
+        old = {"text": "You are viewing v%d. The current version is v%d." % (shown, current),
+               "href": "/review/%d" % sid, "link_text": "Go to v%d" % current}
+    lock = None
+    d = data["decision"]
+    if d is not None:
+        template = _LOCK_TEXT.get(d["outcome"], "Decided: %s by %s, %s.")
+        who, day = d["reviewer"], day_text(d["created_at"])
+        text = template % (who, day) if d["outcome"] in _LOCK_TEXT else "Decided by %s, %s." % (who, day)
+        lock = {"text": text, "reason": d["reason"], "outcome": d["outcome"]}
+    return {"old": old, "lock": lock}
+
+
+def history_view(data):
+    """The history strip: versions submitted and decisions made, oldest first, as plain text."""
+    out = []
+    for h in data["history"]:
+        if h["kind"] == "version":
+            text = "v%d submitted by %s" % (h["version_number"], h["who"])
+        else:
+            text = "v%d %s by %s" % (h["version_number"], _outcome_label(h["outcome"]).lower(), h["who"])
+        out.append({"text": text, "when": day_text(h["at"]), "kind": h["kind"]})
+    return out

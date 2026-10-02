@@ -262,3 +262,18 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .flag-dismissal { color: var(--text-muted); border: 1px dashed var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; }
 .flag-dismissal p { margin: 0.125rem 0; overflow-wrap: anywhere; }
 .dismissal-note { white-space: pre-wrap; }
+
+/* Review screen: version selector, notices and history. Every state is written out in words. */
+.version-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+.version-link { padding: 0.125rem 0.625rem; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; }
+.version-link.is-selected { font-weight: 700; border-color: var(--accent); border-width: 2px; }
+.notice { margin: 0.5rem 0; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-left-width: 4px;
+  border-radius: var(--radius); background: var(--surface); overflow-wrap: anywhere; }
+.notice p { margin: 0.125rem 0; }
+.lock-approved { border-left-color: var(--status-approved-text); }
+.lock-rejected { border-left-color: var(--status-rejected-text); }
+.lock-changes_requested { border-left-color: var(--rush-border); }
+.lock-text { font-weight: 700; }
+.lock-reason { white-space: pre-wrap; }
+.history-list { margin: 0; padding-left: 1.25rem; overflow-wrap: anywhere; }
+.history-when { color: var(--text-muted); }

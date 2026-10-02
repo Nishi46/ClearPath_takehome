@@ -6,6 +6,23 @@
 <p class="review-meta">{{ head.product_label }} &middot; {{ head.channel_label }} &middot; Launch {{ head.launch_text }}
   &middot; Status: {{ head.status_label }} &middot; {{ head.version_text }}{% if head.is_current %} (current){% endif %}
   &middot; Submitted by {{ head.submitted_by }}</p>
+<nav class="version-nav" aria-label="Versions">
+  <span class="version-nav-label">Versions:</span>
+  {%- for v in versions %}
+  <a href="{{ v.href }}"{% if v.selected %} aria-current="page"{% endif %} class="version-link{% if v.selected %} is-selected{% endif %}">{{ v.text }}{% if v.current %} (current){% endif %}</a>
+  {%- endfor %}
+</nav>
+{%- if notices.old %}
+<p class="notice notice-old" role="status">{{ notices.old.text }} <a href="{{ notices.old.href }}">{{ notices.old.link_text }}</a></p>
+{%- endif %}
+{%- if notices.lock %}
+<div class="notice lock-banner lock-{{ notices.lock.outcome }}" role="status">
+  <p class="lock-text">{{ notices.lock.text }}</p>
+  {%- if notices.lock.reason %}
+  <p class="lock-reason">Reason: {{ notices.lock.reason }}</p>
+  {%- endif %}
+</div>
+{%- endif %}
 <section class="copy-pane" aria-labelledby="copy-heading">
   <h2 id="copy-heading">Asset copy</h2>
   {# No whitespace may be added between pieces: the pane is pre-wrap, so extra spaces would show as copy. #}
@@ -63,5 +80,13 @@
     {%- endfor %}
   </ul>
   {%- endif %}
+</section>
+<section class="history-strip" aria-labelledby="history-heading">
+  <h2 id="history-heading">History</h2>
+  <ol class="history-list">
+    {%- for h in history %}
+    <li class="history-{{ h.kind }}">{{ h.text }} <span class="history-when">{{ h.when }}</span></li>
+    {%- endfor %}
+  </ol>
 </section>
 {% endblock %}
