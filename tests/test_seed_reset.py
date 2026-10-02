@@ -98,7 +98,7 @@ def test_ids_are_identical_after_reset(fresh):
 def test_no_orphans_or_user_rows_survive(fresh):
     add_user_data(fresh)
     reset_to_seed(fresh, NOW)
-    assert counts(fresh) == {"submission": 14, "version": 16, "flag": 0, "flag_dismissal": 1,
+    assert counts(fresh) == {"submission": 14, "version": 16, "flag": 25, "flag_dismissal": 1,
                              "decision": 7, "comment": 14}
     assert fresh.execute("SELECT count(*) FROM submission WHERE id = 15").fetchone()[0] == 0
     assert fresh.execute("PRAGMA foreign_key_check").fetchall() == []

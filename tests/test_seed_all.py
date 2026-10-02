@@ -22,7 +22,7 @@ def other_connection(db_path):
 def test_fresh_db_gets_the_full_seed(conn):
     seed_all(conn, NOW)
     assert counts(conn) == {"submission": 14, "version": 16, "decision": 7, "comment": 14,
-                            "flag_dismissal": 1, "flag": 0}
+                            "flag_dismissal": 1, "flag": 25}
     assert conn.execute("PRAGMA foreign_key_check").fetchall() == []
     assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
 

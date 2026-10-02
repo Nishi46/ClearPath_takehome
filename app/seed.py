@@ -5,14 +5,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from app import clock
+from app.choices import CHANNELS, OUTCOMES, PRODUCTS, STATUSES  # noqa: F401 (re-exported)
+from app.flags import evaluate_version, store_flags
 
 # Fixed path next to the app: nothing from a request can choose which file is loaded.
 SEED_PATH = Path(__file__).resolve().parent.parent / "data" / "seed.json"
 
-PRODUCTS = ("loan", "card", "mortgage")
-CHANNELS = ("email", "paid_social", "affiliate_page", "display")
-STATUSES = ("new", "in_review", "changes_requested", "approved", "rejected")
-OUTCOMES = ("approved", "changes_requested", "rejected")
 RULE_ID = re.compile(r"R[0-9]+")
 
 # A decision on the current version fixes the status; with no decision the item is still waiting.
@@ -275,11 +273,34 @@ def insert_submission(conn, sub):
     )
 
 
+def insert_flags(conn, sub):
+    """Run the rules engine on each version of a just-inserted submission and store the flags.
+
+    Flags are computed from the copy, never read from the seed file, so seed data and live
+    behavior cannot drift. A seeded dismissal must point at a rule that actually fired on that
+    version; otherwise the seed is inconsistent and the whole seeding fails.
+    """
+    sid = sub["seedId"]
+    fired = {}
+    for v in sub["versions"]:
+        version_id = conn.execute(
+            "SELECT id FROM version WHERE submission_id = ? AND version_number = ?",
+            (sid, v["versionNumber"])).fetchone()[0]
+        flags = evaluate_version(conn, version_id)
+        store_flags(conn, version_id, flags)
+        fired[v["versionNumber"]] = {f.rule_id for f in flags}
+    for x in sub["dismissals"]:
+        if x["ruleId"] not in fired.get(x["versionNumber"], ()):
+            raise SeedError(
+                f"submission {sid}: dismissal of {x['ruleId']} on version {x['versionNumber']}"
+                " has no matching flag")
+
+
 def insert_history(conn, sub):
     """Insert a resolved submission's decisions, comments and dismissals.
 
     Call after insert_submission: each row must point at a version that exists (composite
-    foreign key). Does not commit and does not touch the flag table; phase 3 computes flags.
+    foreign key). Does not commit and does not touch the flag table; insert_flags computes flags.
     """
     sid = sub["seedId"]
     conn.executemany(
@@ -315,6 +336,7 @@ def seed_rows(conn, now=None, data=None):
     resolved = resolve_times(data if data is not None else load_seed(), now or clock.now())
     for sub in resolved["submissions"]:
         insert_submission(conn, sub)
+        insert_flags(conn, sub)
         insert_history(conn, sub)
 
 

@@ -85,6 +85,7 @@ def test_multi_version_submissions_appear_once(seeded):
 
 def test_flag_count_uses_only_the_current_version(seeded):
     v1, v2 = [r[0] for r in seeded.execute("SELECT id FROM version WHERE submission_id = 5 ORDER BY version_number")]
+    seeded.execute("DELETE FROM flag")  # start from known rows; the seed now computes real flags
     for vid, rule in ((v1, "R2"), (v1, "R5"), (v2, "R7")):
         seeded.execute("INSERT INTO flag (version_id, rule_id, severity, kind) VALUES (?, ?, 'high', 'missing')",
                        (vid, rule))

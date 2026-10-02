@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
 
-from app.seed import CHANNELS, PRODUCTS
+from app.choices import CHANNELS, PRODUCTS
 
 # Fixed path next to the app: nothing from a request can choose which file is loaded.
 RULES_PATH = Path(__file__).resolve().parent.parent / "data" / "rules.json"
