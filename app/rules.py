@@ -233,3 +233,43 @@ def find_phrase(norm_text, compiled):
     Offsets are valid on the original copy because normalize() keeps the length.
     """
     return [m.span() for m in compiled.finditer(norm_text)]
+
+
+# ---- scope and input guards ----
+
+# Backstop for the engine; the submit form (phase 5) will enforce a much smaller limit.
+MAX_COPY_CHARS = 100_000
+
+
+def _check_choice(value, allowed, label):
+    # The message never repeats the value: it came from outside and may end up in logs or pages.
+    if not isinstance(value, str) or value not in allowed:
+        raise ValueError(f"Unknown {label}")
+
+
+def check_inputs(product, channel, copy):
+    """Raise unless product, channel and copy are fit to evaluate.
+
+    An unknown product or channel fails loudly: quietly returning no flags would tell a reviewer
+    that an item is clean when it was never checked.
+    """
+    _check_choice(product, PRODUCTS, "product")
+    _check_choice(channel, CHANNELS, "channel")
+    if not isinstance(copy, str):
+        raise TypeError("copy must be a string")
+    if len(copy) > MAX_COPY_CHARS:
+        raise ValueError(f"Copy is longer than {MAX_COPY_CHARS:,} characters")
+
+
+def _rule_order(rule):
+    digits = re.findall(r"[0-9]+", rule.id)
+    return (int(digits[0]) if digits else 0, rule.id)  # so R10 sorts after R9
+
+
+def rules_for(product, channel):
+    """The rules that apply to this product and channel, in rule-id order."""
+    _check_choice(product, PRODUCTS, "product")
+    _check_choice(channel, CHANNELS, "channel")
+    return tuple(sorted(
+        (r for r in all_rules() if product in r.products and channel in r.channels),
+        key=_rule_order))
