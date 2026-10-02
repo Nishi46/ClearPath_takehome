@@ -46,8 +46,10 @@
       <td data-label="Product">{{ r.product_label }}</td>
       <td data-label="Channel">{{ r.channel_label }}</td>
       <td data-label="Launch date">
-        <time datetime="{{ r.launch_date }}">{{ r.launch_text }}</time>
-        {% if r.urgency_label %}<span class="urgency">{{ r.urgency_label }}</span>{% endif %}
+        <div class="launch">
+          <time datetime="{{ r.launch_date }}">{{ r.launch_text }}</time>
+          {% if r.urgency_label %}<span class="urgency">{{ r.urgency_label }}</span>{% endif %}
+        </div>
       </td>
       <td data-label="Status"><span class="status status-{{ r.status }}">{{ r.status_label }}</span></td>
       <td data-label="Submitter">{{ r.submitted_by }}</td>
