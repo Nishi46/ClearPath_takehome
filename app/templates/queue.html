@@ -21,6 +21,11 @@
   <a class="filter-clear" href="/">Clear filters</a>
 </form>
 <p class="summary">{{ summary }}</p>
+{% if empty == "filtered" %}
+<p class="empty-state" role="status">No items match these filters. <a href="/">Clear filters</a></p>
+{% elif empty == "empty" %}
+<p class="empty-state" role="status">No submissions yet. <a href="/submit">Submit the first one</a></p>
+{% else %}
 <table class="queue">
   <caption class="visually-hidden">Submissions, earliest launch date first</caption>
   <thead>
@@ -51,4 +56,5 @@
     {% endfor %}
   </tbody>
 </table>
+{% endif %}
 {% endblock %}

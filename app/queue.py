@@ -173,3 +173,20 @@ def summary_text(views):
     if attention == 0:
         return items + " \u00b7 none need attention"
     return items + " \u00b7 %d %s attention" % (attention, "needs" if attention == 1 else "need")
+
+
+def has_submissions(conn):
+    return bool(conn.execute("SELECT EXISTS (SELECT 1 FROM submission)").fetchone()[0])
+
+
+def empty_kind(conn, views, filters):
+    """Why the table has no rows: None (it has rows), "filtered" (filters hide everything) or "empty".
+
+    An empty database says "empty" even when filters are set, so the page never blames
+    the filters for a queue that has nothing in it.
+    """
+    if views:
+        return None
+    if any(filters.values()) and has_submissions(conn):
+        return "filtered"
+    return "empty"

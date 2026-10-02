@@ -137,3 +137,5 @@ table.queue .urgency { display: block; font-weight: 700; }
 }
 .filter-apply { cursor: pointer; }
 .summary { margin: 0 0 var(--space); color: var(--text-muted); }
+
+.empty-state { margin: 0; padding: 1.5rem 1rem; border: 1px dashed var(--border); border-radius: var(--radius); background: var(--surface); text-align: center; }
