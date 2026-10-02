@@ -45,7 +45,7 @@ def test_autoescape_is_on():
 def test_htmx_is_local_and_has_integrity(client):
     html = client.get("/").text
     tag = re.search(r"<script[^>]*htmx[^>]*>", html).group(0)
-    assert 'src="/static/htmx.min.js"' in tag
+    assert re.search(r'src="/static/htmx\.min\.js\?v=[0-9a-f]{10}"', tag)
     assert re.search(r'integrity="sha384-[A-Za-z0-9+/=]+"', tag)
     assert "crossorigin" in tag
     assert "http://" not in html and "https://" not in html  # no third-party loads
