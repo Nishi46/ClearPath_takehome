@@ -140,6 +140,6 @@ def review_page(request: Request, submission_id: str):
         raise HTTPException(status_code=404)
     pieces = review.copy_view(data)
     response = render(request, "review.html", head=review.header_view(data), copy=pieces,
-                      cards=review.cards_view(data, pieces), notes=(data["version"]["notes"] or "").strip())
+                      cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data), notes=(data["version"]["notes"] or "").strip())
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response

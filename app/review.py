@@ -207,3 +207,29 @@ def cards_view(data, pieces):
                 "anchor": f["id"] if f["id"] in anchored else None,
             })
     return sorted(cards.values(), key=lambda c: (_SEVERITY_RANK.get(c["severity"], 3), c["rule_id"]))
+
+
+def when_text(timestamp):
+    """'Oct 2, 2026 14:02 UTC' from a stored UTC timestamp; a malformed value gives a safe fallback."""
+    from datetime import datetime
+
+    from app.queue import MONTHS
+
+    try:
+        moment = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+    except (ValueError, TypeError):
+        return "unknown time"
+    return "%s %d, %d %02d:%02d UTC" % (MONTHS[moment.month - 1], moment.day, moment.year,
+                                        moment.hour, moment.minute)
+
+
+def dismissals_view(data):
+    """Dismissed rules of the selected version: rule name, who, when and the note (plain text)."""
+    from app.rules import describe
+
+    out = []
+    for d in data["dismissals"]:
+        info = describe({"rule_id": d["rule_id"]})
+        out.append({"rule_id": info["rule_id"], "name": info["name"], "by": d["dismissed_by"],
+                    "when": when_text(d["created_at"]), "note": d["note"]})
+    return out

@@ -257,3 +257,8 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .flag-missing { border-left: 3px solid var(--border); padding-left: 0.75rem; margin-top: 0.5rem; }
 .flag-snippet { white-space: pre-wrap; overflow-wrap: anywhere; }
 .flag-note { color: var(--text-muted); font-size: 0.875rem; }
+.flag-assist-note, .flag-empty { color: var(--text-muted); font-size: 0.875rem; }
+.flag-dismissed { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.flag-dismissal { color: var(--text-muted); border: 1px dashed var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; }
+.flag-dismissal p { margin: 0.125rem 0; overflow-wrap: anywhere; }
+.dismissal-note { white-space: pre-wrap; }

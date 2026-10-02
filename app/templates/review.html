@@ -22,6 +22,11 @@
 </section>
 <section class="flags-pane" aria-labelledby="flags-heading">
   <h2 id="flags-heading">Flags ({{ cards|length }})</h2>
+  <p class="flag-assist-note">Flags assist the reviewer. They never decide.<br>Rules are illustrative, not legal advice.</p>
+  {%- if not cards %}
+  <p class="flag-empty" role="status">{% if dismissed %}No open flags. Every flag on this version was dismissed.{% else %}No flags detected.{% endif %}
+    This is not a guarantee of compliance. A reviewer still reads the copy.</p>
+  {%- endif %}
   <ul class="flag-cards">
     {%- for c in cards %}
     <li class="flag-card">
@@ -47,5 +52,16 @@
     </li>
     {%- endfor %}
   </ul>
+  {%- if dismissed %}
+  <h3 class="dismissed-heading">Dismissed ({{ dismissed|length }})</h3>
+  <ul class="flag-dismissed">
+    {%- for d in dismissed %}
+    <li class="flag-dismissal">
+      <p><strong>{{ d.rule_id }}: {{ d.name }}</strong> &middot; dismissed by {{ d.by }}, {{ d.when }}</p>
+      <p class="dismissal-note">Note: {{ d.note }}</p>
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
 </section>
 {% endblock %}
