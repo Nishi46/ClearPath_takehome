@@ -1,4 +1,5 @@
 import json
+import bisect
 import functools
 import re
 from dataclasses import dataclass
@@ -309,7 +310,7 @@ class Flag:
 
 # Rules the engine evaluates so far. Later steps add the rest; the engine never reports a rule
 # it has not been tested for.
-_EVALUATED = {"R1", "R3", "R4", "R5", "R7"}
+_EVALUATED = {"R1", "R2", "R3", "R4", "R5", "R7"}
 
 
 @functools.lru_cache(maxsize=None)
@@ -356,7 +357,46 @@ _URL = re.compile(
 _URL_SATISFIES = {"R7"}
 
 
+# R2 triggers only when a percentage sits near the word "rate" or "interest". "Near" means at
+# most MAX_RATE_GAP characters between them, with no blank line in between (same paragraph).
+MAX_RATE_GAP = 60
+_PERCENT = re.compile(r"(?<![\w.])(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+) ?(?:%|percent(?![^\W_]))")
+_RATE_WORD = re.compile(r"(?<![^\W_])(?:rates?|interest)(?![^\W_])")
+_BLANK_LINE = re.compile(r"\n[ \t\r]*\n")
+
+
+def _near(norm, left_end, right_start):
+    gap = right_start - left_end
+    return 0 <= gap <= MAX_RATE_GAP and not _BLANK_LINE.search(norm, left_end, right_start)
+
+
+def _rate_shown(norm):
+    """True if a percentage appears within MAX_RATE_GAP characters of "rate" or "interest"."""
+    words = [m.span() for m in _RATE_WORD.finditer(norm)]
+    if not words:
+        return False
+    starts = [w[0] for w in words]
+    ends = [w[1] for w in words]
+    for m in _PERCENT.finditer(norm):
+        ps, pe = m.span()
+        # Only the nearest rate word on each side can be the closest, so only those are checked.
+        i = bisect.bisect_left(starts, pe)
+        if i < len(words) and _near(norm, pe, starts[i]):
+            return True
+        j = bisect.bisect_right(ends, ps) - 1
+        if j >= 0 and _near(norm, ends[j], ps):
+            return True
+    return False
+
+
+# Missing-text rules that only apply once something in the copy triggers them.
+_TRIGGERS = {"R2": _rate_shown}
+
+
 def _missing_flags(rule, norm):
+    trigger = _TRIGGERS.get(rule.id)
+    if trigger is not None and not trigger(norm):
+        return []
     if is_present(norm, _required_patterns(rule.id)):
         return []
     if rule.id in _URL_SATISFIES and _URL.search(norm):

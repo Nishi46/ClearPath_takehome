@@ -22,7 +22,8 @@
     "kind": "missing",
     "detection": {
       "trigger": "a percentage near the word 'rate' or 'interest'",
-      "required": ["APR"]
+      "required": ["APR"],
+      "variants": ["APR", "APRs", "annual percentage rate"]
     },
     "snippetText": "Rate is shown without APR. Add the APR alongside it."
   },
