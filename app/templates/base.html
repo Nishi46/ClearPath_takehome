@@ -20,7 +20,7 @@
     </nav>
     <div class="header-controls">
       <nav class="role-switcher" aria-label="Role">
-        <span class="role-label">Role: <strong>{{ role|capitalize }}</strong></span>
+        <span class="role-label">Role:</span>
         <form method="post" action="/role" class="role-form">
           {% for r in roles %}
           <button type="submit" name="role" value="{{ r }}" class="role-option"
@@ -31,7 +31,7 @@
       <div class="reset-demo-group">
         {# A link, not a form: opening the confirmation page changes nothing. #}
         <a class="reset-demo" href="/reset/confirm" aria-describedby="reset-demo-note">Reset demo</a>
-      <small id="reset-demo-note" class="reset-demo-note">Resets data for everyone using this demo.</small>
+        <small id="reset-demo-note" class="reset-demo-note">Resets data for everyone using this demo.</small>
       </div>
     </div>
   </header>

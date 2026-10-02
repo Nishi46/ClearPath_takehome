@@ -67,7 +67,8 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1.5rem;
-  padding: 0.75rem var(--space);
+  /* Line the header up with the centered page column below (main: 72rem wide plus var(--space)). */
+  padding: 0.75rem max(var(--space), calc((100% - 72rem) / 2 + var(--space))) 1.75rem;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
@@ -82,10 +83,11 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline
 }
 .role-switcher { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .role-label { color: var(--text-muted); }
+.role-switcher, .role-form { align-items: center; }
 .role-form { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
 .role-option {
   font: inherit;
-  padding: 0.125rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -106,8 +108,12 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline
   cursor: pointer;
 }
 .reset-demo:hover { border-color: var(--accent); }
-.reset-demo-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.125rem; }
-.reset-demo-note { font-size: 0.75rem; color: var(--text-muted); line-height: 1.25; }
+/* The note hangs below the button without adding to the row height, so the button lines up with the role buttons. */
+.reset-demo-group { position: relative; }
+.reset-demo-note {
+  position: absolute; top: 100%; right: 0; margin-top: 0.25rem;
+  font-size: 0.75rem; color: var(--text-muted); line-height: 1.25; white-space: nowrap;
+}
 
 /* Plain-text confirmation: the words carry the meaning, the border is only decoration. */
 .banner {
@@ -132,7 +138,10 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline
 main { max-width: 72rem; margin: 0 auto; padding: var(--space); }
 
 @media (max-width: 40rem) {
+  .site-header { padding-bottom: 0.75rem; }
   .header-controls { margin-left: 0; width: 100%; }
+  .reset-demo-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+  .reset-demo-note { position: static; margin-top: 0; white-space: normal; }
 }
 
 /* Queue table */

@@ -27,13 +27,13 @@ def test_no_cookie_defaults_to_reviewer(client):
     r = client.get("/")
     assert r.status_code == 200
     assert current_role(r.text) == "reviewer"
-    assert "Role: <strong>Reviewer</strong>" in r.text
+    assert "Reviewer (current)" in r.text and "Marketer (current)" not in r.text
 
 
 def test_valid_marketer_cookie_renders_marketer(client):
     r = get_with_cookie(client, "marketer")
     assert current_role(r.text) == "marketer"
-    assert "Role: <strong>Marketer</strong>" in r.text
+    assert "Reviewer (current)" not in r.text
     assert "Marketer (current)" in r.text
 
 
