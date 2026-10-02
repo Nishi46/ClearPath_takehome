@@ -1,4 +1,5 @@
 import json
+import functools
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -273,3 +274,71 @@ def rules_for(product, channel):
     return tuple(sorted(
         (r for r in all_rules() if product in r.products and channel in r.channels),
         key=_rule_order))
+
+
+# ---- evaluation ----
+
+@dataclass(frozen=True)
+class Flag:
+    """One finding. Names, explanations and snippets are looked up from the rule by `rule_id`.
+
+    Phrase flags carry the matched text and its start and end in the original copy; missing-text
+    flags carry None for all three. This is the same shape the `flag` table enforces.
+    """
+    rule_id: str
+    severity: str
+    kind: str
+    matched_text: object = None
+    start: object = None
+    end: object = None
+
+    def __post_init__(self):
+        if self.severity not in SEVERITIES:
+            raise ValueError("Unknown severity")
+        if self.kind == "phrase":
+            if (not isinstance(self.matched_text, str) or not self.matched_text
+                    or type(self.start) is not int or type(self.end) is not int
+                    or not 0 <= self.start < self.end):
+                raise ValueError("A phrase flag needs matched text and 0 <= start < end")
+        elif self.kind == "missing":
+            if (self.matched_text, self.start, self.end) != (None, None, None):
+                raise ValueError("A missing-text flag has no matched text or offsets")
+        else:
+            raise ValueError("Unknown kind")
+
+
+# Rules the engine evaluates so far. Later steps add the rest; the engine never reports a rule
+# it has not been tested for.
+_EVALUATED = {"R1"}
+
+
+@functools.lru_cache(maxsize=None)
+def _phrase_patterns(rule_id):
+    return tuple(compile_phrase(p) for p in get_rule(rule_id).detection["phrases"])
+
+
+def _phrase_flags(rule, copy, norm):
+    spans = sorted({span for pat in _phrase_patterns(rule.id) for span in find_phrase(norm, pat)},
+                   key=lambda s: (s[0], -s[1]))
+    flags, last_end = [], 0
+    for start, end in spans:
+        if start < last_end:  # overlaps the previous match of this rule: highlight it once
+            continue
+        flags.append(Flag(rule.id, rule.severity, "phrase", copy[start:end], start, end))
+        last_end = end
+    return flags
+
+
+def evaluate(product, channel, copy):
+    """Return the flags for this copy, ordered by rule id then position.
+
+    Raises ValueError or TypeError for input it cannot check (see check_inputs). It has no
+    side effects and reads nothing but its arguments and the loaded rules.
+    """
+    check_inputs(product, channel, copy)
+    norm = normalize(copy)
+    flags = []
+    for rule in rules_for(product, channel):
+        if rule.id in _EVALUATED and rule.kind == "phrase":
+            flags.extend(_phrase_flags(rule, copy, norm))
+    return tuple(flags)
