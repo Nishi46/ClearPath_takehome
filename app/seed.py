@@ -1,5 +1,7 @@
+import copy
 import json
 import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Fixed path next to the app: nothing from a request can choose which file is loaded.
@@ -212,3 +214,35 @@ def _validate_status(s, decided, where):
             raise SeedError(f"{where}: status {s['status']!r} needs a decision on the current version")
     elif s["status"] != STATUS_FOR_OUTCOME[current["outcome"]]:
         raise SeedError(f"{where}: status {s['status']!r} does not match the {current['outcome']} decision")
+
+
+# ---- offsets to real timestamps ----
+
+def format_timestamp(moment):
+    """UTC ISO string with a Z suffix and no fraction, the one format stored in the database."""
+    return moment.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def resolve_times(data, now):
+    """Return a copy of the seed with offsets replaced by real values; the input is not changed.
+
+    launchOffsetDays -> launchDate ('YYYY-MM-DD'); every createdHoursAgo / hoursAgo -> createdAt.
+    `now` is cut to whole seconds first, so one `now` always gives identical output.
+    """
+    if not isinstance(now, datetime) or now.tzinfo is None:
+        raise ValueError("now must be a timezone-aware datetime")
+    now = now.astimezone(timezone.utc).replace(microsecond=0)
+
+    def ago(hours):
+        return format_timestamp(now - timedelta(seconds=round(hours * 3600)))
+
+    out = copy.deepcopy(data)
+    for s in out["submissions"]:
+        s["launchDate"] = (now.date() + timedelta(days=s.pop("launchOffsetDays"))).isoformat()
+        s["createdAt"] = ago(s.pop("createdHoursAgo"))
+        for v in s["versions"]:
+            v["createdAt"] = ago(v.pop("createdHoursAgo"))
+        for key in ("decisions", "comments", "dismissals"):
+            for item in s[key]:
+                item["createdAt"] = ago(item.pop("hoursAgo"))
+    return out
