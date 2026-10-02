@@ -27,7 +27,7 @@ def _open():
         raise DatabaseError("Cannot open database %s: %s" % (path, exc)) from exc
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA busy_timeout = %d" % BUSY_TIMEOUT_MS)
+    conn.execute("PRAGMA busy_timeout = 5000")  # keep in sync with BUSY_TIMEOUT_MS
     return conn
 
 
