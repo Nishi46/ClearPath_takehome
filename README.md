@@ -1,4 +1,188 @@
-# ClearPath_takehome
+# ClearPath Review
+
+**Live demo: https://clearpath-review.onrender.com**
+
+A review queue for marketing compliance. It makes each review faster and each submission better, so a
+compliance team can clear more assets per reviewer without lowering the bar.
+
+> ClearPath Financial is a fictional online lender (personal loans, credit cards, mortgage prequalification).
+> The rules, names and data are illustrative. **The rules are not legal advice and not a real policy.**
+
+The demo runs on Render's free tier. The first request after a quiet spell can take about a minute while the
+service wakes up. Its database is wiped on every restart or deploy and re-seeded on startup, so the demo always
+opens in a known state.
+
+## The problem and the thesis
+
+Every marketing asset must pass compliance review before it goes live. Today that review runs on Excel and
+email, and it is the bottleneck on growth: incomplete submissions, feedback scattered across threads,
+resubmissions that must be re-read in full, no prioritization, the same comment retyped dozens of times, and an
+audit trail rebuilt from an inbox.
+
+Throughput comes from two levers: **reviewer time per item** and **review rounds per item**. Each feature
+targets one of them:
+
+| Pain point | What the product does |
+|---|---|
+| Incomplete submissions | Structured form with required fields and inline errors that keep your input |
+| Feedback in email | Decisions and comments live on the submission, per version, and show on **My submissions** |
+| Re-reading resubmissions | Every resubmit is a new version with a word-level diff against the previous one |
+| No prioritization | Queue sorts by launch date; overdue and rush items stand out; filters by status, product, channel, submitter |
+| Repeated comments | One-click snippets tied to each rule |
+| Rework from preventable issues | A pre-check shows flags to the marketer before they submit |
+| Weak audit trail | Versions, flags dismissed, comments and decisions are timestamped, append-only, and approved versions are locked |
+
+**Flags assist, they never decide.** The seven rules are transparent keyword checks. They point a reviewer at
+likely problems in context; a human makes every approve, request-changes or reject call. The speed-up comes from
+better-prepared reviews, not skipped ones.
+
+## Try this (about 3 minutes)
+
+The demo opens as a **Reviewer** on a populated queue. Launch dates are relative to today, so one item is always
+overdue and a few are rush.
+
+1. **Triage.** The queue is sorted by launch date. #11 is overdue and #1 and #2 are rush. Try the filters
+   (for example Status = Rejected and Product = Card shows the zero-results state).
+2. **Open #1** (personal loan holiday email). Flagged phrases are highlighted in the copy. Missing disclosures show
+   as "Missing: add this" cards. Each flag gives its rule, severity and a plain explanation.
+3. **Use a snippet.** On the R2 card click **Use snippet**, edit the comment, post it. Then **Request changes**
+   with a reason (a reason is required for request changes and reject).
+4. **Dismiss a false positive.** Open #12 and dismiss the R4 flag (an explanatory use of "pre-approved") with a
+   note. It stays visible with the note and your name, and it drops out of the count. #13 shows one already dismissed.
+5. **Switch Role to Marketer** and pick Jordan Lee. **My submissions** puts items needing action first. Edit and
+   resubmit #14. Try submitting it unchanged to see it blocked.
+6. **Back as Reviewer**, open #5 and click the diff toggle for the v1 to v2 changes. Every review page ends with an
+   **Audit trail**.
+7. **Affiliate partners.** Switch Role to Affiliate (Northwind Referrals). Resubmit #3 after requesting changes.
+8. **Import.** As a marketer or partner open **Import**, preview the sample sheet, and import the ready rows.
+9. **Reset demo** (header) restores the exact seed for everyone.
+
+Flag coverage worth knowing: R1 to R7 each fire on a seed item; #10 and #11 are near-misses that must not fire;
+#13 is a deliberate false positive; #8 contains a violation no rule catches ("everyone gets a yes").
+
+## Scope
+
+**In:** structured submission with validation and a pre-check; reviewer queue with urgency and filters; review
+screen with approve, request changes and reject; versioned resubmission with diff; seven scoped rules with
+inline highlights and "missing" cards; flag dismissal with a required note; rule-linked comment snippets;
+audit trail; My submissions; affiliate partner role; Excel import; seed data and reset; light and dark theme.
+
+**Out, on purpose:** login and real permissions, notifications and integrations (email, Slack, Jira), image or
+video review, a real legal rules engine, multi-reviewer assignment and SLAs, campaign-level review, a metrics
+dashboard (the stretch item that was cut), title search on the queue, marketer replies inside comments.
+The reasoning is in [documentation/scope.md](documentation/scope.md).
+
+## Assumptions and shortcuts, stated openly
+
+Full list with tradeoffs: [documentation/assumptions.md](documentation/assumptions.md).
+
+- **No authentication.** Role (Reviewer, Marketer, Affiliate) and "who I am" are demo labels in cookies, not
+  logins. All decisions are attributed to one fixed demo reviewer (Alex Rivera). The audit trail shows the
+  *shape* of a real record, not proof of who acted.
+- **One shared SQLite database.** Everyone using the demo sees the same data, and anyone can press Reset.
+  Reset needs confirmation, and a second reset within 10 seconds is refused.
+- **Text only, one asset per submission.** Disclosure placement and image content are invisible to the checks.
+- **Rules are keyword matches**, trading recall for explainability. What they miss, and why, is listed in
+  [documentation/rules-engine.md](documentation/rules-engine.md).
+- **Launch date is the urgency signal**, and a rush date warns rather than blocks.
+- **Excel import is not all-or-nothing.** Rows are saved one at a time and a partial result is reported. Uploaded
+  files are held in memory for 10 minutes between preview and import and never saved.
+
+## How the product works
+
+**Rules R1 to R7**
+
+| ID | Rule | Applies to | Severity | Kind |
+|---|---|---|---|---|
+| R1 | No guaranteed-approval claims | All | High | phrase |
+| R2 | Rate shown requires APR | Loan, card, mortgage | High | missing |
+| R3 | Equal Housing Lender statement | Mortgage | High | missing |
+| R4 | "Prequalified" must not imply final approval | Mortgage, loan | Medium | phrase |
+| R5 | Credit approval disclaimer | Loan, card | Medium | missing |
+| R6 | No pressure or false urgency (unless an end date is stated) | All | Low | phrase |
+| R7 | Disclosure reachable in short formats | Paid social, display | Medium | missing |
+
+Rules live in [data/rules.json](data/rules.json). Flags are computed by the engine when an item is seeded or
+submitted, so seed data and live behavior cannot drift. Severity and status are always shown as text as well as
+color.
+
+**Rules the server enforces**
+- A decision needs a reason for request changes and reject. A version with a decision is locked, and a second
+  decision is refused even from a stale page, a double click or a direct request.
+- Approved items are locked. Comments are still allowed.
+- A resubmission with identical copy is blocked. Only the submitter can resubmit, and only the current version.
+- Partners can only submit for the Affiliate page channel; the server sets it whatever the form says.
+- Demo limits: 300 submissions, 10 versions per submission; an identical double submit is refused.
+
+**Importing from Excel.** Columns: Title, Product, Channel, Launch date, Copy, optional Notes (first sheet,
+up to 200 rows, under 1 MB, no macros). Preview shows each row as *Ready*, *Needs fixing* or *Already exists*
+and writes nothing. Import then creates only the ready rows through the same checks as the form. The sheet
+cannot set the submitter. The sample [data/import-sample.xlsx](data/import-sample.xlsx) has dates counted from
+when it was generated; regenerate it with `python -m tests.tools.make_import_sample` if it is stale.
+
+## Navigating the repo
+
+```
+app/
+  main.py            FastAPI app, startup (schema + seed), middleware, error handlers
+  routes/
+    pages.py         queue, review screen, decisions, dismissals, comments, role, reset, /healthz
+    submit_pages.py  submit, pre-check, resubmit, My submissions, marketer/affiliate identity
+    import_pages.py  Excel import: page, preview, confirm, sample download
+  rules.py           rules engine (phrase and missing-text checks)
+  flags.py           flag storage and dismissal state
+  review.py          review-screen view model and decision/comment/dismiss logic
+  submit.py          submission and version creation, validation, limits
+  queue.py           queue query, filters, urgency
+  mine.py            My submissions view
+  diff.py            word-level version diff
+  audit.py           audit trail
+  xlsx_import.py     workbook parsing, row checks, import
+  seed.py, clock.py  seed loading and relative dates
+  roles.py           demo roles and identities (not auth)
+  security.py        security headers, request size limit, same-origin checks
+  db.py, schema.sql  SQLite connection and schema
+  templates/         Jinja pages and HTMX partials
+  static/            CSS, small per-page JS, theme toggle, vendored htmx
+data/                rules.json, seed.json, import-sample.xlsx
+documentation/       scope, assumptions, screens, rules engine, seed data, build log, UI notes
+tests/               pytest suite (unit, route, edge-case and polish sweeps)
+render.yaml          Render deployment blueprint
+```
+
+Stack: Python 3.11, FastAPI, Jinja2 server-rendered pages, HTMX for the pre-check, SQLite, openpyxl for import.
+No build step and no front-end framework.
+
+Where to read more:
+
+| Document | What it covers |
+|---|---|
+| [documentation/scope.md](documentation/scope.md) | Problem, users, scope, cut order, data model |
+| [documentation/assumptions.md](documentation/assumptions.md) | Every assumption with tradeoff and "revisit if" |
+| [documentation/screens.md](documentation/screens.md) | Screen-by-screen behavior |
+| [documentation/rules-engine.md](documentation/rules-engine.md) | How flags are produced and their known limits |
+| [documentation/seed-data.md](documentation/seed-data.md) | The 14 seed items and what each one demonstrates |
+| [documentation/build.md](documentation/build.md) | Build plan and the phase-by-phase steps files |
+| [documentation/dependency-audit.md](documentation/dependency-audit.md) | Pinned dependencies and audit results |
+
+## What's next
+
+This was built in 24 hours, so several things were cut on purpose. These three would be built first, in this
+order, because each one removes a limit the demo currently states openly.
+
+1. **Metrics dashboard.** Median time to decision, first-pass approval rate, backlog by status, and top flagged
+   rules. The data is already captured (versions, decisions and timestamps), so this is mostly queries and one
+   screen. It is what a compliance manager needs to see whether the two throughput levers (time per item and
+   rounds per item) are moving, and the "top flagged rules" view shows which rules to tighten or retire.
+2. **Real identity and roles.** Replace the cookie labels with login, so "who approved this" in the audit trail
+   is a verified fact, a marketer cannot act as a reviewer, and partners only see their own items. This comes
+   before anything involving real data, because the audit record is not defensible without it.
+3. **Notifications and queue search.** Email or Slack alerts when changes are requested, an item is decided, or
+   one is about to go overdue, plus title search on the queue. Marketers stop asking "where is my asset?" and
+   reviewers stop missing urgent items.
+
+After those: image and layout review so disclosure placement can be checked, versioned rules with an optional
+LLM second pass for paraphrased violations (still assistive only), routing by product, and campaign-level review.
 
 ## Run locally
 
@@ -11,70 +195,10 @@ pip install -r requirements-dev.txt
 uvicorn app.main:app --reload
 ```
 
-Open http://127.0.0.1:8000. The database file is created on first start and loaded with 14 sample
-submissions. Launch dates and timestamps are relative to the day you start the app, so the queue
-always has one overdue item and a few rush ones.
+Open http://127.0.0.1:8000. The database file is created on first start and loaded with 14 sample submissions.
+To start completely fresh, stop the app and delete `clearpath.db`.
 
-**Reset demo** (header) restores the original sample data for everyone using the database. It asks
-for confirmation first, and a second reset within 10 seconds is refused. To start completely fresh
-locally, stop the app and delete `clearpath.db`.
-
-**Flags.** Every asset is checked against seven illustrative rules (R1 to R7) when the demo is seeded
-or reset. The queue's Flags column shows how many rules fired on the current version and the highest
-severity (H, M or L). Flags assist a reviewer and never decide anything. The rules are illustrative,
-not legal advice, and are deliberately simple keyword checks; what they miss is listed in
-[documentation/rules-engine.md](documentation/rules-engine.md).
-
-**Reviewing.** Open any row to see the copy, the flags and a decision form. A reviewer can approve, request
-changes or reject; a reason is required for the last two. Once a version has a decision it is locked, and
-the server refuses a second one even if the page is stale or the request is sent directly. Decisions are
-recorded as one fixed demo reviewer, and the Reviewer/Marketer switch is a demo label, not a login.
-
-**Dismissing flags, snippets and the audit trail.** Flags can be wrong, so a reviewer can dismiss one with a
-required note (try R4 on #12, a phrase inside a sentence that explains the rule). A dismissal is permanent and
-visible: it is listed with its note and reviewer, it removes the flag from the open list and the queue count,
-and nothing can edit or delete it. It applies to the current version before a decision only, and the next
-version starts with fresh flags. **Use snippet** on a flag card fills the comment box with that rule's ready-made
-comment (try R2 on #14); the reviewer edits it and posts it, linked to the rule. Comments are allowed on locked
-items too, such as an approved one. Every review page ends with an **Audit trail**: versions, dismissals,
-comments and decisions in time order, each with who, what and when. Names are demo labels, so the trail shows
-the shape of a real record, not proof of who acted. Marketer replies in comments are out of scope.
-
-**Submitting and resubmitting.** A marketer submits from **Submit**, sees the flags in a pre-check before
-sending (they never block), and follows their items on **My submissions**, where anything that needs action
-comes first. After changes are requested or an item is rejected, the marketer edits and resubmits it as a new
-version; the reviewer can read a word-level diff against the previous version (`?diff=1` on the review screen).
-Rules the server enforces:
-- A resubmission with the same copy as the previous version is blocked.
-- Approved items are locked. A change after approval is out of scope.
-- Only the marketer who submitted an item can resubmit it, and only its current version.
-- The demo holds at most 300 submissions and 10 versions per submission, and an identical double submit is refused.
-
-**Importing from Excel.** Marketers and partners can also add many items at once from **Import**. The repo ships a
-sample sheet (`data/import-sample.xlsx`, also downloadable from the page): **Preview the sample file** shows
-one row per spreadsheet row as *Ready*, *Needs fixing* (with the same messages as the form) or *Already exists*,
-with the flags each ready row would raise, and nothing is written. **Import N rows** then creates only the
-ready rows, as ordinary new submissions that go through the same checks as a typed one. You can also upload
-your own `.xlsx` (columns: Title, Product, Channel, Launch date, Copy, optional Notes; first sheet, up to 200 rows,
-under 1 MB, no macros). The sheet can't set who submitted: that is always the marketer or partner you are using
-the demo as, and partners always get the Affiliate page channel. Shortcuts, stated openly: the import is not
-all-or-nothing (rows are saved one at a time, so a partial result is reported, not rolled back); an uploaded
-file is held in memory for 10 minutes between preview and import and is never saved; and the sample's dates
-are counted from the day it was generated, so run `python -m tests.tools.make_import_sample` before a demo if it
-is more than a few days old. Reset removes imported items, so you can import the sample again.
-
-"Who I am" as a marketer is a demo label (Maya Chen, Jordan Lee or Sam Patel), not a login. Try Jordan Lee:
-#14 (changes requested) and #8 (rejected) can be resubmitted, and #5 shows a v1 to v2 diff.
-
-**Affiliate partners.** Switch Role to **Affiliate** to act as a partner (Northwind Referrals, BlueLeaf Media
-or Summit Savers). Partners submit and resubmit their own assets directly, under the same rules as a marketer,
-but only for the **Affiliate page** channel: the server sets the channel, whatever the form says. The queue
-shows a **Partner** badge on their items and has a **Submitted by** filter (affiliate partners or internal
-marketers). Like marketers, partners are demo labels, not logins. Try Northwind Referrals: switch to Reviewer,
-request changes on #3, then switch back to Affiliate and resubmit it. BlueLeaf Media owns #12, and Summit
-Savers owns nothing, so it shows the empty state.
-
-Run the tests (from the project root, with the venv active):
+Run the tests from the project root with the venv active:
 
 ```bash
 pytest
@@ -82,10 +206,14 @@ pytest
 
 `--reload` is for local development only. Never use it in a deployed start command.
 
-## Environment
+## Deploying
+
+[render.yaml](render.yaml) defines the Render web service: build `pip install -r requirements.txt`, start
+`uvicorn app.main:app --host 0.0.0.0 --port $PORT`, health check `/healthz`, Python 3.11.8. The free tier has no
+persistent disk, so the database lives in `/tmp` and resets on restart.
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `CLEARPATH_DB` | Path to the SQLite database file. Its folder must already exist and be writable. | `./clearpath.db` |
+| `CLEARPATH_DB` | Path to the SQLite file. Its folder must exist and be writable. | `./clearpath.db` |
 
 No secrets are required. The app has no API keys, passwords or tokens.
