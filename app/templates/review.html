@@ -20,4 +20,23 @@
   <h3 class="notes-heading">Notes from marketer</h3>
   {% if notes %}<p class="notes-text">{{ notes }}</p>{% else %}<p class="notes-text">No notes.</p>{% endif %}
 </section>
+<section class="flags-pane" aria-labelledby="flags-heading">
+  <h2 id="flags-heading">Flags ({{ cards|length }})</h2>
+  <ul class="flag-cards">
+    {%- for c in cards %}
+    <li class="flag-card">
+      <h3><span class="sev sev-{{ c.severity }}" aria-hidden="true">{{ c.letter }}</span> {{ c.rule_id }}: {{ c.name }}</h3>
+      <p class="flag-severity">Severity: {{ c.severity_label }}</p>
+      <p class="flag-why"><strong>Why it fired:</strong> {{ c.explanation }}</p>
+      {%- if c.occurrences %}
+      <ul class="flag-occurrences">
+        {%- for o in c.occurrences %}
+        <li>{% if o.anchor %}<a href="#flag-{{ o.anchor }}" title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</a>{% else %}<span title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</span>{% endif %}</li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
 {% endblock %}

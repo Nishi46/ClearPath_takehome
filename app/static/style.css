@@ -247,3 +247,10 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
   .flag-mark:target { animation: flag-pulse 1.2s ease-out 1; }
 }
 @keyframes flag-pulse { from { outline-offset: 6px; outline-color: transparent; } to { outline-offset: 0; } }
+
+/* Review screen: flag cards. Severity is written out in each card; the letter box is extra. */
+.flag-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.flag-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
+.flag-card h3 { margin: 0 0 0.25rem; font-size: 1rem; overflow-wrap: anywhere; }
+.flag-card p { margin: 0.25rem 0; }
+.flag-occurrences { margin: 0.25rem 0 0; padding-left: 1.25rem; overflow-wrap: anywhere; }

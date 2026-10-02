@@ -174,3 +174,36 @@ def copy_view(data):
             "anchors": new,
         })
     return pieces
+
+
+MAX_OCCURRENCE_CHARS = 120
+
+
+def cards_view(data, pieces):
+    """Flag cards for the open (not dismissed) rules of the selected version, one card per rule.
+
+    Name, explanation and labels come from rules.describe, the single source of rule text.
+    `pieces` is copy_view's output: an occurrence links to its highlight only if that anchor
+    exists in the copy, so a link never dangles. Ordered high severity first, then rule id.
+    """
+    from app.rules import describe
+
+    dismissed = {d["rule_id"] for d in data["dismissals"]}
+    anchored = {a for p in pieces for a in p.get("anchors", ())}
+    cards = {}
+    for f in data["flags"]:
+        if f["rule_id"] in dismissed:
+            continue
+        card = cards.get(f["rule_id"])
+        if card is None:
+            info = describe(f)
+            letter, _ = _SEVERITY_WORD.get(info["severity"], ("?", ""))
+            card = cards[f["rule_id"]] = {**info, "letter": letter, "occurrences": []}
+        if f["kind"] == "phrase":
+            text = f["matched_text"] or ""
+            card["occurrences"].append({
+                "text": text if len(text) <= MAX_OCCURRENCE_CHARS else text[:MAX_OCCURRENCE_CHARS] + "…",
+                "full": text,
+                "anchor": f["id"] if f["id"] in anchored else None,
+            })
+    return sorted(cards.values(), key=lambda c: (_SEVERITY_RANK.get(c["severity"], 3), c["rule_id"]))
