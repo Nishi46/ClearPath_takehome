@@ -84,6 +84,26 @@
   </ul>
   {%- endif %}
 </section>
+{%- if decision_form %}
+<section class="decision-pane" aria-labelledby="decision-heading">
+  <h2 id="decision-heading">Decision</h2>
+  {%- if role == "reviewer" %}
+  <form method="post" action="/review/{{ decision_form.id }}/decision" class="decision-form">
+    <input type="hidden" name="version" value="{{ decision_form.version }}">
+    <label for="decision-reason">Reason (required for Request changes and Reject)</label>
+    <textarea id="decision-reason" name="reason" rows="4" maxlength="{{ decision_form.max_reason }}">
+{{ reason }}</textarea>
+    <div class="decision-buttons">
+      <button type="submit" name="outcome" value="approved" class="decision-approve">Approve</button>
+      <button type="submit" name="outcome" value="changes_requested" class="decision-changes">Request changes</button>
+      <button type="submit" name="outcome" value="rejected" class="decision-reject">Reject</button>
+    </div>
+  </form>
+  {%- else %}
+  <p class="decision-readonly">Only reviewers can decide.</p>
+  {%- endif %}
+</section>
+{%- endif %}
 <section class="comments-pane" aria-labelledby="comments-heading">
   <h2 id="comments-heading">Comments ({{ comments|length }})</h2>
   {%- if comments %}

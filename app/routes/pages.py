@@ -108,7 +108,8 @@ def _render_review(request, data, status_code=200, error=None, reason=""):
                       copy=pieces, cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data),
                       versions=review.versions_view(data), notices=review.notices_view(data),
                       history=review.history_view(data), comments=review.comments_view(data),
-                      notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason)
+                      notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason,
+                      decision_form=review.decision_form_view(data))
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response
 

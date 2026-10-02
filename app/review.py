@@ -454,3 +454,18 @@ def conflict_message(code, data):
     if code == "already_decided":
         return "This version was already decided. Your decision was not saved."
     return DECISION_MESSAGES.get(code, DECISION_MESSAGES["bad_form"])
+
+
+def decision_form_view(data):
+    """What the decision form needs, or None when this page must not offer one.
+
+    A form is offered only for the submission's current version, with no decision on it yet, while
+    the status is still new or in review. The role is checked by the template (reviewer sees the
+    form, anyone else sees a read-only note). The server enforces all of this again on POST.
+    """
+    s, v = data["submission"], data["version"]
+    if v["version_number"] != s["current_version"] or data["decision"] is not None:
+        return None
+    if s["status"] not in DECIDABLE_STATUSES:
+        return None
+    return {"id": s["id"], "version": v["version_number"], "max_reason": MAX_REASON_CHARS}
