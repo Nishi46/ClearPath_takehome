@@ -296,3 +296,36 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .decision-form button:focus-visible, .decision-form textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .decision-readonly { color: var(--text-muted); }
 .decision-form button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Review screen layout. Laptop width: copy on the left, flags and comments on the right, the
+   decision form pinned under them. Each column scrolls inside itself, so the title, copy, first
+   flags and decision buttons stay on screen together. Narrow widths stack in reading order. */
+.review-head { margin-bottom: 0.5rem; }
+.review-back { margin: 0 0 0.25rem; }
+.review-head h1 { margin: 0 0 0.25rem; overflow-wrap: anywhere; }
+.review-meta { margin: 0; color: var(--text-muted); overflow-wrap: anywhere; }
+.review-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space); }
+.review-layout h2 { font-size: 1.125rem; margin: 0 0 0.5rem; }
+.review-layout h3 { font-size: 1rem; }
+.review-side { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.decision-pane { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
+.decision-pane h2 { margin-bottom: 0.25rem; }
+.decision-form textarea { rows: 3; }
+.history-strip { margin-top: var(--space); }
+
+a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 3px solid var(--focus); outline-offset: 2px;
+}
+
+@media (min-width: 60rem) {
+  .review-layout {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+    /* Room for the site header and the title block above; the columns scroll inside this height. */
+    --review-columns-height: calc(100vh - 13.5rem);
+  }
+  .review-main, .review-side { max-height: var(--review-columns-height); min-height: 12rem; }
+  .review-main { overflow: auto; padding-right: 0.25rem; }
+  .review-side-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; padding-right: 0.25rem; }
+  .decision-pane { flex: none; }
+}

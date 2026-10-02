@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ head.title }} - Review - ClearPath Review{% endblock %}
 {% block content %}
-<p><a href="/">&larr; Back to the queue</a></p>
+<header class="review-head">
+<p class="review-back"><a href="/">&larr; Back to the queue</a></p>
 <h1>{{ head.title }}</h1>
 <p class="review-meta">{{ head.product_label }} &middot; {{ head.channel_label }} &middot; Launch {{ head.launch_text }}
   &middot; Status: {{ head.status_label }} &middot; {{ head.version_text }}{% if head.is_current %} (current){% endif %}
   &middot; Submitted by {{ head.submitted_by }}</p>
+</header>
 <nav class="version-nav" aria-label="Versions">
   <span class="version-nav-label">Versions:</span>
   {%- for v in versions %}
@@ -26,6 +28,8 @@
   {%- endif %}
 </div>
 {%- endif %}
+<div class="review-layout">
+<div class="review-main" role="region" aria-label="Asset copy and notes" tabindex="0">
 <section class="copy-pane" aria-labelledby="copy-heading">
   <h2 id="copy-heading">Asset copy</h2>
   {# No whitespace may be added between pieces: the pane is pre-wrap, so extra spaces would show as copy. #}
@@ -40,6 +44,9 @@
   <h3 class="notes-heading">Notes from marketer</h3>
   {% if notes %}<p class="notes-text">{{ notes }}</p>{% else %}<p class="notes-text">No notes.</p>{% endif %}
 </section>
+</div>
+<aside class="review-side" aria-label="Flags, comments and decision">
+<div class="review-side-scroll" role="region" aria-label="Flags and comments" tabindex="0">
 <section class="flags-pane" aria-labelledby="flags-heading">
   <h2 id="flags-heading">Flags ({{ cards|length }})</h2>
   <p class="flag-assist-note">Flags assist the reviewer. They never decide.<br>Rules are illustrative, not legal advice.</p>
@@ -84,6 +91,24 @@
   </ul>
   {%- endif %}
 </section>
+<section class="comments-pane" aria-labelledby="comments-heading">
+  <h2 id="comments-heading">Comments ({{ comments|length }})</h2>
+  {%- if comments %}
+  <ul class="comment-list">
+    {%- for c in comments %}
+    <li class="comment">
+      <p class="comment-meta"><strong>{{ c.author }}</strong> &middot; {{ c.when }}
+        {%- if c.post_decision %} &middot; <span class="post-decision">Post-decision</span>{% endif %}
+        {%- if c.rule %} &middot; About {{ c.rule }}{% endif %}</p>
+      <p class="comment-text">{{ c.text }}</p>
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  <p class="comment-empty">No comments yet.</p>
+  {%- endif %}
+</section>
+</div>
 {%- if decision_form %}
 <section class="decision-pane" aria-labelledby="decision-heading">
   <h2 id="decision-heading">Decision</h2>
@@ -104,23 +129,8 @@
   {%- endif %}
 </section>
 {%- endif %}
-<section class="comments-pane" aria-labelledby="comments-heading">
-  <h2 id="comments-heading">Comments ({{ comments|length }})</h2>
-  {%- if comments %}
-  <ul class="comment-list">
-    {%- for c in comments %}
-    <li class="comment">
-      <p class="comment-meta"><strong>{{ c.author }}</strong> &middot; {{ c.when }}
-        {%- if c.post_decision %} &middot; <span class="post-decision">Post-decision</span>{% endif %}
-        {%- if c.rule %} &middot; About {{ c.rule }}{% endif %}</p>
-      <p class="comment-text">{{ c.text }}</p>
-    </li>
-    {%- endfor %}
-  </ul>
-  {%- else %}
-  <p class="comment-empty">No comments yet.</p>
-  {%- endif %}
-</section>
+</aside>
+</div>
 <section class="history-strip" aria-labelledby="history-heading">
   <h2 id="history-heading">History</h2>
   <ol class="history-list">
