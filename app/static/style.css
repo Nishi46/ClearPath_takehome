@@ -21,10 +21,10 @@
   /* Urgency and status colors. Every one is paired with words on the page, never used alone. */
   --overdue-text: #8f1d1d;
   --overdue-bg: #fdecec;
-  --overdue-border: #b42323;
+  --overdue-border: #c4161c;
   --rush-text: #7a3e00;
   --rush-bg: #fff3dc;
-  --rush-border: #b45309;
+  --rush-border: #d46a00;
   --status-new-text: #1e3a8a;
   --status-new-bg: #e6edff;
   --status-in_review-text: #4a1d96;
@@ -730,10 +730,10 @@ main > p > a.button-link[href="/submit"]:hover { background: var(--accent-strong
   --diff-del-bg: #fce8e6;
   --overdue-text: #8f1d1d;
   --overdue-bg: #fdecec;
-  --overdue-border: #b42323;
+  --overdue-border: #c4161c;
   --rush-text: #7a3e00;
   --rush-bg: #fff3dc;
-  --rush-border: #b45309;
+  --rush-border: #d46a00;
   --status-new-text: #1e3a8a;
   --status-new-bg: #e6edff;
   --status-in_review-text: #4a1d96;

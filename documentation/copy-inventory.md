@@ -30,6 +30,7 @@ Patterns (see phase-7-steps.md, decision 3): an error says what is wrong and how
 | comment-empty | No comments yet. | marketer /review/N |
 | comment-empty | No comments yet. Add the first one below. | reviewer /review/N |
 | comment-readonly | Only reviewers can comment. | marketer /review/14?snippet=R2 |
+| decision-hint | Request changes for fixable issues. Reject if it should not run as conceived. | reviewer /review/5?diff=1 |
 | decision-readonly | Only reviewers can decide. | marketer /review/5?diff=1 |
 | dismiss-warning | Dismissing records your note in the audit trail. It can't be undone. | reviewer /review/N |
 | dismissal-note | Note: False positive. The phrase appears in a sentence explaining that we do not offer guaranteed approval. | marketer /review/N |
@@ -42,8 +43,8 @@ Patterns (see phase-7-steps.md, decision 3): an error says what is wrong and how
 | error-heading | Request too large | too large |
 | error-message | A reset just ran. Please wait a few seconds and try again. | reset cooldown |
 | error-message | Decisions must be made from this site. Reload the page and try again. | decision cross-origin |
-| error-message | Only marketers can resubmit. Switch role using the Role buttons above. | reviewer POST /resubmit |
-| error-message | Only marketers can submit. Switch role using the Role buttons above. | reviewer POST /submit |
+| error-message | Only marketers and affiliate partners can resubmit. Switch role using the Role buttons above. | reviewer POST /resubmit |
+| error-message | Only marketers and affiliate partners can submit. Switch role using the Role buttons above. | reviewer POST /submit |
 | error-message | Only reviewers can comment. Switch role using the Role buttons above. | marketer POST comment |
 | error-message | Only reviewers can dismiss flags. Switch role using the Role buttons above. | marketer POST dismiss |
 | error-message | Only reviewers can record decisions. Switch role using the Role buttons above. | marketer POST decision |
@@ -52,7 +53,7 @@ Patterns (see phase-7-steps.md, decision 3): an error says what is wrong and how
 | error-message | Submissions must be made from this site. Reload the page and try again. | submit cross-origin |
 | error-message | That action isn't available on this page. | marketer GET /role |
 | error-message | That request was too large. Shorten it and try again. | too large |
-| error-message | This item belongs to another marketer. Switch marketer on My submissions to edit it. | resubmit locked |
+| error-message | This item belongs to someone else. Switch to them on My submissions to edit it. | resubmit locked |
 | error-message | Unknown marketer. Choose one from the list on My submissions. | marketer POST /marketer bad |
 | error-message | Unknown role. Use the Role buttons above. | marketer POST /role bad |
 | error-message | We could not find that page. | marketer /nowhere |
@@ -91,12 +92,12 @@ Patterns (see phase-7-steps.md, decision 3): an error says what is wrong and how
 | status | No items match these filters. Clear filters | marketer / |
 | status | No open flags. Every flag on this version was dismissed. This is not a guarantee of compliance. A reviewer still reads the copy. | marketer /review/N |
 | status | No submissions yet. Submit the first one | marketer / (empty queue) |
-| status | Only marketers resubmit copy. You are viewing the demo as a reviewer. Switch to Marketer Open the item · Back to my submissions | reviewer /resubmit/14 |
-| status | Only marketers submit copy for review. You are viewing the demo as a reviewer. Switch to Marketer | reviewer /submit |
+| status | Only marketers and affiliate partners resubmit copy. You are viewing the demo as a reviewer. Switch to Marketer Switch to Affiliate Open the item · Back to my submissions | reviewer /resubmit/14 |
+| status | Only marketers and affiliate partners submit copy for review. You are viewing the demo as a reviewer. Switch to Marketer Switch to Affiliate | reviewer /submit |
 | status | Snippet inserted from RN. Edit before posting. | reviewer /review/14?snippet=R2 |
 | status | Submitted. “<title>” is in the review queue. Open it | submit ok -> mine |
 | status | Submitted. “<title>” is in the review queue. Open it ⚠ Warning: Launches in N business day. A rush review may not finish in time. | marketer /mine |
-| status | This item belongs to Jordan Lee. Switch marketer to edit it. Open the item · Back to my submissions | marketer /resubmit/14 |
+| status | This item belongs to Jordan Lee. Switch to them to edit it. Open the item · Back to my submissions | marketer /resubmit/14 |
 | status | This item is approved and locked. It can't be changed or resubmitted. Open the item · Back to my submissions | marketer /resubmit/6 |
 | status | You haven't submitted anything yet. Submit your first piece of copy | marketer /mine (empty queue) |
 | table-note | Flags are assist-only: they point out what to check, and a reviewer makes the decision. | marketer / |
@@ -107,6 +108,7 @@ Patterns (see phase-7-steps.md, decision 3): an error says what is wrong and how
 | Kind | Text | First seen on |
 |---|---|---|
 | button | + Submit | marketer /mine |
+| button | Affiliate | marketer / |
 | button | Apply | marketer / |
 | button | Approve | reviewer /review/5?diff=1 |
 | button | Check flags | marketer /submit |
@@ -129,6 +131,7 @@ Patterns (see phase-7-steps.md, decision 3): an error says what is wrong and how
 | button | Sam Patel | marketer /mine |
 | button | Sam Patel (current) | marketer Sam Patel /mine |
 | button | Submit for review | marketer /submit |
+| button | Switch to Affiliate | reviewer /resubmit/14 |
 | button | Switch to Marketer | reviewer /resubmit/14 |
 | button | View <title> | marketer /mine |
 | button | Yes, reset for everyone | marketer /reset/confirm |
