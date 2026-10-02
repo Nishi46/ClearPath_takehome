@@ -41,11 +41,18 @@ class SecurityHeadersMiddleware:
             await self.app(scope, receive, send)
             return
 
+        is_static = scope["path"].startswith("/static/")
+
         async def send_with_headers(message):
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
                 for name, value in SECURITY_HEADERS.items():
                     headers[name] = value
+                # Without this a browser may keep using an old stylesheet for hours after a
+                # change or a redeploy. "no-cache" still allows caching, but only after the
+                # server confirms via the ETag that the file is unchanged.
+                if is_static and "cache-control" not in headers:
+                    headers["Cache-Control"] = "no-cache"
             await send(message)
 
         await self.app(scope, receive, send_with_headers)
