@@ -115,3 +115,12 @@ def test_conflict_page_does_not_offer_a_form_for_a_decided_version(client):
 def test_forms_only_post_to_their_own_submission(client):
     for sid in (1, 2, 3, 4):
         assert f'action="/review/{sid}/decision"' in client.get(f"/review/{sid}").text
+
+
+def test_approve_and_reject_styles_are_not_overridden_by_the_generic_button_rule():
+    # Regression: ".decision-buttons button" (class + element) beat ".decision-approve" (one class),
+    # leaving white text on a white background.
+    css = open("app/static/style.css").read()
+    assert re.search(r"\.decision-buttons \.decision-approve \{[^}]*background: var\(--accent\)[^}]*color: var\(--accent-text\)", css)
+    assert re.search(r"\.decision-buttons \.decision-reject \{[^}]*border: 2px solid", css)
+    assert not re.search(r"^\.decision-approve \{", css, re.M)
