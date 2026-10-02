@@ -19,7 +19,8 @@ def views(conn):
 
 def make(**kw):
     row = {"id": 1, "title": "T", "product": "loan", "channel": "email", "launch_date": "2026-10-02",
-           "status": "new", "submitted_by": "Maya Chen", "created_at": "x", "version_number": 1, "flag_count": 0}
+           "status": "new", "submitted_by": "Maya Chen", "created_at": "x", "version_number": 1, "flag_count": 0,
+           "top_severity": None}
     row.update(kw)
     return row
 
@@ -123,8 +124,8 @@ def test_status_label_is_text_and_never_the_raw_database_word(views):
 # ---- flag column ----
 
 def test_flags_show_the_count():
-    v = row_view(make(flag_count=3), THU)
-    assert (v["flags_text"], v["flags_title"]) == ("3", "")
+    v = row_view(make(flag_count=3, top_severity="high"), THU)
+    assert (v["flags_text"], v["flags_letter"]) == ("3", "H")
     assert row_view(make(flag_count=0), THU)["flags_text"] == "0"
 
 

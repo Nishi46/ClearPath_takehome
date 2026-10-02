@@ -70,7 +70,7 @@ def test_order_is_stable_between_calls(seeded):
 def test_row_fields(seeded):
     row = next(r for r in list_queue(seeded) if r["id"] == 5)
     assert set(row) == {"id", "title", "product", "channel", "launch_date", "status", "submitted_by",
-                        "created_at", "version_number", "flag_count"}
+                        "created_at", "version_number", "flag_count", "top_severity"}
     assert (row["title"], row["product"], row["channel"], row["status"], row["submitted_by"]) == (
         "Balance transfer email", "card", "email", "in_review", "Maya Chen")
     assert row["version_number"] == 2

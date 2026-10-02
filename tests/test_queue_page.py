@@ -102,7 +102,7 @@ def test_status_and_urgency_are_words_in_the_markup_not_only_classes(client):
 
 def test_flags_show_the_live_count(client):
     row = row_for(client.get("/").text, 1)
-    assert re.search(r'<td data-label="Flags"><span>3</span></td>', row)
+    assert '<span class="flag-count">3</span>' in row and "3 rules flagged, highest severity High" in row
     assert "phase 3" not in client.get("/").text
 
 

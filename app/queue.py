@@ -36,7 +36,13 @@ SELECT s.id, s.title, s.product, s.channel, s.launch_date, s.status, s.submitted
        (SELECT count(DISTINCT f.rule_id) FROM flag f JOIN version v ON v.id = f.version_id
          WHERE v.submission_id = s.id AND v.version_number = s.current_version
            AND NOT EXISTS (SELECT 1 FROM flag_dismissal d
-                            WHERE d.version_id = f.version_id AND d.rule_id = f.rule_id)) AS flag_count
+                            WHERE d.version_id = f.version_id AND d.rule_id = f.rule_id)) AS flag_count,
+       (SELECT CASE min(CASE f.severity WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END)
+                    WHEN 1 THEN 'high' WHEN 2 THEN 'medium' WHEN 3 THEN 'low' END
+          FROM flag f JOIN version v ON v.id = f.version_id
+         WHERE v.submission_id = s.id AND v.version_number = s.current_version
+           AND NOT EXISTS (SELECT 1 FROM flag_dismissal d
+                            WHERE d.version_id = f.version_id AND d.rule_id = f.rule_id)) AS top_severity
   FROM submission s
  WHERE (? IS NULL OR s.status = ?)
    AND (? IS NULL OR s.product = ?)
@@ -73,6 +79,22 @@ def _label(name, value):
     """Display name for a filter value; an unlisted value is shown readable rather than crashing the page."""
     labels = dict(FILTER_OPTIONS[name])
     return labels.get(value) or str(value).replace("_", " ").capitalize()
+
+
+# Severity shown as a letter plus words, never color alone.
+SEVERITY_DISPLAY = {"high": ("H", "High"), "medium": ("M", "Medium"), "low": ("L", "Low")}
+
+
+def _flags_view(count, severity):
+    """Visible text, severity letter and the full sentence for the Flags column."""
+    if count <= 0:
+        return {"flags_text": "0", "flags_label": "No flags", "flags_severity": "", "flags_letter": ""}
+    letter, word = SEVERITY_DISPLAY.get(severity, ("", ""))
+    label = "%s flagged" % _plural(count, "rule")
+    if word:
+        label += ", highest severity " + word
+    return {"flags_text": str(count), "flags_label": label,
+            "flags_severity": severity if word else "", "flags_letter": letter}
 
 
 def _plural(n, word):
@@ -135,8 +157,7 @@ def row_view(row, today=None):
         "urgency_label": _urgency_label(kind, today, launch) if kind else "",
         "urgency_class": "urgency-" + kind if kind else "",
         "needs_attention": kind is not None,
-        "flags_text": str(row["flag_count"]),
-        "flags_title": "",
+        **_flags_view(row["flag_count"], row["top_severity"]),
     }
 
 

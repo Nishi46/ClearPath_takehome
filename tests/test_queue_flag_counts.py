@@ -118,7 +118,7 @@ def test_empty_database_and_no_flags_give_zero(conn):
 
 def test_page_shows_the_numbers_and_no_dashes(client):
     html = client.get("/").text
-    cells = re.findall(r'<td data-label="Flags"><span>([^<]*)</span></td>', html)
+    cells = re.findall(r'<span class="flag-count">([^<]*)</span>', html)
     assert len(cells) == 14 and all(c.isdigit() for c in cells)
     assert sorted(int(c) for c in cells) == sorted(EXPECTED.values())
 
@@ -127,7 +127,7 @@ def test_page_still_shows_three_for_item_1_and_zero_for_clean_items(client):
     html = client.get("/").text
     def flag_cell(sid):
         row = re.search(rf'<tr[^>]*>(?:(?!</tr>).)*/review/{sid}"(?:(?!</tr>).)*</tr>', html, re.S).group(0)
-        return re.search(r'data-label="Flags"><span>(\d+)</span>', row).group(1)
+        return re.search(r'<span class="flag-count">(\d+)</span>', row).group(1)
     assert (flag_cell(1), flag_cell(8), flag_cell(6), flag_cell(10), flag_cell(13)) == ("3", "3", "0", "0", "0")
 
 

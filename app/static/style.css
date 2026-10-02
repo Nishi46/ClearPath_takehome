@@ -172,6 +172,19 @@ table.queue tr.urgency-overdue .urgency { color: var(--overdue-text); }
 table.queue tr.urgency-rush .urgency { color: var(--rush-text); }
 table.queue tr.urgency-overdue .urgency::before { content: "! "; content: "! " / ""; }
 
+/* Flags: the count, then a severity letter in a box. The words are in the visually hidden text and
+   the title, and the border style differs by severity, so color is never the only signal. */
+table.queue .flags { white-space: nowrap; }
+.flag-count { font-weight: 700; }
+.sev {
+  display: inline-block; min-width: 1.25rem; padding: 0 0.25rem; text-align: center;
+  border: 1px solid currentColor; border-radius: var(--radius); font-size: 0.8125rem; font-weight: 700;
+}
+.sev-high { color: var(--overdue-text); border-width: 2px; }
+.sev-medium { color: var(--rush-text); }
+.sev-low { color: var(--text-muted); border-style: dashed; }
+.table-note { margin: 0.5rem 0 0; font-size: 0.875rem; color: var(--text-muted); }
+
 /* Status chips: the text is the status; the color and border are extra. */
 .status {
   display: inline-block; padding: 0 0.5rem; border: 1px solid currentColor;
