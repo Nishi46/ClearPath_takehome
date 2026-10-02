@@ -52,7 +52,37 @@ CREATE TABLE IF NOT EXISTS flag_dismissal (
     UNIQUE (version_id, rule_id)
 );
 
+-- A decision or comment must point at a version that exists: the composite foreign key
+-- targets version's UNIQUE (submission_id, version_number) pair.
+CREATE TABLE IF NOT EXISTS decision (
+    id              INTEGER PRIMARY KEY,
+    submission_id   INTEGER NOT NULL REFERENCES submission(id) ON DELETE CASCADE,
+    version_number  INTEGER NOT NULL,
+    outcome         TEXT NOT NULL CHECK (outcome IN ('approved', 'changes_requested', 'rejected')),
+    reviewer        TEXT NOT NULL,
+    reason          TEXT,
+    created_at      TEXT NOT NULL,
+    UNIQUE (submission_id, version_number),
+    FOREIGN KEY (submission_id, version_number)
+        REFERENCES version(submission_id, version_number) ON DELETE CASCADE,
+    -- Written as "approved OR (not null AND non-blank)": a NULL reason would otherwise pass a bare length check.
+    CHECK (outcome = 'approved' OR (reason IS NOT NULL AND length(trim(reason, ' ' || char(9) || char(10) || char(11) || char(12) || char(13))) > 0))
+);
+
+CREATE TABLE IF NOT EXISTS comment (
+    id              INTEGER PRIMARY KEY,
+    submission_id   INTEGER NOT NULL REFERENCES submission(id) ON DELETE CASCADE,
+    version_number  INTEGER NOT NULL,
+    author          TEXT NOT NULL,
+    text            TEXT NOT NULL CHECK (length(trim(text, ' ' || char(9) || char(10) || char(11) || char(12) || char(13))) > 0),
+    rule_id         TEXT,
+    created_at      TEXT NOT NULL,
+    FOREIGN KEY (submission_id, version_number)
+        REFERENCES version(submission_id, version_number) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_submission_status ON submission(status);
 CREATE INDEX IF NOT EXISTS idx_submission_launch_date ON submission(launch_date);
 CREATE INDEX IF NOT EXISTS idx_version_submission_id ON version(submission_id);
 CREATE INDEX IF NOT EXISTS idx_flag_version_id ON flag(version_id);
+CREATE INDEX IF NOT EXISTS idx_comment_submission_id ON comment(submission_id, version_number);
