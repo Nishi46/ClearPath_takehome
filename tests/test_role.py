@@ -156,4 +156,5 @@ def test_role_cookie_is_not_used_for_authorization():
             # back link for a marketer. Neither grants or denies access to data.
             assert text.count("get_role(") == 2, path
         if path.name == "submit_pages.py":
-            assert text.count("get_role(") == 2, path  # POST /submit and POST /submit/check
+            # POST /submit, POST /submit/check, the resubmit page and POST /resubmit/{id}
+            assert text.count("get_role(") == 4, path

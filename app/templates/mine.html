@@ -4,7 +4,7 @@
 <h1>My submissions</h1>
 {% if banner %}
 <div class="notice banner-submitted" role="status">
-  <p><strong>Submitted.</strong> &ldquo;{{ banner.title }}&rdquo; is in the review queue.
+  <p><strong>{% if banner.resubmitted_as %}Resubmitted as v{{ banner.resubmitted_as }}.{% else %}Submitted.{% endif %}</strong> &ldquo;{{ banner.title }}&rdquo; is in the review queue.
     <a href="/review/{{ banner.id }}">Open it</a></p>
   {%- for w in banner.warnings %}
   <p class="field-warning"><span aria-hidden="true">&#9888;</span> <strong>Warning:</strong> {{ w }}</p>

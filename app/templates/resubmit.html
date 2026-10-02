@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Resubmit - ClearPath Review{% endblock %}
+{% block content %}
+<h1>Resubmit &ldquo;{{ sub.title }}&rdquo;</h1>
+{% if banner %}
+<div class="notice notice-error" role="alert" tabindex="-1" autofocus>
+  <p>{{ banner }}</p>
+</div>
+{% endif %}
+{% if block %}
+<div class="notice" role="status">
+  <p>{{ block }}</p>
+  {%- if role != "marketer" %}
+  <form method="post" action="/role" class="role-form">
+    <button type="submit" name="role" value="marketer" class="role-option">Switch to Marketer</button>
+  </form>
+  {%- endif %}
+  <p><a href="/review/{{ sub.id }}?back=/mine">Open the item</a> &middot; <a href="/mine">Back to my submissions</a></p>
+</div>
+{% else %}
+{% if errors %}
+<div class="notice notice-error" role="alert" tabindex="-1" autofocus>
+  <p>Fix {{ errors|length }} thing{{ "" if errors|length == 1 else "s" }} below, then resubmit.</p>
+  <ul>
+    {%- for name, message in errors.items() %}
+    <li><a href="#field-{{ name }}">{{ message }}</a></li>
+    {%- endfor %}
+  </ul>
+</div>
+{% endif %}
+<section class="marketer-feedback" aria-labelledby="feedback-heading">
+  <h2 id="feedback-heading">Reviewer feedback on {{ feedback.version_text }}</h2>
+  {%- if feedback.decision %}
+  <p class="feedback-decision feedback-{{ feedback.decision.outcome }}"><strong>{{ feedback.decision.reviewer }}</strong>
+    {{ "asked for changes" if feedback.decision.outcome == "changes_requested" else "rejected this version" }}, {{ feedback.decision.when }}:</p>
+  {%- if feedback.decision.reason %}<p class="feedback-reason">{{ feedback.decision.reason }}</p>{% endif %}
+  {%- endif %}
+  {%- for c in feedback.comments %}
+  <p class="feedback-comment"><strong>{{ c.author }}</strong> &middot; {{ c.when }}: <span class="feedback-comment-text">{{ c.text }}</span></p>
+  {%- endfor %}
+</section>
+<p class="submitting-as">Resubmitting as <strong>{{ marketer }}</strong> as v{{ base_version + 1 }}.
+  The title, product and channel stay the same. <a href="/review/{{ sub.id }}?back=/mine">Compare with previous</a> versions on the review screen.</p>
+<dl class="fixed-fields">
+  <dt>Title</dt><dd>{{ sub.title }}</dd>
+  <dt>Product</dt><dd>{{ product_text }}</dd>
+  <dt>Channel</dt><dd>{{ channel_text }}</dd>
+</dl>
+<div class="submit-layout">
+<form method="post" action="/resubmit/{{ sub.id }}" class="submit-form" novalidate>
+  <input type="hidden" name="base_version" value="{{ base_version }}">
+  <div class="field">
+    <label for="field-launch_date">Launch date <span class="required">(required)</span></label>
+    <input type="date" id="field-launch_date" name="launch_date" value="{{ values.launch_date }}"
+           {% if errors.launch_date %}aria-invalid="true" aria-describedby="error-launch_date"{% endif %}>
+    {%- if errors.launch_date %}<p class="field-error" id="error-launch_date">{{ errors.launch_date }}</p>{% endif %}
+    {% set oob = false %}{% include "_launch_warning.html" %}
+  </div>
+  <div class="field">
+    <label for="field-copy">Asset copy <span class="required">(required)</span></label>
+    <textarea id="field-copy" name="copy" rows="12"{% if errors.get('copy') %} aria-invalid="true" aria-describedby="error-copy"{% endif %}>
+{{ values.get('copy', '') }}</textarea>
+    <p class="field-hint" id="copy-count">{{ copy_count }} / {{ max_copy }} characters</p>
+    {%- if errors.get('copy') %}<p class="field-error" id="error-copy">{{ errors.get('copy') }}</p>{% endif %}
+  </div>
+  <div class="field">
+    <label for="field-notes">Notes for reviewer</label>
+    <textarea id="field-notes" name="notes" rows="3"{% if errors.notes %} aria-invalid="true" aria-describedby="error-notes"{% endif %}>
+{{ values.notes }}</textarea>
+    {%- if errors.notes %}<p class="field-error" id="error-notes">{{ errors.notes }}</p>{% endif %}
+  </div>
+  <div class="form-actions">
+    <a href="/mine">Cancel</a>
+    <button type="submit" class="submit-button">Resubmit for review</button>
+  </div>
+</form>
+<section class="precheck" aria-labelledby="precheck-heading">
+  <h2 id="precheck-heading">Pre-check</h2>
+  <div id="precheck-body">
+    {% include "_precheck.html" %}
+  </div>
+</section>
+</div>
+{% endif %}
+{% endblock %}

@@ -339,3 +339,24 @@ def create_version(conn, submission_id, base_version, fields, submitted_by, now)
         raise
     conn.commit()
     return number
+
+
+# ---- resubmit page ----
+
+def resubmit_block(data, marketer, role):
+    """Why the resubmit form is not offered for this item, or None when it is.
+
+    `data` is review.load_review's result. Fixed sentences only; the owner's name comes from the
+    allowlist of marketers, never from a request. The server re-checks all of this in
+    create_version, so this decides what the page shows, not what is allowed.
+    """
+    sub = data["submission"]
+    if role != "marketer":
+        return "Only marketers resubmit copy. You are viewing the demo as a reviewer."
+    if sub["status"] == "approved":
+        return "This item is approved and locked. It can't be changed or resubmitted."
+    if sub["status"] not in RESUBMITTABLE_STATUSES or data["decision"] is None:
+        return "This item is still in review. You can resubmit once a reviewer has replied."
+    if sub["submitted_by"] != marketer:
+        return "This item belongs to %s. Switch marketer to edit it." % sub["submitted_by"]
+    return None

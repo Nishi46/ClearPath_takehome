@@ -45,7 +45,8 @@ def mine(request: Request):
     sid = review.parse_id(values[0]) if len(values) == 1 else None
     if sid is not None:
         with db.connect() as conn:
-            row = conn.execute("SELECT id, title, launch_date, submitted_by FROM submission WHERE id = ?",
+            row = conn.execute("SELECT id, title, launch_date, submitted_by, current_version FROM submission"
+                               " WHERE id = ?",
                                (sid,)).fetchone()
         if row is not None and row["submitted_by"] == get_marketer(request):
             today = clock.today()
@@ -56,7 +57,8 @@ def mine(request: Request):
                             for c in submit.launch_warnings(launch, today)]
             except ValueError:
                 pass
-            banner = {"id": row["id"], "title": row["title"], "warnings": warnings}
+            banner = {"id": row["id"], "title": row["title"], "warnings": warnings,
+                      "resubmitted_as": row["current_version"] if row["current_version"] > 1 else None}
     today = clock.today()
     with db.connect() as conn:
         rows = mine_view.list_mine(conn, get_marketer(request), today)
@@ -138,3 +140,103 @@ async def submit_check(request: Request):
         response.headers["Cache-Control"] = "no-store"
         return response
     return _render_form(request, values, errors, warnings, check=check)
+
+
+# ---- resubmit ----
+
+RESUBMIT_FIELDS = ("copy", "notes", "launch_date")
+RESUBMIT_ERROR_STATUS = {"not_found": 404, "not_owner": 403, "stale_version": 409, "not_resubmittable": 409,
+                         "unchanged": 422, "capacity": 409}
+RESUBMIT_ERROR_TEXT = {
+    "stale_version": "This item changed since you opened the form (another tab or a reviewer got there first). "
+                     "This page now shows where it stands. Nothing was saved.",
+    "not_resubmittable": "This item can't be resubmitted right now. Nothing was saved.",
+    "capacity": "This item has reached the limit of %d versions for the demo. Nothing was saved." % submit.MAX_VERSIONS,
+}
+UNCHANGED_TEXT = ("Nothing has changed in the copy. Edit it to address the reviewer's feedback, or leave it as is "
+                  "and reply to your reviewer.")
+
+
+def _load(sid):
+    with db.connect() as conn:
+        return review.load_review(conn, sid)
+
+
+def _render_resubmit(request, data, values=None, errors=None, warnings=(), banner=None, status_code=200):
+    """The resubmit page: the form when this marketer may resubmit, else a sentence saying why (no form)."""
+    sub, version = data["submission"], data["version"]
+    block = submit.resubmit_block(data, get_marketer(request), get_role(request))
+    if values is None:
+        values = {"copy": version["copy"], "notes": version["notes"] or "", "launch_date": sub["launch_date"]}
+    today = clock.today()
+    response = render(
+        request, "resubmit.html", status_code=status_code, sub=sub, block=block, values=values,
+        errors=errors or {}, warnings=_warning_texts(warnings, {"launch_date": values["launch_date"]}, today),
+        banner=banner, feedback=review.feedback_view(data), base_version=sub["current_version"],
+        check=submit.precheck(sub["product"], sub["channel"], values["copy"]) if block is None else None,
+        copy_count="{:,}".format(len(values["copy"])), max_copy="{:,}".format(submit.MAX_COPY_CHARS),
+        max_notes=submit.MAX_NOTES_CHARS,
+        product_text=dict(FILTER_OPTIONS["product"]).get(sub["product"], sub["product"]),
+        channel_text=dict(FILTER_OPTIONS["channel"]).get(sub["channel"], sub["channel"]))
+    response.headers["Cache-Control"] = "no-store"  # Back must not show a stale form
+    return response
+
+
+@router.get("/resubmit/{submission_id}")
+def resubmit_form(request: Request, submission_id: str):
+    # A plain str id so bad input gets our 404 page, not FastAPI's JSON 422; unknown and unparseable look the same.
+    sid = review.parse_id(submission_id)
+    data = _load(sid) if sid is not None else None
+    if data is None:
+        raise HTTPException(status_code=404)
+    return _render_resubmit(request, data)
+
+
+@router.post("/resubmit/{submission_id}")
+async def resubmit_post(request: Request, submission_id: str):
+    # Guards in order: origin, id, role, existence and owner, form, validation, then create_version, which
+    # holds the real rules. Title, product, channel, submitter, status and version numbers never come from the form.
+    if not same_origin(request):
+        return PlainTextResponse("Resubmissions must be made from this site.", status_code=403, headers=NO_STORE)
+    sid = review.parse_id(submission_id)
+    if sid is None:
+        raise HTTPException(status_code=404)
+    # The role and marketer are demo labels (assumption A4): product guards, not authorization.
+    if get_role(request) != "marketer":
+        return PlainTextResponse("Only marketers can resubmit.", status_code=403, headers=NO_STORE)
+    data = _load(sid)
+    if data is None:
+        raise HTTPException(status_code=404)
+    marketer = get_marketer(request)
+    if data["submission"]["submitted_by"] != marketer:
+        return PlainTextResponse("This item belongs to another marketer.", status_code=403, headers=NO_STORE)
+
+    form = await request.form()
+    raw = {name: _single(form, name) for name in RESUBMIT_FIELDS}
+    values = {name: raw[name] or "" for name in RESUBMIT_FIELDS}
+    base_version = review.parse_id(_single(form, "base_version") or "")
+    today = clock.today()
+    sub = data["submission"]
+    # The fixed fields come from the database so the shared validator has everything it needs.
+    checked = dict(raw, title=sub["title"], product=sub["product"], channel=sub["channel"])
+    clean, errors, warnings = submit.validate_submission(checked, today)
+    errors = {k: v for k, v in errors.items() if k in RESUBMIT_FIELDS}
+    if errors:
+        return _render_resubmit(request, data, values, errors, warnings, status_code=422)
+    try:
+        with db.connect() as conn:
+            submit.create_version(conn, sid, base_version, clean, marketer, clock.now())
+    except submit.SubmitError as exc:
+        if exc.code == "not_found":
+            raise HTTPException(status_code=404)
+        if exc.code == "not_owner":
+            return PlainTextResponse("This item belongs to another marketer.", status_code=403, headers=NO_STORE)
+        if exc.code == "unchanged":
+            return _render_resubmit(request, data, values, {"copy": UNCHANGED_TEXT}, warnings, status_code=422)
+        # Stale, locked or full: show the item as it really is now, keeping what was typed if a form remains.
+        data = _load(sid)
+        if data is None:
+            raise HTTPException(status_code=404)
+        return _render_resubmit(request, data, values, {}, warnings,
+                                banner=RESUBMIT_ERROR_TEXT[exc.code], status_code=RESUBMIT_ERROR_STATUS[exc.code])
+    return RedirectResponse("/mine?submitted=%d" % sid, status_code=303, headers=NO_STORE)
