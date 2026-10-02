@@ -49,3 +49,30 @@ def measure(page_html, width, height):
         out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--window-size=1700,1300", "--dump-dom",
                               "file://%s" % path], capture_output=True, text=True, timeout=60).stdout
     return json.loads(htmllib.unescape(re.search(r'<pre id="out">(.*?)</pre>', out, re.S).group(1)))
+
+
+def evaluate(page_html, width, height, body):
+    """Run `body` (JavaScript with `d` = the page's document and `w` = its window, ending in `return value`)
+    inside the page rendered at exactly width x height, and return the JSON-able value. None without Chrome.
+
+    Browser zoom of 125% on a 1366x768 screen is the same layout as width 1093, height 614.
+    """
+    if not Path(CHROME).exists():
+        return None
+    page = re.sub(r'<link rel="stylesheet" href="[^"]*style\.css[^"]*">',
+                  "<style>%s</style>" % CSS.read_text(), page_html)
+    page = re.sub(r"<script[^>]*></script>", "", page)
+    style = "width:%dpx;height:%dpx;border:0" % (width, height)
+    script = ("var f = document.getElementById('f');"
+              "f.addEventListener('load', function () { var d = f.contentDocument, w = f.contentWindow;"
+              "var out; try { out = (function () { %s })(); } catch (e) { out = {error: String(e)}; }"
+              "document.getElementById('out').textContent = JSON.stringify(out); });" % body)
+    wrapper = ('<!doctype html><meta charset=utf-8><body style="margin:0"><iframe id=f style="%s" '
+               'srcdoc="%s"></iframe><pre id=out></pre><script>%s</script>'
+               % (style, htmllib.escape(page, quote=True), script))
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "w.html"
+        path.write_text(wrapper)
+        out = subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--window-size=1700,1300", "--dump-dom",
+                              "file://%s" % path], capture_output=True, text=True, timeout=60).stdout
+    return json.loads(htmllib.unescape(re.search(r'<pre id="out">(.*?)</pre>', out, re.S).group(1)))

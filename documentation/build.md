@@ -21,7 +21,7 @@
 | 4. Review screen and decisions | 2 hrs | Done |
 | 5. Submit, marketer view, resubmit and diff | 2 hrs | Done |
 | 6. Flag dismissal, snippets, audit trail | 1.5 hrs | Built, local manual walkthrough and deploy check to do |
-| 7. Edge cases, microcopy, polish | 2 hrs | In progress: parts A, B and C done (see phase-7-steps.md) |
+| 7. Edge cases, microcopy, polish | 2 hrs | In progress: parts A to D done (see phase-7-steps.md) |
 | 8. README, deploy check, demo prep | 2 hrs | |
 | 9. Buffer, final walkthroughs | remainder | |
 | Stretch: dashboard | only if time remains | |
