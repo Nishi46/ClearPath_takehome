@@ -1,4 +1,5 @@
 import re
+import sqlite3
 
 # Review screen logic. Routes only parse input, call these functions and render.
 
@@ -327,3 +328,105 @@ def comments_view(data):
             "post_decision": bool(decided_at and posted and posted > decided_at),
         })
     return out
+
+
+# ---- decisions ----
+
+OUTCOMES = ("approved", "changes_requested", "rejected")
+DECIDABLE_STATUSES = ("new", "in_review")
+MAX_REASON_CHARS = 2000
+# Reasons that must say something: approving needs no reason.
+REASON_REQUIRED = ("changes_requested", "rejected")
+
+
+class DecisionError(Exception):
+    """A decision was refused. `code` is one of a fixed set; the message is never user text."""
+
+    CODES = ("bad_outcome", "reason_required", "reason_too_long", "not_found", "stale_version",
+             "already_decided", "locked")
+
+    def __init__(self, code):
+        assert code in self.CODES
+        super().__init__(code)
+        self.code = code
+
+
+def _clean_reason(reason):
+    """The reason trimmed, or None if it has no visible characters.
+
+    Beyond the spaces the database CHECK trims, control, format (zero-width) and Unicode space
+    characters count as blank, so a reason of only invisible characters is refused.
+    """
+    import unicodedata
+
+    if reason is None:
+        return None
+    if not isinstance(reason, str):
+        raise TypeError("reason must be text or None")
+    if not any(unicodedata.category(ch) not in ("Cc", "Cf", "Zs", "Zl", "Zp") for ch in reason):
+        return None
+    return reason.strip()
+
+
+def _insert_decision(conn, submission_id, version_number, outcome, reviewer, reason, created_at):
+    conn.execute(
+        "INSERT INTO decision (submission_id, version_number, outcome, reviewer, reason, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?)", (submission_id, version_number, outcome, reviewer, reason, created_at))
+
+
+def _update_status(conn, submission_id, status):
+    conn.execute("UPDATE submission SET status = ? WHERE id = ?", (status, submission_id))
+
+
+def record_decision(conn, submission_id, version_number, outcome, reason, reviewer, now):
+    """Record a reviewer's decision on the current version of a submission. The only place that does.
+
+    Validates, then takes the write lock (BEGIN IMMEDIATE) before reading, so two requests cannot
+    both pass the checks. The decision row and the new status are written in one transaction and
+    committed here; any refusal or failure rolls back and leaves the data as it was. Raises
+    DecisionError with a fixed code. `version_number` must be the submission's current version;
+    anything else, including a version that does not exist, is `stale_version`. A version that
+    already has a decision is `already_decided` (checked before status, so a second attempt says
+    who decided); `locked` covers a non-decidable status with no decision row to point at.
+    """
+    from app import seed
+
+    if outcome not in OUTCOMES or not isinstance(outcome, str):
+        raise DecisionError("bad_outcome")
+    reason = _clean_reason(reason)
+    if outcome in REASON_REQUIRED and reason is None:
+        raise DecisionError("reason_required")
+    if reason is not None and len(reason) > MAX_REASON_CHARS:
+        raise DecisionError("reason_too_long")
+    if not isinstance(reviewer, str) or not reviewer.strip():
+        raise ValueError("reviewer must be a non-blank name")
+    if not hasattr(now, "tzinfo"):
+        raise TypeError("now must be a datetime")
+    if conn.in_transaction:
+        raise RuntimeError("record_decision needs a connection with no open transaction")
+
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        row = conn.execute("SELECT status, current_version FROM submission WHERE id = ?",
+                           (submission_id,)).fetchone() if _is_int(submission_id) else None
+        if row is None:
+            raise DecisionError("not_found")
+        if not _is_int(version_number) or version_number != row["current_version"]:
+            raise DecisionError("stale_version")
+        if conn.execute("SELECT 1 FROM decision WHERE submission_id = ? AND version_number = ?",
+                        (submission_id, version_number)).fetchone():
+            raise DecisionError("already_decided")
+        if row["status"] not in DECIDABLE_STATUSES:
+            raise DecisionError("locked")
+        created_at = seed.format_timestamp(now)
+        try:
+            _insert_decision(conn, submission_id, version_number, outcome, reviewer, reason, created_at)
+        except sqlite3.IntegrityError:
+            raise DecisionError("already_decided") from None  # the UNIQUE constraint as a backstop
+        _update_status(conn, submission_id, outcome)
+    except BaseException:
+        conn.rollback()
+        raise
+    conn.commit()
+    return {"submission_id": submission_id, "version_number": version_number, "outcome": outcome,
+            "reviewer": reviewer, "reason": reason, "created_at": created_at}
