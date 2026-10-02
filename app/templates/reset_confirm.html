@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Reset demo - ClearPath Review{% endblock %}
+{% block content %}
+<h1>Reset the demo data?</h1>
+<p><strong>This affects everyone using the demo.</strong> Every submission, decision, comment and
+dismissal is replaced with the original 14 sample submissions. Anything added since the last reset is lost.</p>
+<form method="post" action="/reset" class="reset-confirm-form">
+  <input type="hidden" name="confirm" value="reset">
+  <button type="submit" class="reset-confirm-button">Yes, reset for everyone</button>
+  <a href="/">Cancel</a>
+</form>
+{% endblock %}

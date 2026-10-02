@@ -1,9 +1,12 @@
 import logging
+import math
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 
-from app import db
+from app import clock, db, seed
+from app.cooldown import Cooldown
 from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, ROLES
 from app.templating import render
 
@@ -11,6 +14,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 NO_STORE = {"Cache-Control": "no-store"}
+
+RESET_COOLDOWN_SECONDS = 10
+reset_cooldown = Cooldown(RESET_COOLDOWN_SECONDS)
 
 
 def _json(body, status_code):
@@ -53,3 +59,51 @@ def set_role(request: Request, role: str = Form("")):
         httponly=True, samesite="lax", secure=_is_https(request),
     )
     return response
+
+
+def _same_origin(request):
+    """False if the browser says this request came from another site.
+
+    Browsers send Origin (or at least Referer) on cross-site form posts. Neither header means
+    a non-browser client such as curl, which is allowed: the guard is against a hostile web
+    page, not against someone who can already send requests. The Origin value "null" is refused.
+    """
+    host = request.headers.get("host", "")
+    for name in ("origin", "referer"):
+        value = request.headers.get(name)
+        if value is None:
+            continue
+        try:
+            return bool(host) and urlparse(value).netloc == host
+        except ValueError:
+            return False
+    return True
+
+
+@router.get("/reset/confirm")
+def reset_confirm(request: Request):
+    response = render(request, "reset_confirm.html")
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+# Both roles may reset: the role is a demo label, not authorization (assumption A4), so there
+# is nothing to check it against. The guards are the confirmation field, the same-origin
+# check and the cooldown.
+@router.post("/reset")
+def reset(request: Request, confirm: str = Form("")):
+    if not _same_origin(request):
+        return PlainTextResponse("Reset must be started from this site.", status_code=403, headers=NO_STORE)
+    if confirm != "reset":
+        return PlainTextResponse("Please confirm the reset.", status_code=400, headers=NO_STORE)
+    wait = reset_cooldown.acquire(clock.now())
+    if wait:
+        return PlainTextResponse("A reset just ran. Please wait a few seconds and try again.",
+                                 status_code=429, headers={**NO_STORE, "Retry-After": str(math.ceil(wait))})
+    try:
+        with db.connect() as conn:
+            seed.reset_to_seed(conn)
+    except Exception:
+        reset_cooldown.release()
+        raise
+    return RedirectResponse("/?reset=done", status_code=303, headers=NO_STORE)

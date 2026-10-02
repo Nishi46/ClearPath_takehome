@@ -20,15 +20,3 @@ def test_reset_button_is_not_inside_a_form(client):
     html = client.get("/").text
     for form in re.findall(r"<form.*?</form>", html, re.S):
         assert "Reset demo" not in form
-
-
-def test_no_reset_route_exists_yet(client):
-    for method in ("GET", "POST", "PUT", "DELETE"):
-        assert client.request(method, "/reset").status_code in (404, 405)
-    assert client.post("/reset", data={"confirm": "yes"}).status_code in (404, 405)
-
-
-def test_no_route_in_the_app_mentions_reset():
-    from app.main import app
-
-    assert not any("reset" in getattr(r, "path", "") for r in app.routes)

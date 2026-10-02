@@ -27,3 +27,13 @@ def conn(db_path):
     with db.connect() as connection:
         connection.executescript(schema)
         yield connection
+
+
+@pytest.fixture(autouse=True)
+def _fresh_reset_cooldown():
+    """The reset cooldown is process-wide state; start every test with it clear."""
+    from app.routes import pages
+
+    pages.reset_cooldown.clear()
+    yield
+    pages.reset_cooldown.clear()
