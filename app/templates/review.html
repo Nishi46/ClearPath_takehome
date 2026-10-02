@@ -7,7 +7,7 @@
 <nav class="version-nav" aria-label="Versions">
   <span class="version-nav-label">Versions:</span>
   {%- for v in versions %}
-  <a href="{{ v.href }}"{% if v.selected %} aria-current="page"{% endif %} class="version-link{% if v.selected %} is-selected{% endif %}">{{ v.text }}{% if v.current %} (current){% endif %}</a>
+  <a href="{{ v.href }}"{% if v.selected %} aria-current="page"{% endif %} class="version-link{% if v.selected %} is-selected{% endif %}">{{ v.text }}{% if v.current %} (current){% endif %}{% if v.resubmitted %} <span class="version-resubmitted">&middot; {{ v.resubmitted }}</span>{% endif %}</a>
   {%- endfor %}
 </nav>
 </div>
@@ -141,7 +141,7 @@
   <h2 id="history-heading">History</h2>
   <ol class="history-list">
     {%- for h in history %}
-    <li class="history-{{ h.kind }}">{{ h.text }} <span class="history-when">{{ h.when }}</span></li>
+    <li class="history-{{ h.kind }}">{{ h.text }}{% if h.resubmitted %} <strong class="history-resubmitted">(Resubmitted)</strong>{% endif %} <span class="history-when">{{ h.when }}</span></li>
     {%- endfor %}
   </ol>
 </section>

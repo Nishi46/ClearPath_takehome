@@ -68,6 +68,7 @@ def load_review(conn, submission_id, version_number=None):
         "submission": submission,
         "version": version,
         "version_numbers": [v["version_number"] for v in versions],
+        "version_times": {v["version_number"]: v["created_at"] for v in versions},
         "flags": flags,
         "dismissals": dismissals,
         "decision": next((d for d in decisions if d["version_number"] == number), None),
@@ -263,6 +264,7 @@ def versions_view(data, back="/"):
     current = data["submission"]["current_version"]
     shown = data["version"]["version_number"]
     return [{"text": "v%d" % n, "current": n == current, "selected": n == shown,
+             "resubmitted": ("Resubmitted " + day_text(data["version_times"].get(n))) if n > 1 else None,
              "href": with_back("/review/%d" % sid if n == current else "/review/%d?v=%d" % (sid, n), back)}
             for n in data["version_numbers"]]
 
@@ -308,7 +310,8 @@ def history_view(data):
             text = "v%d submitted by %s" % (h["version_number"], h["who"])
         else:
             text = "v%d %s by %s" % (h["version_number"], _outcome_label(h["outcome"]).lower(), h["who"])
-        out.append({"text": text, "when": day_text(h["at"]), "kind": h["kind"]})
+        out.append({"text": text, "when": day_text(h["at"]), "kind": h["kind"],
+                    "resubmitted": h["kind"] == "version" and h["version_number"] > 1})
     return out
 
 

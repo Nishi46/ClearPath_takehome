@@ -12,8 +12,9 @@ def meta_between(html, start_cls, end_cls=None):
 
 
 def selector(html):
-    return re.findall(r'<a href="([^"]+)"( aria-current="page")? class="version-link[^"]*">([^<]+)</a>',
-                      re.search(r'<nav class="version-nav".*?</nav>', html, re.S).group(0))
+    nav = re.search(r'<nav class="version-nav".*?</nav>', html, re.S).group(0)
+    nav = re.sub(r' <span class="version-resubmitted">.*?</span>', "", nav)  # the resubmission marker has its own test
+    return re.findall(r'<a href="([^"]+)"( aria-current="page")? class="version-link[^"]*">([^<]+)</a>', nav)
 
 
 def lock(html):
@@ -22,6 +23,7 @@ def lock(html):
 
 
 def history(html):
+    html = re.sub(r' <strong class="history-resubmitted">.*?</strong>', "", html)  # marker: own test
     return re.findall(r'<li class="history-\w+">(.*?) <span class="history-when">(.*?)</span></li>', html, re.S)
 
 
