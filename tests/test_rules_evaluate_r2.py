@@ -68,7 +68,8 @@ def test_blank_line_separates_paragraphs():
     assert r2("rate \n \n 5%") == []
     assert r2("rate\r\n\r\n5%") == []
     assert r2("5%\n\nrate") == []
-    assert r2("rate  5%") == []  # paragraph separator is normalized to a newline
+    assert r2("rate\u2029 5%") == R2  # one separator is a single newline, not a blank line
+    assert r2("rate\u2029\u2029 5%") == []
     assert r2("rate\n5%") == R2
     assert r2("rate. Next paragraph\n\nOther 5% here") == []
 

@@ -310,12 +310,32 @@ class Flag:
 
 # Rules the engine evaluates so far. Later steps add the rest; the engine never reports a rule
 # it has not been tested for.
-_EVALUATED = {"R1", "R2", "R3", "R4", "R5", "R7"}
+_EVALUATED = {"R1", "R2", "R3", "R4", "R5", "R6", "R7"}
 
 
 @functools.lru_cache(maxsize=None)
 def _phrase_patterns(rule_id):
     return tuple(compile_phrase(p) for p in get_rule(rule_id).detection["phrases"])
+
+
+# R6 is not reported when the copy states when the offer ends: an end word (ends, expires,
+# through, until, thru) followed within MAX_END_DATE_GAP characters by a date. A date is a month
+# with a day ("oct 31", "oct. 31st", "31 october"), or a numeric month/day ("10/31"). Month and
+# day are not checked against a calendar. "Ends soon", "ends today" and a bare "ends 31" do not
+# count. The date may come before or after the urgency phrase; it only has to be in the copy.
+MAX_END_DATE_GAP = 20
+_MONTH = (r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?"
+          r"|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)(?![^\W_])")
+_DAY = r"(?:[12][0-9]|3[01]|0?[1-9])(?:st|nd|rd|th)?(?![^\W_])"
+_DATE = (rf"(?:(?<![^\W_]){_MONTH}[\s.,]{{1,3}}{_DAY}"
+         rf"|(?<![^\W_]){_DAY}[\s.,]{{1,3}}(?:of[\s.,]{{1,3}})?{_MONTH}"
+         r"|(?<![0-9/.])(?:1[0-2]|0?[1-9])/(?:[12][0-9]|3[01]|0?[1-9])(?:/(?:[0-9]{4}|[0-9]{2}))?(?![0-9/]))")
+_END_WORD = r"(?<![^\W_])(?:ends?|ending|expires?|expiring|through|thru|until)(?![^\W_])"
+_END_DATE = re.compile(rf"{_END_WORD}[\s\S]{{0,{MAX_END_DATE_GAP}}}?(?={_DATE})")
+
+
+def _has_end_date(norm):
+    return _END_DATE.search(norm) is not None
 
 
 def _phrase_flags(rule, copy, norm):
@@ -417,6 +437,8 @@ def evaluate(product, channel, copy):
         if rule.id not in _EVALUATED:
             continue
         if rule.kind == "phrase":
+            if rule.detection.get("unlessStatedEndDate") and _has_end_date(norm):
+                continue
             flags.extend(_phrase_flags(rule, copy, norm))
         else:
             flags.extend(_missing_flags(rule, norm))

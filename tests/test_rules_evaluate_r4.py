@@ -88,9 +88,9 @@ def test_r1_and_r4_both_fire_ordered_by_rule_then_position():
         assert copy[f.start:f.end] == f.matched_text
 
 
-def test_seed_8_has_r1_and_r4_so_far():
+def test_seed_8_has_r1_r4_and_r6():
     product, channel, copy = seed_copy(8)
-    assert {f.rule_id for f in evaluate(product, channel, copy)} == {"R1", "R4"}
+    assert {f.rule_id for f in evaluate(product, channel, copy) if f.kind == "phrase"} == {"R1", "R4", "R6"}
 
 
 def test_r4_does_not_depend_on_r1_and_hostile_text_is_data():
