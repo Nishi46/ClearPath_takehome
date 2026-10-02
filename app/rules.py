@@ -309,7 +309,7 @@ class Flag:
 
 # Rules the engine evaluates so far. Later steps add the rest; the engine never reports a rule
 # it has not been tested for.
-_EVALUATED = {"R1"}
+_EVALUATED = {"R1", "R4"}
 
 
 @functools.lru_cache(maxsize=None)
