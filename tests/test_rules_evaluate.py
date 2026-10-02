@@ -90,10 +90,10 @@ TORTURE = [
     "\U0001f600 " * 500 + "guaranteed approval",
     "שלום العربية guaranteed approval ש",
     "é" * 200 + " no credit check " + "́" * 50,
-    "guaran​teed‍ approval, you’re approved, pre‑approved",
-    "\x00guaranteed approval\x00", "﻿﻿guaranteed approval", "İ ẞ ß GUARANTEED APPROVAL",
-    "a" * 50 + "" * 50 + "guaranteed approval", "퟿\U0010ffff guaranteed approval",
-    "guaranteed approval", "guaranteed  approval",
+    "guaran\u200bteed\u200d approval, you’re\u00a0approved, pre‑approved",
+    "\x00guaranteed approval\x00", "\ufeff\ufeffguaranteed approval", "İ ẞ ß GUARANTEED APPROVAL",
+    "a" * 50 + "\ue000" * 50 + "guaranteed approval", "퟿\uf8ff\U0010ffff guaranteed approval",
+    "guaranteed\u2028approval", "guaranteed\u00a0\u00a0approval",
 ]
 
 

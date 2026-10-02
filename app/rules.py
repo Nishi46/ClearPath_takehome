@@ -154,16 +154,16 @@ def get_rule(rule_id):
 # Stands in for invisible characters (zero-width, soft hyphen, bidi marks). It keeps the text the
 # same length, so match offsets still line up with the original copy; the phrase matcher
 # treats it as ignorable.
-IGNORABLE = ""
+IGNORABLE = "\ue000"
 
-_INVISIBLE = ("­᠎​‌‍\u200E\u200F\u202A\u202B\u202C\u202D\u202E"
-              "⁠\u2066\u2067\u2068\u2069﻿")
-_UNICODE_SPACES = ("           "
-                   "    　")
-_DASHES = "‐‑‒–—―−﹘﹣－"
-_APOSTROPHES = "‘’‚‛′ʼ＇"
-_DOUBLE_QUOTES = "“”„‟″＂"
-_LINE_BREAKS = "\u0085  "
+_INVISIBLE = ("\u00ad\u180e\u200b\u200c\u200d\u200E\u200F\u202A\u202B\u202C\u202D\u202E"
+              "\u2060\u2066\u2067\u2068\u2069\ufeff")
+_UNICODE_SPACES = ("\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008"
+                   "\u2009\u200a\u202f\u205f\u3000")
+_DASHES = "\u2010\u2011\u2012\u2013\u2014\u2015\u2212\ufe58\ufe63\uff0d"
+_APOSTROPHES = "\u2018\u2019\u201a\u201b\u2032\u02bc\uff07"
+_DOUBLE_QUOTES = "\u201c\u201d\u201e\u201f\u2033\uff02"
+_LINE_BREAKS = "\u0085\u2028\u2029"
 
 # Every entry maps one character to exactly one character.
 _TABLE = {ord(c): IGNORABLE for c in _INVISIBLE}
@@ -197,8 +197,8 @@ def normalize(text):
 _WORD = re.compile(r"[^\W_]+")
 # One separator character: anything that is not a letter or digit (underscore counts as
 # punctuation here). IGNORABLE is skipped separately and does not count toward the limit.
-_SEP_CHAR = r"(?:[^\w]|_)"
-_SKIP = "*"
+_SEP_CHAR = r"(?:[^\w\ue000]|_)"
+_SKIP = "\ue000*"
 MAX_GAP = 3
 
 
@@ -226,7 +226,7 @@ def compile_phrase(phrase):
             low = 0 if closed_up_ok else 1
             parts.append(f"{_SKIP}(?:{_SEP_CHAR}{_SKIP}){{{low},{MAX_GAP}}}")
     body = "".join(parts)
-    return re.compile(rf"(?<![^\W_])(?<![^\W_]){body}(?![^\W_])")
+    return re.compile(rf"(?<![^\W_])(?<![^\W_]\ue000){body}(?![^\W_])")
 
 
 def find_phrase(norm_text, compiled):

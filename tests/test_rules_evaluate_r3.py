@@ -36,7 +36,7 @@ def test_seed_items_with_the_statement_do_not(seed_id):
 @pytest.mark.parametrize("text", [
     "Equal Housing Lender", "EQUAL HOUSING LENDER", "equal housing lender.", "Equal  Housing  Lender",
     "Equal\nHousing\nLender", "Equal-Housing-Lender", "NMLS #1. Equal Housing Lender. Loans vary",
-    "Equal Housing Lender", "Equal Housing​ Lender", "Equal Hous­ing Lender",
+    "Equal\u00a0Housing\u00a0Lender", "Equal Housing\u200b Lender", "Equal Hous\u00ading Lender",
 ])
 def test_present_in_many_forms(text):
     assert r3("mortgage", "email", f"Intro text. {text}") == []

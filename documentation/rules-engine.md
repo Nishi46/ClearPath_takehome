@@ -19,6 +19,7 @@
 | Limit | Example | Why accepted |
 |---|---|---|
 | Misses paraphrased violations (recall) | Seed #8 "everyone gets a yes" fires no rule | Transparent keyword rules trade recall for explainability; the reviewer is the safety net. Asserted in `tests/test_rules_seed.py` so a change is a conscious decision |
+| Close variants outside the phrase list are missed | "guaranteed approvals" (plural), "approval guaranteed", "guarantee approval", "everyone's approved", "cannot be denied" / "can not be denied", "you are approved" | The rules match the exact phrases in `data/rules.json` (the spec in seed-data.md). Each is a one-line addition to the file if wanted |
 | Reads words, not intent (false positives) | Seed #13 explains why "guaranteed approval" is not offered, and still fires R1 | That is the dismissal demo; a reviewer dismisses it with a note |
 | Negation not understood | "Not subject to credit approval" counts as the R5 disclaimer | Same: words, not intent |
 | Month abbreviation counts as APR | "Offer ends Apr 3" satisfies R2 | Whole-word "APR" is matched; telling the month from the rate needs context |

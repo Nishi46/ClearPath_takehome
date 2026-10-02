@@ -39,7 +39,7 @@ def test_quiet_on_the_other_seed_items(key):
     "rate of 5%", "5% interest", "Interest rate: 5.99%", "rates as low as 5.99%", "RATE 5%",
     "a rate .5%", "rate 5 %", "rate 5.99 percent", "rate 5 PERCENT", "0% intro interest rate",
     "interest-free 0%", "Rates from 3% to 4%", "rate\n5%", "rate:\t5%", "rate – 5%",
-    "rate 5%", "interest of 12.5%.", "(rate 5%)", "rate 5%APR".replace("APR", "x"),
+    "rate\u00a05%", "interest of 12.5%.", "(rate 5%)", "rate 5%APR".replace("APR", "x"),
 ])
 def test_fires_for_percent_near_rate_or_interest_in_either_order(copy):
     assert r2(copy) == R2
@@ -122,9 +122,9 @@ def test_ordering_with_other_flags_is_by_rule_id():
 
 
 def test_unicode_and_obfuscation():
-    assert r2("\U0001f600 שלום rate: 5 %") == R2
-    assert r2("RATE​ 5%") == R2 or True  # a zero-width character inside a word is a known gap
-    assert r2("rate 5% A​PR") == []
+    assert r2("\U0001f600 שלום rate: 5\u00a0%") == R2
+    assert r2("RATE\u200b 5%") == R2 or True  # a zero-width character inside a word is a known gap
+    assert r2("rate 5% A\u200bPR") == []
 
 
 def test_hostile_text_is_data():

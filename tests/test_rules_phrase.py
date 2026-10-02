@@ -16,7 +16,7 @@ def hits(phrase, text):
 @pytest.mark.parametrize("text", [
     "GUARANTEED APPROVAL", "Guaranteed approval", "guaranteed approval",
     "guaranteed  approval", "guaranteed\napproval", "guaranteed-approval",
-    "guaranteed, approval", "guaranteed – approval", "guaranteed approval",
+    "guaranteed, approval", "guaranteed – approval", "guaranteed\u00a0approval",
 ])
 def test_case_punctuation_and_spacing_match(text):
     assert hits("guaranteed approval", f"Get {text} today") == [text]
@@ -96,17 +96,17 @@ def test_overlapping_candidates_are_reported_once():
 
 
 def test_spans_slice_the_original_after_emoji_accents_and_rtl():
-    text = "\U0001f600é́ שלום ​ GUARANTEED APPROVAL!"
+    text = "\U0001f600é́ שלום \u200b GUARANTEED APPROVAL!"
     (a, b), = spans("guaranteed approval", text)
     assert text[a:b] == "GUARANTEED APPROVAL"
     assert len(text) == len(normalize(text))
 
 
 def test_invisible_characters_cannot_hide_a_phrase():
-    for t in ("guaran­teed approval", "guaranteed​ approval", "guaranteed ​​ approval",
-              "g​uaranteed approval", "guaranteed﻿ ‍approval"):
+    for t in ("guaran\u00adteed approval", "guaranteed\u200b approval", "guaranteed \u200b\u200b approval",
+              "g\u200buaranteed approval", "guaranteed\ufeff \u200dapproval"):
         assert len(spans("guaranteed approval", t)) == 1, repr(t)
-    t = "guaranteed ​ approval"
+    t = "guaranteed \u200b approval"
     (a, b), = spans("guaranteed approval", t)
     assert (a, b) == (0, len(t))
 
@@ -145,9 +145,9 @@ def test_empty_and_unmatched_text():
 
 
 @pytest.mark.parametrize("text", [
-    "a-" * 50_000, "guaranteed " * 9_000, "-" * 100_000, "guaranteed" + "​" * 100_000,
-    "guaranteed " + "​" * 100_000 + " approval", "guaranteed approval " * 5_000,
-    ("g​" * 50_000), " " * 100_000, "guaranteed" + " ." * 40_000,
+    "a-" * 50_000, "guaranteed " * 9_000, "-" * 100_000, "guaranteed" + "\u200b" * 100_000,
+    "guaranteed " + "\u200b" * 100_000 + " approval", "guaranteed approval " * 5_000,
+    ("g\u200b" * 50_000), " " * 100_000, "guaranteed" + " ." * 40_000,
 ])
 def test_no_catastrophic_backtracking(text):
     pats = [compile_phrase(p) for p in ("guaranteed approval", "pre-approved", "you're approved", "act now")]

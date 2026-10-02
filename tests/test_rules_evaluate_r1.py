@@ -74,11 +74,11 @@ def test_seed_13_explanatory_use_still_fires():
 
 
 def test_obfuscated_and_curly_forms_fire_with_valid_offsets():
-    copy = "Hi \U0001f600 שלום can’t be denied, and guaran­teed APPROVAL!"
+    copy = "Hi \U0001f600 שלום can’t be denied, and guaran\u00adteed\u00a0APPROVAL!"
     flags = r1("loan", "email", copy)
     assert len(flags) == 2
     assert flags[0].matched_text == "can’t be denied"
-    assert flags[1].matched_text == "guaran­teed APPROVAL"
+    assert flags[1].matched_text == "guaran\u00adteed\u00a0APPROVAL"
     for f in flags:
         assert copy[f.start:f.end] == f.matched_text
 

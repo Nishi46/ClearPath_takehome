@@ -56,7 +56,7 @@ def test_each_phrase_fires_alone(phrase):
     "Offer ends Oct 31", "offer ends Oct. 31st", "expires 10/31", "valid through December 1", "until Jan 5",
     "ends 10/31/2026", "ends 1/5/27", "ends on or before Oct 31", "expires 31 October", "ends 1st of May",
     "Ends SEPT 5", "thru Nov 30", "ending Dec 2nd", "ends: October 31, 2026", "EXPIRES JUNE 3",
-    "ends\nOct 31", "ends  Oct  31", "ends Oct 31",
+    "ends\nOct 31", "ends  Oct  31", "ends Oct\u00a031",
 ])
 def test_stated_end_dates_suppress_r6(text):
     assert r6(f"Act now, last chance! {text}") == []

@@ -10,9 +10,9 @@ from app import rules
 from app.rules import IGNORABLE, normalize
 
 SAMPLES = [
-    "", " ", "Plain text", "Emoji \U0001f600 and \U0001f468‍\U0001f469‍\U0001f467",
+    "", " ", "Plain text", "Emoji \U0001f600 and \U0001f468\u200d\U0001f469\u200d\U0001f467",
     "café é combining", "Straße STRASSE", "İstanbul İ", "שלום العربية RTL",
-    "a b c　d", "x y z\u0085w", "null\x00byte", "퟿",
+    "a\u00a0b\u2003c\u3000d", "x\u2028y\u2029z\u0085w", "null\x00byte", "퟿\ue000\uf8ff",
     "ﬁ ligature ẞ ΣΣ final sigma", "tab\tnew\nline\r\n",
 ]
 
@@ -24,7 +24,7 @@ def test_length_is_preserved_for_awkward_strings():
 
 def test_length_is_preserved_for_random_strings():
     rng = random.Random(1234)
-    pool = (string.printable + "ßİ’–​­ 　\U0001f600א́"
+    pool = (string.printable + "ßİ’–\u200b\u00ad\u00a0\u3000\U0001f600א́"
             + "".join(chr(c) for c in range(0x80, 0x500)))
     for _ in range(300):
         s = "".join(rng.choice(pool) for _ in range(rng.randint(0, 200)))
@@ -32,7 +32,7 @@ def test_length_is_preserved_for_random_strings():
 
 
 def test_length_is_preserved_for_100k_chars():
-    s = ("Guaranteed ’ İ ​\U0001f600 " * 6000)[:100_000]
+    s = ("Guaranteed ’ İ \u200b\U0001f600 " * 6000)[:100_000]
     start = time.perf_counter()
     out = normalize(s)
     assert len(out) == len(s) == 100_000
@@ -49,17 +49,17 @@ def test_case_and_curly_punctuation():
 
 
 def test_unicode_spaces_become_spaces_but_newlines_stay():
-    assert normalize("a b c　d e") == "a b c d e"
+    assert normalize("a\u00a0b\u2003c\u3000d\u202fe") == "a b c d e"
     assert normalize("a\nb\r\nc\td") == "a\nb\r\nc\td"
-    assert normalize("a b c\u0085d") == "a\nb\nc\nd"
+    assert normalize("a\u2028b\u2029c\u0085d") == "a\nb\nc\nd"
 
 
 def test_invisible_characters_are_neutralized_not_removed():
-    s = "guaran­teed approval"
+    s = "guaran\u00adteed approval"
     out = normalize(s)
     assert out == f"guaran{IGNORABLE}teed approval"
     assert len(out) == len(s)
-    for ch in "​‌‍⁠﻿­\u200E\u202E":
+    for ch in "\u200b\u200c\u200d\u2060\ufeff\u00ad\u200E\u202E":
         assert normalize(f"a{ch}b") == f"a{IGNORABLE}b"
 
 
@@ -71,7 +71,7 @@ def test_special_lowercase_cases_keep_length():
 
 
 def test_idempotent():
-    for s in SAMPLES + ["Pre–approved ​ you’re"]:
+    for s in SAMPLES + ["Pre–approved \u200b you’re"]:
         assert normalize(normalize(s)) == normalize(s), repr(s)
 
 

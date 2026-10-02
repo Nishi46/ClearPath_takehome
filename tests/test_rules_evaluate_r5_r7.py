@@ -48,7 +48,7 @@ def test_r5_does_not_apply_to_mortgage(key):
     "Subject to credit approval.", "SUBJECT TO CREDIT APPROVAL", "subject to credit approval",
     "Subject  to   credit approval", "Subject to credit\napproval", "Subject to credit review.",
     "Credit approval required.", "Credit approval is required.", "subject to credit-approval",
-    "Subject to credit approval​.", "Subject to credit approval",
+    "Subject to credit approval\u200b.", "Subject\u00a0to\u00a0credit\u00a0approval",
 ])
 def test_r5_accepted_forms(text):
     assert fired("R5", "loan", "email", f"Apply now. {text}") == []
@@ -95,7 +95,7 @@ def test_r7_quiet_when_terms_are_referenced(key):
     "See full terms at the link.", "Full terms available online", "See full terms",
     "Learn more at https://clearpath.example/terms", "http://x.co", "Details: clearpath.example/card",
     "clearpath.example/", "go to www.clearpath.example/terms", "see sub.domain.example.co.uk/legal",
-    "(clearpath.example/card)", "Terms apply", "Terms\napply",
+    "(clearpath.example/card)", "Terms\u00a0apply", "Terms\napply",
 ])
 def test_r7_accepted_forms(text):
     assert fired("R7", "card", "display", f"Great card. {text}") == []
