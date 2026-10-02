@@ -1,10 +1,11 @@
 import logging
 
-from fastapi import APIRouter, Request
-from fastapi.responses import Response
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 
 from app import db
-from app.templating import templates
+from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, ROLES
+from app.templating import render
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -32,4 +33,23 @@ def healthz():
 
 @router.get("/")
 def queue(request: Request):
-    return templates.TemplateResponse(request, "queue.html")
+    return render(request, "queue.html")
+
+
+def _is_https(request):
+    # Render terminates TLS at its proxy, so the app itself sees plain http.
+    # A client can only use this header to mark its own cookie Secure, which is harmless.
+    return request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https"
+
+
+@router.post("/role")
+def set_role(request: Request, role: str = Form("")):
+    if role not in ROLES:
+        # Do not echo the submitted value back.
+        return PlainTextResponse("Unknown role.", status_code=400)
+    response = RedirectResponse("/", status_code=303)
+    response.set_cookie(
+        COOKIE_NAME, role, max_age=COOKIE_MAX_AGE, path="/",
+        httponly=True, samesite="lax", secure=_is_https(request),
+    )
+    return response

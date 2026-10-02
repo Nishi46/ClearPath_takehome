@@ -18,11 +18,14 @@
       <a href="/submit">Submit</a>
     </nav>
     <div class="header-controls">
-      {# Step 10 replaces this placeholder with a POST form per role. #}
       <nav class="role-switcher" aria-label="Role">
-        <span class="role-label">Role:</span>
-        <span class="role-option" aria-current="true">Reviewer (current)</span>
-        <span class="role-option">Marketer</span>
+        <span class="role-label">Role: <strong>{{ role|capitalize }}</strong></span>
+        <form method="post" action="/role" class="role-form">
+          {% for r in roles %}
+          <button type="submit" name="role" value="{{ r }}" class="role-option"
+                  {% if r == role %}aria-current="true"{% endif %}>{{ r|capitalize }}{% if r == role %} (current){% endif %}</button>
+          {% endfor %}
+        </form>
       </nav>
       <button type="button" class="reset-demo" disabled title="Coming in phase 2">Reset demo</button>
     </div>

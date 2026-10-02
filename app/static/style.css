@@ -65,7 +65,17 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline
 }
 .role-switcher { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .role-label { color: var(--text-muted); }
-.role-option { padding: 0.125rem 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.role-form { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; }
+.role-option {
+  font: inherit;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.role-option:hover { border-color: var(--accent); }
 .role-option[aria-current="true"] { border-color: var(--accent); font-weight: 700; }
 
 .reset-demo {
