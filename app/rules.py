@@ -309,7 +309,7 @@ class Flag:
 
 # Rules the engine evaluates so far. Later steps add the rest; the engine never reports a rule
 # it has not been tested for.
-_EVALUATED = {"R1", "R4"}
+_EVALUATED = {"R1", "R3", "R4"}
 
 
 @functools.lru_cache(maxsize=None)
@@ -329,6 +329,25 @@ def _phrase_flags(rule, copy, norm):
     return flags
 
 
+def is_present(norm_text, patterns):
+    """True if any of the compiled phrases appears in the normalized text."""
+    return any(p.search(norm_text) for p in patterns)
+
+
+@functools.lru_cache(maxsize=None)
+def _required_patterns(rule_id):
+    """Phrases that, if any is present, satisfy a missing-text rule."""
+    det = get_rule(rule_id).detection
+    texts = tuple(det["required"]) + tuple(det.get("variants", ())) + tuple(det.get("satisfiedBy", ()))
+    return tuple(compile_phrase(t) for t in texts)
+
+
+def _missing_flags(rule, norm):
+    if is_present(norm, _required_patterns(rule.id)):
+        return []
+    return [Flag(rule.id, rule.severity, "missing")]
+
+
 def evaluate(product, channel, copy):
     """Return the flags for this copy, ordered by rule id then position.
 
@@ -339,6 +358,10 @@ def evaluate(product, channel, copy):
     norm = normalize(copy)
     flags = []
     for rule in rules_for(product, channel):
-        if rule.id in _EVALUATED and rule.kind == "phrase":
+        if rule.id not in _EVALUATED:
+            continue
+        if rule.kind == "phrase":
             flags.extend(_phrase_flags(rule, copy, norm))
+        else:
+            flags.extend(_missing_flags(rule, norm))
     return tuple(flags)
