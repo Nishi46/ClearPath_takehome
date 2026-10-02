@@ -156,7 +156,7 @@ def test_note_too_long_keeps_and_escapes_the_typed_text(client):
 
 def test_control_characters_are_refused(client):
     r = post(client, note="a\x00b")
-    assert r.status_code == 422 and "control characters" in field_error(r.text)
+    assert r.status_code == 422 and "control or text-direction characters" in field_error(r.text)
 
 
 def test_double_submit_sequential_and_concurrent(client):

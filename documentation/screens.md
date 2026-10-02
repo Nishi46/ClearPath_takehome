@@ -77,8 +77,8 @@
 │ New submission                                               │ PRE-CHECK     │
 │ Title*      [______________________]                        │ (live)        │
 │ Product*    [Select ▾]    Channel* [Select ▾]                │ 🔴 R1 …       │
-│ Launch*     [date]   ⚠ Launches in 1 business day. Rush      │ 🟠 R2 …       │
-│             reviews may not finish in time.                  │               │
+│ Launch*     [date]   ⚠ Launches in 1 business day. A      │ 🟠 R2 …       │
+│             rush review may not finish in time.                  │               │
 │ Asset copy* [                                  ]             │ or            │
 │             [                                  ]             │ ✓ No flags    │
 │ Notes for reviewer [___________________]                     │   detected    │

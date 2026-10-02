@@ -151,7 +151,7 @@ def test_too_long_keeps_text_and_linked_rule_and_escapes(client):
 
 def test_control_characters_are_refused(client):
     r = post(client, text="a\x00b")
-    assert r.status_code == 422 and "control characters" in field_error(r.text)
+    assert r.status_code == 422 and "control or text-direction characters" in field_error(r.text)
 
 
 def test_double_submit_sequential(client):

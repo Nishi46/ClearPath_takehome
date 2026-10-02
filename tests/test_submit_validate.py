@@ -77,8 +77,9 @@ def test_control_characters_in_copy_are_refused(bad):
 
 
 def test_tab_unicode_and_invisible_characters_are_kept():
-    copy = "Tab\there \u202E rtl ​ zero-width é \U0001f600"
+    copy = "Tab\there \u05e9\u05dc\u05d5\u05dd rtl ​ zero-width é \U0001f600"
     assert check(copy=copy)[0]["copy"] == copy
+    assert "copy" in check(copy="a \u202e override")[1]      # an override character is refused (phase 7 step 24)
 
 
 @pytest.mark.parametrize("blank", [None, "", "  \n ", "​"])

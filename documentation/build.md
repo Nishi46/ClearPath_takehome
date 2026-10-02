@@ -21,7 +21,7 @@
 | 4. Review screen and decisions | 2 hrs | Done |
 | 5. Submit, marketer view, resubmit and diff | 2 hrs | Done |
 | 6. Flag dismissal, snippets, audit trail | 1.5 hrs | Built, local manual walkthrough and deploy check to do |
-| 7. Edge cases, microcopy, polish | 2 hrs | In progress: parts A to E done (see phase-7-steps.md) |
+| 7. Edge cases, microcopy, polish | 2 hrs | Built, manual checks and public-URL run to do (see phase-7-steps.md) |
 | 8. README, deploy check, demo prep | 2 hrs | |
 | 9. Buffer, final walkthroughs | remainder | |
 | Stretch: dashboard | only if time remains | |
@@ -117,6 +117,11 @@ Detail in phase-4-steps.md.
 - First impression check: opens into a populated queue, urgent item obvious, one click to a flagged item.
 
 **Done when:** all edge-case rows pass and a first-time user finishes the loop without help.
+
+- Built (details and step-by-step status in [phase-7-steps.md](phase-7-steps.md)): about 1,300 new tests in `tests/test_phase7_*.py`, the generated [copy-inventory.md](copy-inventory.md) (`python -m tests.tools.collect_copy --write`), and a real-Chrome `evaluate()` helper for layout checks. Every row of seed-data.md section 3 is a test class, and a meta-test fails if the doc and the tests drift apart.
+- Gaps the tests found and fixed: every error and refusal now renders the shared error page (it was plain text for most); length messages said "under N" when exactly N is accepted; urgent queue labels are consistent ("Rush: ..."); control borders reach 3:1 contrast; forced-colors rules; 44px touch targets on a phone; a favicon; text-direction override characters are refused in all typed text (a reviewer could otherwise be shown copy that reads differently from what is stored); decision reasons get a control-character check; `POST /role` checks the origin; HSTS over https and no server banner; two first starts at once no longer fail on the WAL switch.
+- Checked and unchanged: the route table, security headers, cookie flags, redirects, the hostile-input corpus on every form field and query parameter, the laptop and phone layouts, and a clean console on every screen in both roles.
+- Rules the server enforces that phase 7 relied on: a rush or past launch date warns and never blocks; unchanged resubmission is blocked; the role cookie is a label, and a missing one means reviewer.
 
 ## Phase 8: README, deploy check, demo prep (2 hrs)
 

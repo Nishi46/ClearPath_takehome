@@ -1,10 +1,12 @@
 import os
 import sqlite3
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
 DEFAULT_DB_PATH = "./clearpath.db"
 BUSY_TIMEOUT_MS = 5000
+INIT_ATTEMPTS = 8
 
 
 class DatabaseError(RuntimeError):
@@ -56,9 +58,18 @@ SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 
 def init_schema():
     """Create any missing tables and indexes. Safe to run on every start; never touches data."""
-    try:
-        enable_wal()
-        with connect() as conn:
-            conn.executescript(SCHEMA_PATH.read_text())
-    except sqlite3.Error as exc:
-        raise DatabaseError("Cannot initialise database %s: %s" % (get_db_path(), exc)) from exc
+    # Two copies of the app starting on a brand-new file at the same moment can collide on the switch to WAL, which
+    # SQLite refuses at once instead of waiting. The schema is idempotent, so the loser just tries again.
+    for attempt in range(INIT_ATTEMPTS):
+        try:
+            enable_wal()
+            with connect() as conn:
+                conn.executescript(SCHEMA_PATH.read_text())
+            return
+        except sqlite3.OperationalError as exc:
+            busy = "locked" in str(exc) or "busy" in str(exc)
+            if not busy or attempt == INIT_ATTEMPTS - 1:
+                raise DatabaseError("Cannot initialise database %s: %s" % (get_db_path(), exc)) from exc
+            time.sleep(0.05 * (attempt + 1))
+        except sqlite3.Error as exc:
+            raise DatabaseError("Cannot initialise database %s: %s" % (get_db_path(), exc)) from exc

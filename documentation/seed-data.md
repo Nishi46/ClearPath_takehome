@@ -69,12 +69,12 @@ Today is assumed to be a Thursday; offsets are launch date relative to today.
 |---|---|
 | No flags found | #6, #10 |
 | Empty filter results | e.g. Status = Rejected + Product = Card |
-| Empty queue | Test fixture only (not seedable) |
+| Empty queue | Test fixture only (not seedable): "No submissions yet. Submit the first one" |
 | Missing fields, whitespace-only copy | Form validation tests |
 | Very long copy | #12 |
 | Launch in the past | #11 |
 | Launch within 2 business days | #1, #2 on any weekday; #14 (+3 days) is rush on some weekdays and not others, since the rule counts business days |
-| Resubmit without changes | Try on #14 (blocked) |
+| Resubmit without changes | Try on #14 (blocked: "Nothing has changed in the copy..."; line endings and trailing spaces do not count as changes) |
 | Double-click a decision; decide on an already-decided version | Live on #3 or #5; #6, #7, #8 are locked (direct POST rejected in test) |
 | Reject then resubmit, history preserved | #7 (done), #8 (resubmit live) |
 | Flag false positive: dismissed / live | #13 / #12 |

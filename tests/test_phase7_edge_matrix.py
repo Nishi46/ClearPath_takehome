@@ -1,8 +1,7 @@
 """Phase 7, part A: one test class per row of seed-data.md section 3 (the edge-case matrix).
 
-Each class drives the real app on a freshly seeded database. They record what the app does today;
-rows that do not yet behave as phase-7-steps.md says are marked xfail with the step that fixes them,
-so a gap is visible and fixing it turns the xfail into a failure to remove the marker.
+Each class drives the real app on a freshly seeded database and records what it does. Every row already behaved
+as seed-data.md says, so none needed to be marked as a known gap; the later steps only added depth.
 
 | Row (seed-data.md section 3)                       | Test class                  | Hardened in step |
 |----------------------------------------------------|-----------------------------|------------------|

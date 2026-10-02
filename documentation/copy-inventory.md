@@ -47,14 +47,14 @@ Patterns (see phase-7-steps.md, decision 3): an error says what is wrong and how
 | error-message | Only reviewers can comment. Switch role using the Role buttons above. | marketer POST comment |
 | error-message | Only reviewers can dismiss flags. Switch role using the Role buttons above. | marketer POST dismiss |
 | error-message | Only reviewers can record decisions. Switch role using the Role buttons above. | marketer POST decision |
-| error-message | Please confirm the reset. | reset confirm missing |
+| error-message | Please confirm the reset. Open Reset demo and use the confirm button. | reset confirm missing |
 | error-message | Reset must be started from this site. Reload the page and try again. | reset cross-origin |
 | error-message | Submissions must be made from this site. Reload the page and try again. | submit cross-origin |
 | error-message | That action isn't available on this page. | marketer GET /role |
 | error-message | That request was too large. Shorten it and try again. | too large |
-| error-message | This item belongs to another marketer. | resubmit locked |
-| error-message | Unknown marketer. | marketer POST /marketer bad |
-| error-message | Unknown role. | marketer POST /role bad |
+| error-message | This item belongs to another marketer. Switch marketer on My submissions to edit it. | resubmit locked |
+| error-message | Unknown marketer. Choose one from the list on My submissions. | marketer POST /marketer bad |
+| error-message | Unknown role. Use the Role buttons above. | marketer POST /role bad |
 | error-message | We could not find that page. | marketer /nowhere |
 | error-status | Error N | marketer /nowhere |
 | field-error | Add a title. | submit check empty |
