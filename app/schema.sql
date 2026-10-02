@@ -86,3 +86,5 @@ CREATE INDEX IF NOT EXISTS idx_submission_launch_date ON submission(launch_date)
 CREATE INDEX IF NOT EXISTS idx_version_submission_id ON version(submission_id);
 CREATE INDEX IF NOT EXISTS idx_flag_version_id ON flag(version_id);
 CREATE INDEX IF NOT EXISTS idx_comment_submission_id ON comment(submission_id, version_number);
+
+PRAGMA user_version = 1;

@@ -49,3 +49,16 @@ def enable_wal():
     """Switch the file to WAL so reads do not block while writing. Call once at init."""
     with connect() as conn:
         conn.execute("PRAGMA journal_mode = WAL")
+
+
+SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
+
+
+def init_schema():
+    """Create any missing tables and indexes. Safe to run on every start; never touches data."""
+    try:
+        enable_wal()
+        with connect() as conn:
+            conn.executescript(SCHEMA_PATH.read_text())
+    except sqlite3.Error as exc:
+        raise DatabaseError("Cannot initialise database %s: %s" % (get_db_path(), exc)) from exc

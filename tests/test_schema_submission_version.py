@@ -118,6 +118,6 @@ def test_no_string_built_sql_in_app():
                 continue
             arg = m.group(1)
             if arg.startswith(("f\"", "f'")) or re.match(r"[\"'][^\"']*[\"']\s*(%|\+|\.format)", arg) \
-                    or re.match(r"[a-zA-Z_]", arg) and not arg.startswith(("schema", "sql")):
+                    or re.match(r"[a-zA-Z_]", arg) and not arg.startswith(("schema", "sql", "SCHEMA_PATH.read_text()")):
                 bad.append("%s:%d: %s" % (path.name, n, line.strip()))
     assert bad == []
