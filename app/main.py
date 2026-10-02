@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app import db
+from app.routes import pages
 
 
 @asynccontextmanager
@@ -20,3 +21,5 @@ app = FastAPI(
     openapi_url=None,
     lifespan=lifespan,
 )
+
+app.include_router(pages.router)
