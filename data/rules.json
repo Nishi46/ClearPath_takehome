@@ -61,7 +61,8 @@
     "severity": "medium",
     "kind": "missing",
     "detection": {
-      "required": ["subject to credit approval"]
+      "required": ["subject to credit approval"],
+      "variants": ["subject to credit approval", "subject to credit review", "credit approval required", "credit approval is required"]
     },
     "snippetText": "Add 'subject to credit approval' language."
   },
@@ -88,7 +89,8 @@
     "severity": "medium",
     "kind": "missing",
     "detection": {
-      "required": ["terms apply", "link or reference to full terms"]
+      "required": ["terms apply", "link or reference to full terms"],
+      "satisfiedBy": ["terms apply", "terms and conditions apply", "see full terms", "full terms"]
     },
     "snippetText": "Add 'terms apply' with a link to full disclosures."
   }
