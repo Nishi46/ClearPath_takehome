@@ -1,19 +1,32 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app import db
+from app import db, seed
 from app.errors import not_found, server_error
 from app.routes import pages
 from app.security import BodyLimitMiddleware, SecurityHeadersMiddleware
 from app.templating import APP_DIR
 
 
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app):
     # Runs at startup, not at import, so importing the app never touches the database.
     db.init_schema()
+    try:
+        with db.connect() as conn:
+            if seed.seed_if_empty(conn):
+                logger.info("Empty database: loaded the demo seed.")
+    except Exception:
+        # Seeding is all-or-nothing. A demo that starts empty or half-loaded looks broken,
+        # so fail the start and leave the real error in the log.
+        logger.exception("Could not load the demo seed; refusing to start.")
+        raise
     yield
 
 

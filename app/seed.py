@@ -356,3 +356,26 @@ def reset_to_seed(conn, now=None):
         conn.rollback()
         raise
     conn.commit()
+
+
+def seed_if_empty(conn, now=None):
+    """Seed a database that has no submissions; return True if it seeded, False if it did not.
+
+    A plain read decides the common case (already populated) without touching the seed file or
+    taking the write lock. The real check repeats inside BEGIN IMMEDIATE, so of two processes
+    starting together exactly one seeds and the other sees the data and backs off.
+    """
+    if conn.execute("SELECT EXISTS (SELECT 1 FROM submission)").fetchone()[0]:
+        return False
+    data = load_seed()
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        seed_rows(conn, now, data)
+    except NotEmptyError:
+        conn.rollback()
+        return False
+    except BaseException:
+        conn.rollback()
+        raise
+    conn.commit()
+    return True
