@@ -35,10 +35,6 @@ def test_role_and_state_are_text_not_only_color(client):
     assert 'aria-current="true"' in html
 
 
-def test_reset_demo_button_is_disabled(client):
-    assert re.search(r"<button[^>]*\bdisabled\b[^>]*>Reset demo</button>", client.get("/").text)
-
-
 def test_autoescape_is_on():
     assert templates.env.autoescape
     out = templates.env.from_string("{{ x }}").render(x="<script>alert(1)</script>")

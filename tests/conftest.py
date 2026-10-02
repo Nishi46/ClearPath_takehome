@@ -37,3 +37,12 @@ def _fresh_reset_cooldown():
     pages.reset_cooldown.clear()
     yield
     pages.reset_cooldown.clear()
+
+
+@pytest.fixture
+def live_client(db_path):
+    """A client that ran app startup, so the demo seed is loaded."""
+    from app.main import app
+
+    with TestClient(app, raise_server_exceptions=False) as c:
+        yield c

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Queue - ClearPath Review{% endblock %}
 {% block content %}
+{% if reset_done %}
+<p class="banner" role="status">Demo reset to the original data.</p>
+{% endif %}
 <h1>Review queue</h1>
 <p>Queue coming next</p>
 {% endblock %}

@@ -39,7 +39,9 @@ def healthz():
 
 @router.get("/")
 def queue(request: Request):
-    return render(request, "queue.html")
+    # A fixed flag, never the query value itself: only exactly ?reset=done shows the banner.
+    reset_done = request.query_params.getlist("reset") == ["done"]
+    return render(request, "queue.html", reset_done=reset_done)
 
 
 def _is_https(request):

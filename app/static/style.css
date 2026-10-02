@@ -84,11 +84,33 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
-  color: var(--text-muted);
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
 }
-.reset-demo:disabled { cursor: not-allowed; }
+.reset-demo:hover { border-color: var(--accent); }
 .reset-demo-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.125rem; }
 .reset-demo-note { font-size: 0.75rem; color: var(--text-muted); line-height: 1.25; }
+
+/* Plain-text confirmation: the words carry the meaning, the border is only decoration. */
+.banner {
+  margin: 0 0 var(--space);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.reset-confirm-form { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.reset-confirm-button {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-text);
+  cursor: pointer;
+}
 
 main { max-width: 72rem; margin: 0 auto; padding: var(--space); }
 
