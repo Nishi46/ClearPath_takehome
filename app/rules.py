@@ -308,11 +308,6 @@ class Flag:
             raise ValueError("Unknown kind")
 
 
-# Rules the engine evaluates so far. Later steps add the rest; the engine never reports a rule
-# it has not been tested for.
-_EVALUATED = {"R1", "R2", "R3", "R4", "R5", "R6", "R7"}
-
-
 @functools.lru_cache(maxsize=None)
 def _phrase_patterns(rule_id):
     return tuple(compile_phrase(p) for p in get_rule(rule_id).detection["phrases"])
@@ -424,22 +419,27 @@ def _missing_flags(rule, norm):
     return [Flag(rule.id, rule.severity, "missing")]
 
 
+def _flag_order(flag):
+    # Rule id numerically (R2 before R10), then position; a missing-text flag has no position.
+    digits = re.findall(r"[0-9]+", flag.rule_id)
+    return (int(digits[0]) if digits else 0, flag.rule_id, -1 if flag.start is None else flag.start)
+
+
 def evaluate(product, channel, copy):
-    """Return the flags for this copy, ordered by rule id then position.
+    """Return the flags for this copy as a tuple, ordered by rule id and then position.
 
     Raises ValueError or TypeError for input it cannot check (see check_inputs). It has no
-    side effects and reads nothing but its arguments and the loaded rules.
+    side effects and reads nothing but its arguments and the loaded rules. It never catches an
+    error from a rule: a failure raises instead of returning a partial list that looks clean.
     """
     check_inputs(product, channel, copy)
     norm = normalize(copy)
     flags = []
     for rule in rules_for(product, channel):
-        if rule.id not in _EVALUATED:
-            continue
         if rule.kind == "phrase":
             if rule.detection.get("unlessStatedEndDate") and _has_end_date(norm):
                 continue
             flags.extend(_phrase_flags(rule, copy, norm))
         else:
             flags.extend(_missing_flags(rule, norm))
-    return tuple(flags)
+    return tuple(sorted(dict.fromkeys(flags), key=_flag_order))
