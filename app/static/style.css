@@ -264,7 +264,7 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .dismissal-note { white-space: pre-wrap; }
 
 /* Review screen: version selector, notices and history. Every state is written out in words. */
-.version-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0; }
+.version-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0; }
 .version-link { padding: 0.125rem 0.625rem; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; }
 .version-link.is-selected { font-weight: 700; border-color: var(--accent); border-width: 2px; }
 .notice { margin: 0.5rem 0; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-left-width: 4px;
@@ -301,7 +301,8 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
    decision form pinned under them. Each column scrolls inside itself, so the title, copy, first
    flags and decision buttons stay on screen together. Narrow widths stack in reading order. */
 .review-head { margin-bottom: 0.5rem; }
-.review-back { margin: 0 0 0.25rem; }
+.review-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.25rem 1rem; margin-bottom: 0.25rem; }
+.review-back { margin: 0; }
 .review-head h1 { margin: 0 0 0.25rem; overflow-wrap: anywhere; }
 .review-meta { margin: 0; color: var(--text-muted); overflow-wrap: anywhere; }
 .review-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space); }
@@ -310,7 +311,6 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .review-side { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
 .decision-pane { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; }
 .decision-pane h2 { margin-bottom: 0.25rem; }
-.decision-form textarea { rows: 3; }
 .history-strip { margin-top: var(--space); }
 
 a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
@@ -322,8 +322,13 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     align-items: start;
     /* Room for the site header and the title block above; the columns scroll inside this height. */
-    --review-columns-height: calc(100vh - 13.5rem);
+    --extra-error: 0rem; --extra-old: 0rem; --extra-lock: 0rem;
+    --review-columns-height: calc(100vh - 14rem - var(--extra-error) - var(--extra-old) - var(--extra-lock));
   }
+  /* Each banner above the columns (error, older version, lock) takes about this much more room. */
+  .review-layout.has-error { --extra-error: 3.5rem; }
+  .review-layout.has-old { --extra-old: 3.5rem; }
+  .review-layout.has-lock { --extra-lock: 6rem; }
   .review-main, .review-side { max-height: var(--review-columns-height); min-height: 12rem; }
   .review-main { overflow: auto; padding-right: 0.25rem; }
   .review-side-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; padding-right: 0.25rem; }

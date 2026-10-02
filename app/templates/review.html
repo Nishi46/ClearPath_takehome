@@ -2,18 +2,20 @@
 {% block title %}{{ head.title }} - Review - ClearPath Review{% endblock %}
 {% block content %}
 <header class="review-head">
+<div class="review-bar">
 <p class="review-back"><a href="/">&larr; Back to the queue</a></p>
-<h1>{{ head.title }}</h1>
-<p class="review-meta">{{ head.product_label }} &middot; {{ head.channel_label }} &middot; Launch {{ head.launch_text }}
-  &middot; Status: {{ head.status_label }} &middot; {{ head.version_text }}{% if head.is_current %} (current){% endif %}
-  &middot; Submitted by {{ head.submitted_by }}</p>
-</header>
 <nav class="version-nav" aria-label="Versions">
   <span class="version-nav-label">Versions:</span>
   {%- for v in versions %}
   <a href="{{ v.href }}"{% if v.selected %} aria-current="page"{% endif %} class="version-link{% if v.selected %} is-selected{% endif %}">{{ v.text }}{% if v.current %} (current){% endif %}</a>
   {%- endfor %}
 </nav>
+</div>
+<h1>{{ head.title }}</h1>
+<p class="review-meta">{{ head.product_label }} &middot; {{ head.channel_label }} &middot; Launch {{ head.launch_text }}
+  &middot; Status: {{ head.status_label }} &middot; {{ head.version_text }}{% if head.is_current %} (current){% endif %}
+  &middot; Submitted by {{ head.submitted_by }}</p>
+</header>
 {%- if error %}
 <div class="notice notice-error" role="alert"><p>{{ error }}</p></div>
 {%- endif %}
@@ -28,7 +30,7 @@
   {%- endif %}
 </div>
 {%- endif %}
-<div class="review-layout">
+<div class="review-layout{% if error %} has-error{% endif %}{% if notices.old %} has-old{% endif %}{% if notices.lock %} has-lock{% endif %}">
 <div class="review-main" role="region" aria-label="Asset copy and notes" tabindex="0">
 <section class="copy-pane" aria-labelledby="copy-heading">
   <h2 id="copy-heading">Asset copy</h2>
@@ -116,7 +118,7 @@
   <form method="post" action="/review/{{ decision_form.id }}/decision" class="decision-form">
     <input type="hidden" name="version" value="{{ decision_form.version }}">
     <label for="decision-reason">Reason (required for Request changes and Reject)</label>
-    <textarea id="decision-reason" name="reason" rows="4" maxlength="{{ decision_form.max_reason }}">
+    <textarea id="decision-reason" name="reason" rows="3" maxlength="{{ decision_form.max_reason }}">
 {{ reason }}</textarea>
     <div class="decision-buttons">
       <button type="submit" name="outcome" value="approved" class="decision-approve">Approve</button>
