@@ -4,6 +4,8 @@ import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from app import clock
+
 # Fixed path next to the app: nothing from a request can choose which file is loaded.
 SEED_PATH = Path(__file__).resolve().parent.parent / "data" / "seed.json"
 
@@ -20,6 +22,10 @@ UNDECIDED_STATUSES = ("new", "in_review")
 
 class SeedError(Exception):
     """The seed file is missing, malformed or inconsistent."""
+
+
+class NotEmptyError(SeedError):
+    """Seeding was refused because the database already has submissions."""
 
 
 def load_seed(path=None):
@@ -294,3 +300,35 @@ def insert_history(conn, sub):
         [(sid, x["versionNumber"], x["ruleId"], x["note"], x["dismissedBy"], x["createdAt"])
          for x in sub["dismissals"]],
     )
+
+
+# ---- seeding ----
+
+def seed_rows(conn, now=None, data=None):
+    """Insert the whole seed on `conn` without starting or ending a transaction.
+
+    The caller owns the transaction (reset reuses this inside its own). Refuses a database
+    that already has submissions, so nothing is ever doubled or overwritten.
+    """
+    if conn.execute("SELECT EXISTS (SELECT 1 FROM submission)").fetchone()[0]:
+        raise NotEmptyError("Database already has submissions; refusing to seed.")
+    resolved = resolve_times(data if data is not None else load_seed(), now or clock.now())
+    for sub in resolved["submissions"]:
+        insert_submission(conn, sub)
+        insert_history(conn, sub)
+
+
+def seed_all(conn, now=None):
+    """Seed an empty database atomically: all 14 submissions and their history, or nothing.
+
+    The seed file is read and validated before the write lock is taken. The emptiness check
+    runs inside the same BEGIN IMMEDIATE as the inserts, so two starting processes cannot both seed.
+    """
+    data = load_seed()
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        seed_rows(conn, now, data)
+    except BaseException:
+        conn.rollback()
+        raise
+    conn.commit()
