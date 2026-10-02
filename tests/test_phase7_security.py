@@ -37,6 +37,9 @@ PHASE_6_ROUTES = {
     ("/resubmit/{submission_id}", ("GET",)), ("/resubmit/{submission_id}", ("POST",)),
     ("/review/{submission_id}", ("GET",)), ("/review/{submission_id}/decision", ("POST",)),
     ("/review/{submission_id}/dismiss", ("POST",)), ("/review/{submission_id}/comment", ("POST",)),
+    # Phase 8: import from Excel (a marketer or partner product guard, like /submit).
+    ("/import", ("GET",)), ("/import/preview", ("POST",)), ("/import/confirm", ("POST",)),
+    ("/import/sample.xlsx", ("GET",)),
 }
 
 

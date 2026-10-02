@@ -11,6 +11,15 @@
   {%- endfor %}
 </div>
 {% endif %}
+{% if imported %}
+<div class="notice banner-submitted" role="status">
+  <p><strong>Imported {{ imported.created }} submission{{ "" if imported.created == 1 else "s" }}.</strong>
+    {%- if imported.created %} They are in the review queue.{% endif %}
+    {%- if imported.skipped %} {{ imported.skipped }} already existed and {{ "was" if imported.skipped == 1 else "were" }} skipped.{% endif %}
+    {%- if imported.failed %} {{ imported.failed }} could not be imported.{% endif %}</p>
+  {%- if imported.full %}<p class="field-warning"><span aria-hidden="true">&#9888;</span> <strong>Warning:</strong> The demo is full, so the import stopped early. Ask whoever runs it to reset the demo.</p>{% endif %}
+</div>
+{% endif %}
 {% include "_marketer_picker.html" %}
 {% if role not in ("marketer", "affiliate") %}
 <p class="mine-readonly">You are viewing {{ marketer }}'s submissions as a reviewer. This page is read-only.</p>

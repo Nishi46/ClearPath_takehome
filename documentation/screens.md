@@ -91,6 +91,29 @@
 - Pre-check updates as the marketer types (debounced) and also shows "No flags detected" when clean.
 - Flags don't block submitting; a note says reviewers will see them.
 - Resubmitting identical copy is blocked with a clear message.
+- A line under the heading links to **Import from Excel** for adding many items at once (see 3b).
+
+### 3b. Import from Excel
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│ Import from Excel          Importing as Maya Chen. Change                 │
+│ [Preview the sample file]  Download the sample                            │
+│ Or upload your own: [Choose file]  [Preview file]                         │
+├──────────────────────────────────────────────────────────────────────────┤
+│ Preview of the sample file   5 ready · 4 need fixing · 1 already exists   │
+│ Row  Result            Title                  Launch      Details         │
+│ 2    ✓ Ready           Auto loan referral…    Oct 23      No flags        │
+│ 4    ✓ Ready           Spring loan promo…     Oct 9       R1 R2 R5        │
+│ 7    ! Needs fixing    (no valid title)                   Add a title.    │
+│ 11   = Already exists  Cashback card…                     Open it         │
+│ [Import 5 rows]  Cancel                                                   │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+- Preview writes nothing. Each result is a word plus a mark, never color alone.
+- Errors reuse the form's messages. The sheet can't set the submitter; partners always get Affiliate page.
+- Import saves rows one at a time and reports "Imported N, M already existed, K could not be imported" on My submissions.
 
 ---
 

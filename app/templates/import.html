@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Import from Excel - ClearPath Review{% endblock %}
+{% block content %}
+<h1>Import from Excel</h1>
+{% if role not in ("marketer", "affiliate") %}
+<div class="notice" role="status">
+  <p>Only marketers and affiliate partners import submissions. You are viewing the demo as a reviewer.</p>
+  <form method="post" action="/role" class="role-form">
+    <button type="submit" name="role" value="marketer" class="role-option">Switch to Marketer</button>
+    <button type="submit" name="role" value="affiliate" class="role-option">Switch to Affiliate</button>
+  </form>
+</div>
+{% else %}
+<p class="submitting-as">Importing as <strong>{{ submitter }}</strong>. <a href="/mine">Change</a></p>
+{% if error %}
+<div class="notice notice-error" role="alert" tabindex="-1" autofocus>
+  <p>{{ error }}</p>
+</div>
+{% endif %}
+{% if preview %}
+<section class="import-preview" aria-labelledby="preview-heading">
+  <h2 id="preview-heading">Preview of {{ preview.name }}</h2>
+  <p class="import-counts" role="status">
+    <strong>{{ preview.counts.ok }} ready</strong>
+    &middot; {{ preview.counts.error }} need fixing
+    &middot; {{ preview.counts.duplicate }} already exist{{ "s" if preview.counts.duplicate == 1 else "" }}
+  </p>
+  <p class="import-note">Nothing has been imported yet. Rows that need fixing are skipped. Fix them in the file and import it again.</p>
+  <table class="queue import-table">
+    <caption class="visually-hidden">One row per spreadsheet row</caption>
+    <thead>
+      <tr><th scope="col">Row</th><th scope="col">Result</th><th scope="col">Title</th><th scope="col">Launch</th><th scope="col">Details</th></tr>
+    </thead>
+    <tbody>
+      {%- for r in preview.results %}
+      <tr class="import-row import-{{ r.status }}">
+        <td>{{ r.row }}</td>
+        <td>
+          {%- if r.status == "ok" %}<span class="import-status"><span aria-hidden="true">&#10003;</span> Ready</span>
+          {%- elif r.status == "duplicate" %}<span class="import-status"><span aria-hidden="true">=</span> Already exists</span>
+          {%- else %}<span class="import-status"><span aria-hidden="true">!</span> Needs fixing</span>{% endif %}
+        </td>
+        <td>{{ r.title or "(no valid title)" }}</td>
+        <td>{{ r.launch_date or "" }}</td>
+        <td>
+          {%- if r.status == "error" %}
+          <ul class="import-errors">
+            {%- for message in r.errors %}<li>{{ message }}</li>{% endfor %}
+          </ul>
+          {%- elif r.status == "duplicate" %}
+          You already submitted this{% if r.existing_id %}. <a href="/review/{{ r.existing_id }}">Open it</a>{% else %} in this file{% endif %}.
+          {%- else %}
+          {%- if r.warnings %}<p class="field-warning"><span aria-hidden="true">&#9888;</span> {{ "Launch date has passed." if "launch_past" in r.warnings else "Rush: launches within 2 business days." }}</p>{% endif %}
+          {%- if r.cards %}
+          <ul class="import-flags">
+            {%- for c in r.cards %}
+            <li><span class="sev sev-{{ c.severity }}" aria-hidden="true">{{ c.letter }}</span> {{ c.rule_id }}: {{ c.name }} ({{ c.severity_label }})</li>
+            {%- endfor %}
+          </ul>
+          {%- else %}No flags detected.{% endif %}
+          {%- endif %}
+        </td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  <p class="flag-assist-note">Flags assist the reviewer. They never decide. Rules are illustrative, not legal advice.</p>
+  {% if preview.token %}
+  <form method="post" action="/import/confirm" class="import-confirm">
+    <input type="hidden" name="token" value="{{ preview.token }}">
+    <button type="submit" class="submit-button">Import {{ preview.counts.ok }} row{{ "" if preview.counts.ok == 1 else "s" }}</button>
+    <a href="/import">Cancel</a>
+  </form>
+  {% else %}
+  <p class="empty-state" role="status">Nothing new to import.
+    {%- if preview.counts.error %} Fix the rows marked "Needs fixing" and load the file again.{% endif %}
+    <a href="/import">Choose another file</a></p>
+  {% endif %}
+</section>
+{% else %}
+<section class="import-sources">
+  <p>Add many pieces of copy at once. The first row of the sheet needs these headers: <strong>Title, Product, Channel, Launch date, Copy</strong>
+    and optionally <strong>Notes</strong>. Up to {{ max_rows }} rows. You'll see a preview before anything is imported.</p>
+  <form method="post" action="/import/preview" class="import-sample">
+    <input type="hidden" name="source" value="sample">
+    <button type="submit" class="submit-button">Preview the sample file</button>
+    <a href="/import/sample.xlsx" download>Download the sample</a>
+  </form>
+  <h2>Or upload your own</h2>
+  <form method="post" action="/import/preview" enctype="multipart/form-data" class="import-upload">
+    <div class="field">
+      <label for="field-file">Excel file (.xlsx)</label>
+      <input type="file" id="field-file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+    </div>
+    <button type="submit" class="check-flags">Preview file</button>
+  </form>
+  <p><a href="/submit">Or submit one piece of copy by hand</a></p>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

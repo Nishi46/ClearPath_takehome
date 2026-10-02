@@ -11,7 +11,8 @@
   </form>
 </div>
 {% else %}
-<p class="submitting-as">Submitting as <strong>{{ submitter }}</strong>. <a href="/mine">Change</a></p>
+<p class="submitting-as">Submitting as <strong>{{ submitter }}</strong>. <a href="/mine">Change</a>
+  Have many? <a href="/import">Import from Excel</a></p>
 {% if banner %}
 <div class="notice notice-error" role="alert" tabindex="-1" autofocus>
   <p>{{ banner.text }}{% if banner.existing_id %} <a href="/review/{{ banner.existing_id }}">Open it</a>{% endif %}</p>

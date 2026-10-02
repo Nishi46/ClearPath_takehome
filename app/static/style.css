@@ -462,3 +462,14 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 /* The channel is fixed for affiliate partners: plain text in place of the select. */
 .field-label { margin: 0 0 0.25rem; font-weight: 600; }
 .field-fixed { margin: 0; padding: 0.5rem 0; }
+
+/* Excel import: the preview says each row's result in words as well as a mark. */
+.import-counts { font-size: 1.0625rem; }
+.import-table td { vertical-align: top; overflow-wrap: anywhere; }
+.import-status { font-weight: 700; white-space: nowrap; }
+.import-error { background: var(--overdue-bg); }
+.import-error .import-status { color: var(--overdue-text); }
+.import-duplicate { color: var(--text-muted); }
+.import-errors, .import-flags { margin: 0; padding-left: 1rem; }
+.import-confirm, .import-sample { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin: 0.75rem 0; }
+.import-upload { margin: 0.5rem 0 1rem; }

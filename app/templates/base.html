@@ -21,6 +21,9 @@
       <a href="/mine">My submissions</a>
       {%- endif %}
       <a href="/submit">Submit</a>
+      {%- if role in ("marketer", "affiliate") %}
+      <a href="/import">Import</a>
+      {%- endif %}
     </nav>
     <div class="header-controls">
       <nav class="role-switcher" aria-label="Role">

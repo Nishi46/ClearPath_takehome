@@ -50,6 +50,19 @@ Rules the server enforces:
 - Only the marketer who submitted an item can resubmit it, and only its current version.
 - The demo holds at most 300 submissions and 10 versions per submission, and an identical double submit is refused.
 
+**Importing from Excel.** Marketers and partners can also add many items at once from **Import**. The repo ships a
+sample sheet (`data/import-sample.xlsx`, also downloadable from the page): **Preview the sample file** shows
+one row per spreadsheet row as *Ready*, *Needs fixing* (with the same messages as the form) or *Already exists*,
+with the flags each ready row would raise, and nothing is written. **Import N rows** then creates only the
+ready rows, as ordinary new submissions that go through the same checks as a typed one. You can also upload
+your own `.xlsx` (columns: Title, Product, Channel, Launch date, Copy, optional Notes; first sheet, up to 200 rows,
+under 1 MB, no macros). The sheet can't set who submitted: that is always the marketer or partner you are using
+the demo as, and partners always get the Affiliate page channel. Shortcuts, stated openly: the import is not
+all-or-nothing (rows are saved one at a time, so a partial result is reported, not rolled back); an uploaded
+file is held in memory for 10 minutes between preview and import and is never saved; and the sample's dates
+are counted from the day it was generated, so run `python -m tests.tools.make_import_sample` before a demo if it
+is more than a few days old. Reset removes imported items, so you can import the sample again.
+
 "Who I am" as a marketer is a demo label (Maya Chen, Jordan Lee or Sam Patel), not a login. Try Jordan Lee:
 #14 (changes requested) and #8 (rejected) can be resubmitted, and #5 shows a v1 to v2 diff.
 

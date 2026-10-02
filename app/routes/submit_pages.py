@@ -79,9 +79,27 @@ def mine(request: Request):
     today = clock.today()
     with db.connect() as conn:
         rows = mine_view.list_mine(conn, get_submitter(request), today)
-    response = render(request, "mine.html", banner=banner, groups=mine_view.group_mine(rows), total=len(rows))
+    response = render(request, "mine.html", banner=banner, imported=_import_banner(request), groups=mine_view.group_mine(rows), total=len(rows))
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+def _import_banner(request):
+    """Counts from an Excel import, shown once on My submissions. They are whole numbers clamped to a
+    sane range and only ever printed as numbers, so a hand-made link can say nothing but a count."""
+    params = request.query_params
+    if len(params.getlist("imported")) != 1:
+        return None
+
+    def count(name):
+        values = params.getlist(name)
+        text = values[0] if len(values) == 1 else "0"
+        return min(int(text), submit.MAX_SUBMISSIONS) if text.isdigit() and len(text) <= 4 else 0
+
+    if not params["imported"].isdigit() or len(params["imported"]) > 4:
+        return None
+    return {"created": min(int(params["imported"]), submit.MAX_SUBMISSIONS), "skipped": count("skipped"),
+            "failed": count("failed"), "full": params.getlist("full") == ["1"]}
 
 
 def _read_fields(request, form):

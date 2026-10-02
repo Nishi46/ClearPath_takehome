@@ -65,7 +65,9 @@ def test_the_route_table_is_exactly_the_documented_one():
            ("/review/{submission_id}/decision", ("POST",)),
            ("/review/{submission_id}/dismiss", ("POST",)),
            ("/review/{submission_id}/comment", ("POST",))}
-    assert seen == new | old
+    imports = {("/import", ("GET",)), ("/import/preview", ("POST",)), ("/import/confirm", ("POST",)),
+               ("/import/sample.xlsx", ("GET",))}  # phase 8
+    assert seen == new | old | imports
 
 
 FORBIDDEN = ("submitted_by", "status", "current_version", "created_at", "flags", "reviewer", "id", "outcome",

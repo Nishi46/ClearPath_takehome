@@ -149,7 +149,7 @@ def test_role_cookie_is_not_used_for_authorization():
         text = path.read_text()
         if path != roles_py:
             assert "request.cookies" not in text, path
-        if path.name not in ("roles.py", "templating.py", "pages.py", "submit_pages.py"):
+        if path.name not in ("roles.py", "templating.py", "pages.py", "submit_pages.py", "import_pages.py"):
             assert "get_role" not in text, path
         if path.name == "pages.py":
             # The decision, dismiss and comment routes (product guards) and the review page, which only
@@ -160,3 +160,6 @@ def test_role_cookie_is_not_used_for_authorization():
             # POST /submit, POST /submit/check, the resubmit page and POST /resubmit/{id}, plus the affiliate
             # channel lock that reads the form and the submit form default (product guards, not authorization)
             assert text.count("get_role(") == 6, path
+        if path.name == "import_pages.py":
+            # POST /import/preview and POST /import/confirm: the same product guard as POST /submit.
+            assert text.count("get_role(") == 2, path

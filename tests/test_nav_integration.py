@@ -16,7 +16,8 @@ def test_reviewer_nav(client):
 
 
 def test_marketer_nav(mclient):
-    assert nav_links(mclient.get("/").text) == [("/", "Queue"), ("/mine", "My submissions"), ("/submit", "Submit")]
+    assert nav_links(mclient.get("/").text) == [("/", "Queue"), ("/mine", "My submissions"), ("/submit", "Submit"),
+                                                      ("/import", "Import")]
 
 
 @pytest.mark.parametrize("role", ["reviewer", "marketer"])
