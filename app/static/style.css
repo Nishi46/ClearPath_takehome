@@ -254,3 +254,6 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .flag-card h3 { margin: 0 0 0.25rem; font-size: 1rem; overflow-wrap: anywhere; }
 .flag-card p { margin: 0.25rem 0; }
 .flag-occurrences { margin: 0.25rem 0 0; padding-left: 1.25rem; overflow-wrap: anywhere; }
+.flag-missing { border-left: 3px solid var(--border); padding-left: 0.75rem; margin-top: 0.5rem; }
+.flag-snippet { white-space: pre-wrap; overflow-wrap: anywhere; }
+.flag-note { color: var(--text-muted); font-size: 0.875rem; }
