@@ -107,7 +107,7 @@ def reset(request: Request, confirm: str = Form("")):
     return RedirectResponse("/?reset=done", status_code=303, headers=NO_STORE)
 
 
-def _render_review(request, data, status_code=200, error=None, reason="", back="/", diff=False):
+def _render_review(request, data, status_code=200, error=None, reason="", back="/", diff=False, dismiss_state=None):
     diff_data = review.diff_view(data, diff, back)
     # In diff mode nothing is highlighted, so no flag card links to a highlight that is not there.
     pieces = [] if diff_data and diff_data.get("pieces") else review.copy_view(data)
@@ -116,7 +116,8 @@ def _render_review(request, data, status_code=200, error=None, reason="", back="
                       versions=review.versions_view(data, back, bool(diff_data and diff_data["on"])), diff=diff_data, notices=review.notices_view(data, back),
                       history=review.history_view(data), comments=review.comments_view(data),
                       notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason,
-                      decision_form=review.decision_form_view(data, back), feedback=review.feedback_view(data))
+                      decision_form=review.decision_form_view(data, back), feedback=review.feedback_view(data),
+                      dismiss_form=review.dismiss_form_view(data, back), dismiss_state=dismiss_state)
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response
 
@@ -189,3 +190,45 @@ async def decide(request: Request, submission_id: str):
         return _render_review(request, data, review.DECISION_STATUS[exc.code],
                               review.conflict_message(exc.code, data), reason_text, back)
     return RedirectResponse(review.with_back("/review/%d" % sid, back), status_code=303, headers=NO_STORE)
+
+
+@router.post("/review/{submission_id}/dismiss")
+async def dismiss(request: Request, submission_id: str):
+    # Same guard order as /decision: origin, id, role, existence, form, then the dismissal rules,
+    # which all live in review.dismiss_flag. The reviewer and time come from the server.
+    if not same_origin(request):
+        return PlainTextResponse("Dismissals must be made from this site.", status_code=403, headers=NO_STORE)
+    sid = review.parse_id(submission_id)
+    if sid is None:
+        raise HTTPException(status_code=404)
+    if get_role(request) != "reviewer":
+        return PlainTextResponse("Only reviewers can dismiss flags.", status_code=403, headers=NO_STORE)
+    with db.connect() as conn:
+        data = review.load_review(conn, sid)
+    if data is None:
+        raise HTTPException(status_code=404)
+
+    form = await request.form()
+    rule_id, version, note = _single(form, "rule_id"), _single(form, "version"), _single(form, "note")
+    back = review.safe_back(_single(form, "back"))
+    number = review.parse_id(version) if version is not None else None
+    if rule_id is None or number is None or note is None:
+        return _render_review(request, data, 422, review.DECISION_MESSAGES["bad_form"], back=back)
+
+    try:
+        with db.connect() as conn:
+            review.dismiss_flag(conn, sid, number, rule_id, note, REVIEWER_NAME, clock.now())
+    except review.DismissError as exc:
+        with db.connect() as conn:
+            data = review.load_review(conn, sid)
+        if data is None:
+            raise HTTPException(status_code=404)
+        status = review.DISMISS_STATUS[exc.code]
+        if exc.code in review.NOTE_CODES:
+            # Shown beside that flag's form with the typed note kept; rule_id only selects a card.
+            state = {"rule_id": rule_id, "note": note, "error": review.NOTE_MESSAGES[exc.code]}
+            return _render_review(request, data, status, back=back, dismiss_state=state)
+        return _render_review(request, data, status, review.dismiss_conflict_message(exc.code, data, rule_id),
+                              back=back)
+    return RedirectResponse(review.with_back("/review/%d" % sid, back) + "#flags-heading", status_code=303,
+                            headers=NO_STORE)

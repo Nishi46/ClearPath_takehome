@@ -152,9 +152,9 @@ def test_role_cookie_is_not_used_for_authorization():
         if path.name not in ("roles.py", "templating.py", "pages.py", "submit_pages.py"):
             assert "get_role" not in text, path
         if path.name == "pages.py":
-            # The decision route (a product guard) and the review page, which only picks the default
+            # The decision and dismiss routes (product guards) and the review page, which only picks the default
             # back link for a marketer. Neither grants or denies access to data.
-            assert text.count("get_role(") == 2, path
+            assert text.count("get_role(") == 3, path
         if path.name == "submit_pages.py":
             # POST /submit, POST /submit/check, the resubmit page and POST /resubmit/{id}
             assert text.count("get_role(") == 4, path

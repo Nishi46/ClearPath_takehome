@@ -1,6 +1,9 @@
 import re
 import sqlite3
 
+from app.notes import MAX_NOTE_CHARS, MESSAGES as NOTE_MESSAGES, validate_note
+from app.textclean import clean_text
+
 # Review screen logic. Routes only parse input, call these functions and render.
 
 # ASCII digits only, one to nine of them: no sign, spaces, Unicode digits or values that could
@@ -422,23 +425,6 @@ class DecisionError(Exception):
         self.code = code
 
 
-def _clean_reason(reason):
-    """The reason trimmed, or None if it has no visible characters.
-
-    Beyond the spaces the database CHECK trims, control, format (zero-width) and Unicode space
-    characters count as blank, so a reason of only invisible characters is refused.
-    """
-    import unicodedata
-
-    if reason is None:
-        return None
-    if not isinstance(reason, str):
-        raise TypeError("reason must be text or None")
-    if not any(unicodedata.category(ch) not in ("Cc", "Cf", "Zs", "Zl", "Zp") for ch in reason):
-        return None
-    return reason.strip()
-
-
 def _insert_decision(conn, submission_id, version_number, outcome, reviewer, reason, created_at):
     conn.execute(
         "INSERT INTO decision (submission_id, version_number, outcome, reviewer, reason, created_at)"
@@ -464,7 +450,7 @@ def record_decision(conn, submission_id, version_number, outcome, reason, review
 
     if outcome not in OUTCOMES or not isinstance(outcome, str):
         raise DecisionError("bad_outcome")
-    reason = _clean_reason(reason)
+    reason = clean_text(reason)
     if outcome in REASON_REQUIRED and reason is None:
         raise DecisionError("reason_required")
     if reason is not None and len(reason) > MAX_REASON_CHARS:
@@ -501,6 +487,116 @@ def record_decision(conn, submission_id, version_number, outcome, reason, review
     conn.commit()
     return {"submission_id": submission_id, "version_number": version_number, "outcome": outcome,
             "reviewer": reviewer, "reason": reason, "created_at": created_at}
+
+
+# ---- flag dismissals ----
+
+class DismissError(Exception):
+    """A dismissal was refused. `code` is one of a fixed set; the message is never user text."""
+
+    CODES = ("not_found", "stale_version", "already_decided", "locked", "no_such_flag",
+             "already_dismissed", "note_required", "note_too_long", "note_bad_chars")
+
+    def __init__(self, code):
+        assert code in self.CODES
+        super().__init__(code)
+        self.code = code
+
+
+def dismiss_flag(conn, submission_id, version_number, rule_id, note, reviewer, now):
+    """Record a reviewer's dismissal of one rule's flag on the current version. The only place that does.
+
+    The note is validated first (no database needed). Then the write lock is taken (BEGIN
+    IMMEDIATE) before anything is read, so two requests cannot both pass the checks. In order:
+    the submission exists; `version_number` is its current version (`stale_version`); that
+    version has no decision (`already_decided`); the status is still new or in review
+    (`locked`, the fallback for a status with no decision row); a flag row for `rule_id` exists
+    on that version (`no_such_flag`: a rule that merely exists in rules.json is not enough);
+    it is not already dismissed (`already_dismissed`). The reviewer and timestamp come from the
+    caller, never from the browser. A dismissal is permanent: nothing edits or deletes it.
+    Commits once and returns the new row; any refusal or failure rolls back and raises
+    DismissError with a fixed code.
+    """
+    from app import seed
+
+    clean, code = validate_note(note)
+    if code:
+        raise DismissError(code)
+    if not isinstance(reviewer, str) or not reviewer.strip():
+        raise ValueError("reviewer must be a non-blank name")
+    if not hasattr(now, "tzinfo"):
+        raise TypeError("now must be a datetime")
+    if conn.in_transaction:
+        raise RuntimeError("dismiss_flag needs a connection with no open transaction")
+
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        row = conn.execute("SELECT status, current_version FROM submission WHERE id = ?",
+                           (submission_id,)).fetchone() if _is_int(submission_id) else None
+        if row is None:
+            raise DismissError("not_found")
+        if not _is_int(version_number) or version_number != row["current_version"]:
+            raise DismissError("stale_version")
+        if conn.execute("SELECT 1 FROM decision WHERE submission_id = ? AND version_number = ?",
+                        (submission_id, version_number)).fetchone():
+            raise DismissError("already_decided")
+        if row["status"] not in DECIDABLE_STATUSES:
+            raise DismissError("locked")
+        version_id = conn.execute("SELECT id FROM version WHERE submission_id = ? AND version_number = ?",
+                                  (submission_id, version_number)).fetchone()["id"]
+        if not isinstance(rule_id, str) or not conn.execute(
+                "SELECT 1 FROM flag WHERE version_id = ? AND rule_id = ?", (version_id, rule_id)).fetchone():
+            raise DismissError("no_such_flag")
+        created_at = seed.format_timestamp(now)
+        try:
+            conn.execute(
+                "INSERT INTO flag_dismissal (version_id, rule_id, note, dismissed_by, created_at)"
+                " VALUES (?, ?, ?, ?, ?)", (version_id, rule_id, clean, reviewer, created_at))
+        except sqlite3.IntegrityError:
+            raise DismissError("already_dismissed") from None  # the UNIQUE constraint as a backstop
+    except BaseException:
+        conn.rollback()
+        raise
+    conn.commit()
+    return {"submission_id": submission_id, "version_number": version_number, "rule_id": rule_id,
+            "note": clean, "dismissed_by": reviewer, "created_at": created_at}
+
+
+NOTE_CODES = ("note_required", "note_too_long", "note_bad_chars")
+DISMISS_STATUS = {"note_required": 422, "note_too_long": 422, "note_bad_chars": 422, "no_such_flag": 422,
+                  "not_found": 404, "stale_version": 409, "already_decided": 409, "locked": 409,
+                  "already_dismissed": 409}
+
+
+def dismiss_conflict_message(code, data, rule_id):
+    """Banner text for a refused dismissal, from the page's current state (plain text)."""
+    if code == "already_dismissed":
+        for d in data["dismissals"]:
+            if d["rule_id"] == rule_id:
+                return "%s was already dismissed by %s at %s. Your dismissal was not saved." % (
+                    d["rule_id"], d["dismissed_by"], when_text(d["created_at"]))
+        return "This flag was already dismissed. Your dismissal was not saved."
+    if code == "already_decided":
+        d = data["decision"]
+        if d:
+            return "This version was already %s by %s at %s. Your dismissal was not saved." % (
+                _outcome_label(d["outcome"]).lower(), d["reviewer"], when_text(d["created_at"]))
+        return "This version was already decided. Your dismissal was not saved."
+    if code == "stale_version":
+        return "A newer version exists, so this page was out of date. Your dismissal was not saved."
+    if code == "locked":
+        return "This version is locked. Your dismissal was not saved."
+    return DECISION_MESSAGES["bad_form"]
+
+
+def dismiss_form_view(data, back="/"):
+    """What the dismiss forms need, or None when this page must not offer any.
+
+    Offered under the same conditions as a decision: the current version, no decision yet, status
+    new or in review. The template adds the role check; the server enforces all of it on POST.
+    """
+    base = decision_form_view(data, back)
+    return None if base is None else {**base, "max_note": MAX_NOTE_CHARS}
 
 
 # What the page says for each refusal, and the HTTP status that goes with it. Fixed text only.

@@ -61,7 +61,8 @@ def test_the_route_table_is_exactly_the_documented_one():
     assert new <= seen
     old = {("/healthz", ("GET",)), ("/", ("GET",)), ("/role", ("POST",)),
            ("/reset/confirm", ("GET",)), ("/reset", ("POST",)), ("/review/{submission_id}", ("GET",)),
-           ("/review/{submission_id}/decision", ("POST",))}
+           ("/review/{submission_id}/decision", ("POST",)),
+           ("/review/{submission_id}/dismiss", ("POST",))}
     assert seen == new | old
 
 

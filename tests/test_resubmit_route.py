@@ -369,3 +369,17 @@ def test_compare_copy_is_pure_and_total():
     assert submit.compare_copy("a b", None) == {"state": "changed", "pieces": [("removed", "a b")], "added": 0, "removed": 2}
     assert submit.compare_copy("a b", "a b") == {"state": "unchanged"}
     assert submit.compare_copy("w " * 7000, "x") == {"state": "too_long"}
+
+
+def test_the_page_explains_the_version_cap_instead_of_offering_a_form(jordan, client):
+    with db.connect() as c:
+        for n in range(2, 11):
+            c.execute("INSERT INTO version (submission_id, version_number, copy, notes, created_at)"
+                      " VALUES (14, ?, ?, NULL, '2026-10-01T00:00:00Z')", (n, "draft %d" % n))
+        c.execute("UPDATE submission SET current_version = 10 WHERE id = 14")
+        c.execute("INSERT INTO decision (submission_id, version_number, outcome, reviewer, reason, created_at)"
+                  " VALUES (14, 10, 'changes_requested', 'Alex Rivera', 'again', '2026-10-01T01:00:00Z')")
+        c.commit()
+    r = jordan.get("/resubmit/14")
+    assert r.status_code == 200 and "limit of 10 versions" in r.text and not tags(r.text, "textarea")
+    assert post(jordan, data=form(base_version="10")).status_code == 409

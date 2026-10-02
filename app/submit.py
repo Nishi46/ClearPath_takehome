@@ -359,6 +359,8 @@ def resubmit_block(data, marketer, role):
         return "This item is still in review. You can resubmit once a reviewer has replied."
     if sub["submitted_by"] != marketer:
         return "This item belongs to %s. Switch marketer to edit it." % sub["submitted_by"]
+    if sub["current_version"] >= MAX_VERSIONS:
+        return "This item has reached the limit of %d versions for the demo. Reset the demo to start again." % MAX_VERSIONS
     return None
 
 

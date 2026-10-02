@@ -399,3 +399,16 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 .diff-added { background: var(--diff-add-bg, #e6f4ea); text-decoration: underline; }
 .diff-removed { background: var(--diff-del-bg, #fce8e6); text-decoration: line-through; }
 .diff-marker { font-weight: 700; margin-right: 0.125rem; }
+
+.flag-card { position: relative; }
+.flag-card h3 { padding-right: 5.5rem; }
+/* Closed, the control sits in the card's corner and adds no height (the first card must stay
+   above the decision buttons on a laptop). Open, it is an ordinary block under the card text. */
+.flag-dismiss:not([open]) { position: absolute; top: 0.6rem; right: 0.75rem; }
+.flag-dismiss[open] { margin-top: 0.5rem; }
+.flag-dismiss summary { cursor: pointer; font-weight: 700; }
+.flag-dismiss summary:focus-visible, .dismiss-form textarea:focus-visible, .dismiss-form button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.dismiss-form { display: grid; gap: 0.5rem; margin-top: 0.5rem; }
+.dismiss-form textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; }
+.dismiss-form .field-error { margin: 0; font-weight: 700; color: var(--overdue-text); }
+.dismiss-warning { margin: 0; font-size: 0.9rem; }

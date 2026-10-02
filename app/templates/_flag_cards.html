@@ -20,6 +20,27 @@
         {%- endfor %}
       </ul>
       {%- endif %}
+      {%- if dismiss_form and role == "reviewer" %}
+      {%- set mine = dismiss_state and dismiss_state.rule_id == c.rule_id %}
+      <details class="flag-dismiss"{% if mine %} open{% endif %}>
+        <summary>Dismiss</summary>
+        <form method="post" action="/review/{{ dismiss_form.id }}/dismiss" class="dismiss-form">
+          <input type="hidden" name="version" value="{{ dismiss_form.version }}">
+          <input type="hidden" name="rule_id" value="{{ c.rule_id }}">
+          {%- if dismiss_form.back %}
+          <input type="hidden" name="back" value="{{ dismiss_form.back }}">
+          {%- endif %}
+          {%- if mine %}
+          <p class="field-error" role="alert" tabindex="-1" autofocus>{{ dismiss_state.error }}</p>
+          {%- endif %}
+          <label for="dismiss-note-{{ c.rule_id }}">Note (required)</label>
+          <textarea id="dismiss-note-{{ c.rule_id }}" name="note" rows="2" maxlength="{{ dismiss_form.max_note }}">
+{% if mine %}{{ dismiss_state.note }}{% endif %}</textarea>
+          <p class="dismiss-warning">Dismissing records your note in the audit trail. It can't be undone.</p>
+          <button type="submit">Dismiss flag</button>
+        </form>
+      </details>
+      {%- endif %}
     </li>
     {%- endfor %}
   </ul>

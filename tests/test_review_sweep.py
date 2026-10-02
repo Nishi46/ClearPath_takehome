@@ -101,15 +101,20 @@ def test_reset_leaves_no_orphans(live, db_path, frozen):
 
 # ---- the route surface and the code patterns ----
 
-def test_only_the_two_review_routes_exist():
+def test_only_the_known_review_routes_exist():
     review_routes = sorted((r.path, tuple(sorted(r.methods))) for r in pages.router.routes if "review" in r.path)
     assert review_routes == [("/review/{submission_id}", ("GET",)),
-                             ("/review/{submission_id}/decision", ("POST",))]
+                             ("/review/{submission_id}/decision", ("POST",)),
+                             ("/review/{submission_id}/dismiss", ("POST",))]
 
 
 def test_no_route_reads_a_reviewer_or_timestamp_field():
     source = Path("app/routes/pages.py").read_text()
-    decide_src = source[source.index("async def decide"):]
+    decide_src = source[source.index("async def decide"):source.index("async def dismiss")]
+    dismiss_src = source[source.index("async def dismiss"):]
+    assert 'form.getlist("dismissed_by")' not in dismiss_src and "created_at" not in dismiss_src
+    assert "REVIEWER_NAME" in dismiss_src and "clock.now()" in dismiss_src
+    assert set(re.findall(r'_single\(form, "(\w+)"\)', dismiss_src)) == {"rule_id", "version", "note", "back"}
     assert 'form.getlist("reviewer")' not in decide_src and "created_at" not in decide_src
     assert "REVIEWER_NAME" in decide_src and "clock.now()" in decide_src
     assert set(re.findall(r'_single\(form, "(\w+)"\)', decide_src)) == {"outcome", "version", "reason", "back"}
