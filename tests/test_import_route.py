@@ -320,7 +320,7 @@ def test_import_banner_only_ever_prints_numbers(mclient, query):
 def test_import_banner_clamps_and_reads_skipped_and_failed(mclient):
     r = mclient.get("/mine?imported=3&skipped=1&failed=2&full=1")
     assert "Imported 3 submissions." in r.text and "1 already existed and was skipped" in r.text
-    assert "2 could not be imported" in r.text and "demo is full" in r.text
+    assert "2 rows had errors and were not imported" in r.text and "demo is full" in r.text
 
 
 # ---- templates ----

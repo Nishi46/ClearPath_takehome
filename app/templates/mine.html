@@ -16,7 +16,7 @@
   <p><strong>Imported {{ imported.created }} submission{{ "" if imported.created == 1 else "s" }}.</strong>
     {%- if imported.created %} They are in the review queue.{% endif %}
     {%- if imported.skipped %} {{ imported.skipped }} already existed and {{ "was" if imported.skipped == 1 else "were" }} skipped.{% endif %}
-    {%- if imported.failed %} {{ imported.failed }} could not be imported.{% endif %}</p>
+    {%- if imported.failed %} {{ imported.failed }} row{{ "" if imported.failed == 1 else "s" }} had errors and {{ "was" if imported.failed == 1 else "were" }} not imported. Fix {{ "it" if imported.failed == 1 else "them" }} in the file and import again.{% endif %}</p>
   {%- if imported.full %}<p class="field-warning"><span aria-hidden="true">&#9888;</span> <strong>Warning:</strong> The demo is full, so the import stopped early. Ask whoever runs it to reset the demo.</p>{% endif %}
 </div>
 {% endif %}
