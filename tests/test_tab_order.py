@@ -52,8 +52,9 @@ def test_tab_order_on_the_queue(client):
                       ("button", "reviewer"), ("button", "marketer"), ("button", "affiliate"),
                       ("a", "/reset/confirm")]
     main = [(k, v) for k, v, in_main in items if in_main]
-    assert main[:7] == [("select", "product"), ("select", "channel"), ("select", "status"), ("select", "source"),
-                        ("select", "sort"), ("button", ""), ("a", "/")]
+    # The filters, Apply, Clear, then the two sort arrows in the table header, then the rows.
+    assert main[:8] == [("select", "product"), ("select", "channel"), ("select", "status"), ("select", "source"),
+                        ("button", ""), ("a", "/"), ("a", "/?sort=launch_desc"), ("a", "/?sort=flags_desc")]
     titles = [v for k, v in main if k == "a" and v.startswith("/review/")]
     assert titles == ["/review/%d" % i for i in EXPECTED_ORDER]
 

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Queue - ClearPath Review{% endblock %}
 {% block content %}
+{% macro sort_arrow(c) -%}
+<a class="sort-link{% if c.state %} is-sorted{% endif %}" href="{{ c.href }}"><span class="visually-hidden">{{ c.label }}</span><svg class="sort-arrows" viewBox="0 0 10 16" aria-hidden="true" focusable="false"><path class="sort-up{% if c.state == 'up' %} is-on{% endif %}" d="M5 1 9 7H1Z"/><path class="sort-down{% if c.state == 'down' %} is-on{% endif %}" d="M5 15 1 9H9Z"/></svg></a>
+{%- endmacro %}
 {% if reset_done %}
 <p class="banner" role="status">Demo reset to the original data.</p>
 {% endif %}
@@ -17,14 +20,7 @@
     </select>
   </div>
   {% endfor %}
-  <div class="filter">
-    <label for="filter-sort">Sort by</label>
-    <select id="filter-sort" name="sort">
-      {% for value, text in sort_options %}
-      <option value="{{ value }}"{% if sort == value %} selected{% endif %}>{{ text }}</option>
-      {% endfor %}
-    </select>
-  </div>
+  <input type="hidden" name="sort" value="{{ sort }}">
   <div class="filter-actions">
     <button type="submit" class="filter-apply">Apply</button>
     <a class="filter-apply filter-clear" href="/">Clear filters</a>
@@ -43,10 +39,10 @@
       <th scope="col">Title</th>
       <th scope="col">Product</th>
       <th scope="col">Channel</th>
-      <th scope="col" {% if sort == 'launch_desc' %}aria-sort="descending">Launch date (latest first){% elif sort == 'launch_asc' %}aria-sort="ascending">Launch date (earliest first){% else %}>Launch date{% endif %}</th>
+      <th scope="col" {% if sort == 'launch_desc' %}aria-sort="descending">Launch date (latest first){% elif sort == 'launch_asc' %}aria-sort="ascending">Launch date (earliest first){% else %}>Launch date{% endif %} {{ sort_arrow(sort_controls.launch) }}</th>
       <th scope="col">Status</th>
       <th scope="col">Submitter</th>
-      <th scope="col"{% if sort == 'flags_desc' %} aria-sort="descending"{% elif sort == 'flags_asc' %} aria-sort="ascending"{% endif %}>Flags</th>
+      <th scope="col"{% if sort == 'flags_desc' %} aria-sort="descending"{% elif sort == 'flags_asc' %} aria-sort="ascending"{% endif %}>Flags {{ sort_arrow(sort_controls.flags) }}</th>
       <th scope="col">Version</th>
     </tr>
   </thead>

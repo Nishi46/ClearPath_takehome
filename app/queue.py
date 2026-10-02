@@ -95,6 +95,31 @@ def sort_from_query(query_params):
     return clean_sort(values[0]) if len(values) == 1 else DEFAULT_SORT
 
 
+def sort_controls(filters, sort):
+    """The two sort arrows in the table header (Launch date, Flags): where each links and which way it points now.
+
+    One link per column. Clicking it flips that column's direction; any other current sort moves to that
+    column's first direction (launch: earliest first, flags: most first). Filters stay in the link.
+    """
+    from urllib.parse import urlencode
+
+    sort = clean_sort(sort)
+    kept = [(k, v) for k, v in filters.items() if v]
+
+    def href(target):
+        query = kept + ([("sort", target)] if target != DEFAULT_SORT else [])
+        return "/?" + urlencode(query) if query else "/"
+
+    labels = dict(SORT_OPTIONS)
+    out = {}
+    for column, first, second in (("launch", "launch_asc", "launch_desc"), ("flags", "flags_desc", "flags_asc")):
+        current = sort if sort in (first, second) else None
+        target = second if current == first else first
+        out[column] = {"href": href(target), "label": "Sort by " + labels[target][0].lower() + labels[target][1:],
+                       "state": ("up" if current == "launch_asc" or current == "flags_asc" else "down") if current else ""}
+    return out
+
+
 def list_queue(conn, status=None, product=None, channel=None, source=None, sort=DEFAULT_SORT):
     """One row per submission, showing its current version, earliest launch first by default.
 

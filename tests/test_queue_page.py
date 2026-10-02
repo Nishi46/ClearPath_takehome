@@ -45,7 +45,7 @@ def test_rows_are_in_launch_order(client):
 
 def test_eight_column_headers_with_scope(client):
     html = client.get("/").text
-    heads = re.findall(r'<th scope="col"[^>]*>(.*?)</th>', html)
+    heads = [re.sub(r' *<a class="sort-link.*', '', h, flags=re.S) for h in re.findall(r'<th scope="col"[^>]*>(.*?)</th>', html, re.S)]
     assert heads == HEADERS
     assert 'aria-sort="ascending"' in html
 

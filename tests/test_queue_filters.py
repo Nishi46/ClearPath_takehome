@@ -212,10 +212,12 @@ def test_filtered_page_headers(client):
     assert r.headers["x-content-type-options"] == "nosniff"
 
 
-def test_filters_follow_the_column_order_and_sort_comes_last(client):
+def test_filters_follow_the_column_order_and_sort_is_not_in_the_filter_area(client):
     form = re.search(r'<form class="filters".*?</form>', client.get("/").text, re.S).group(0)
     names = re.findall(r'<select id="filter-(\w+)"', form)
-    assert names == ["product", "channel", "status", "source", "sort"]
+    assert names == ["product", "channel", "status", "source"]
+    assert "filter-sort" not in form and "Sort by" not in form
+    assert '<input type="hidden" name="sort" value="launch_asc">' in form      # Apply keeps the current sort
 
 
 def test_sort_by_launch_date_latest_first_reverses_the_queue(client):
@@ -234,4 +236,29 @@ def test_sort_by_flags_orders_by_open_flag_count(client):
     most, fewest = counts("/?sort=flags_desc"), counts("/?sort=flags_asc")
     assert most == sorted(most, reverse=True) and most[0] > most[-1]
     assert fewest == sorted(fewest) and sorted(most) == fewest
-    assert "Flags: most first" in client.get("/").text
+    assert "Sort by flags: most first" in client.get("/").text
+
+
+def test_sort_arrows_sit_in_the_launch_date_and_flags_headers_only(client):
+    html = client.get("/").text
+    heads = re.findall(r'<th scope="col"[^>]*>(.*?)</th>', html, re.S)
+    with_arrows = [re.sub(r"<.*", "", h).strip() for h in heads if 'class="sort-link' in h]
+    assert with_arrows == ["Launch date (earliest first)", "Flags"] and html.count('class="sort-link') == 2
+
+
+def test_sort_arrow_clicks_flip_the_direction_and_keep_the_filters(client):
+    from html import unescape
+    links = lambda url: [unescape(h) for h in re.findall(r'class="sort-link[^"]*" href="([^"]+)"', client.get(url).text)]
+    assert links("/") == ["/?sort=launch_desc", "/?sort=flags_desc"]
+    assert links("/?sort=launch_desc") == ["/", "/?sort=flags_desc"]            # back to the default, which stays out of the URL
+    assert links("/?sort=flags_desc") == ["/", "/?sort=flags_asc"]
+    assert links("/?sort=flags_asc") == ["/", "/?sort=flags_desc"]
+    assert links("/?status=new&sort=flags_desc") == ["/?status=new", "/?status=new&sort=flags_asc"]
+
+
+def test_sorted_column_is_marked_with_aria_sort_and_a_filled_arrow(client):
+    html = client.get("/?sort=flags_asc").text
+    assert 'aria-sort="ascending">Flags' in html and '<path class="sort-up is-on"' in html
+    html = client.get("/").text
+    assert 'aria-sort="ascending">Launch date (earliest first)' in html and html.count("is-on") == 1
+    assert html.count('class="sort-link is-sorted"') == 1

@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse, Response
 
 from app import audit, clock, db, review, seed
 from app.queue import (DEFAULT_SORT, FILTER_FIELDS, FILTER_OPTIONS, SORT_OPTIONS, empty_kind, filters_from_query,
-                       list_queue, row_view, sort_from_query, summary_text)
+                       list_queue, row_view, sort_controls, sort_from_query, summary_text)
 from app.cooldown import Cooldown
 from app.errors import error_response
 from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, REVIEWER_NAME, ROLES, get_role
@@ -54,7 +54,7 @@ def queue(request: Request):
         empty = empty_kind(conn, rows, filters)
     response = render(request, "queue.html", reset_done=reset_done, rows=rows, filters=filters,
                       filter_fields=FILTER_FIELDS, filter_options=FILTER_OPTIONS,
-                      sort=sort, sort_options=SORT_OPTIONS,
+                      sort=sort, sort_options=SORT_OPTIONS, sort_controls=sort_controls(filters, sort),
                       summary=summary_text(rows), empty=empty,
                       review_query=review.with_back("", review.safe_back("/?" + urlencode(
                           [(k, v) for k, v in filters.items() if v]

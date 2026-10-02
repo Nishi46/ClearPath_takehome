@@ -813,3 +813,12 @@ main { padding-bottom: 4.5rem; }
 @media (max-width: 40rem) {
   .reset-demo-group { padding-left: 0; border-left: 0; }
 }
+
+/* Sort arrows in the table header: one up/down pair beside Launch date and Flags. The active direction is filled and
+   coloured; aria-sort on the header and the hidden link text carry the meaning for everyone else. */
+.sort-link { display: inline-flex; align-items: center; margin-left: 0.25rem; padding: 0.125rem 0.25rem; border-radius: 4px; vertical-align: middle; color: var(--text-muted); }
+.sort-link:hover { background: var(--border); color: var(--text); }
+.sort-link.is-sorted { color: var(--accent); }
+.sort-arrows { width: 0.5625rem; height: 0.875rem; fill: currentColor; }
+.sort-arrows path { opacity: 0.4; }
+.sort-arrows path.is-on { opacity: 1; }
