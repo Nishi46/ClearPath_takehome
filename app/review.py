@@ -485,7 +485,7 @@ COMMENT_FIELD_CODES = ("text_required", "text_too_long", "text_bad_chars")
 COMMENT_STATUS = {"text_required": 422, "text_too_long": 422, "text_bad_chars": 422, "no_such_flag": 422,
                   "not_found": 404, "stale_version": 409, "capacity": 409, "duplicate": 409}
 COMMENT_CONFLICTS = {
-    "stale_version": "A newer version exists, so this page was out of date. Your comment was not saved.",
+    "stale_version": "A newer version exists, so this page was out of date. Your comment was not saved. Reload the page to see the latest version.",
     "duplicate": "You just posted this comment, so it was not posted again.",
     "capacity": "This item has reached the limit of %d comments. Your comment was not saved." % MAX_COMMENTS_PER_SUBMISSION,
 }
@@ -713,7 +713,7 @@ def dismiss_conflict_message(code, data, rule_id):
                 _outcome_label(d["outcome"]).lower(), d["reviewer"], when_text(d["created_at"]))
         return "This version was already decided. Your dismissal was not saved."
     if code == "stale_version":
-        return "A newer version exists, so this page was out of date. Your dismissal was not saved."
+        return "A newer version exists, so this page was out of date. Your dismissal was not saved. Reload the page to see the latest version."
     if code == "locked":
         return "This version is locked. Your dismissal was not saved."
     return DECISION_MESSAGES["bad_form"]
@@ -735,8 +735,8 @@ DECISION_STATUS = {"bad_outcome": 422, "reason_required": 422, "reason_too_long"
 DECISION_MESSAGES = {
     "bad_outcome": "Choose Approve, Request changes or Reject.",
     "reason_required": "A reason is required to request changes or reject.",
-    "reason_too_long": "Keep the reason under %d characters." % MAX_REASON_CHARS,
-    "stale_version": "A newer version exists, so this page was out of date. Your decision was not saved.",
+    "reason_too_long": "Keep the reason to {:,} characters or fewer.".format(MAX_REASON_CHARS),
+    "stale_version": "A newer version exists, so this page was out of date. Your decision was not saved. Reload the page to see the latest version.",
     "locked": "This version is locked. Your decision was not saved.",
     "bad_form": "This form was incomplete or out of date. Reload the page and try again.",
 }

@@ -110,9 +110,9 @@ def _urgency_label(kind, today, launch):
         return "Overdue by " + _plural((today - launch).days, "day")
     days = (launch - today).days
     if days == 0:
-        return "Launches today"
+        return "Rush: launches today"
     if days == 1:
-        return "Launches tomorrow"
+        return "Rush: launches tomorrow"
     business = clock.business_days_until(today, launch)
     if business == 0:
         return "Rush: launches this weekend"

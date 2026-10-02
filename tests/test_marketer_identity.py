@@ -37,7 +37,7 @@ def test_repeated_cookie_does_not_error(client):
 @pytest.mark.parametrize("data", [{"name": "Mallory"}, {}, {"name": ""}, {"name": "maya chen"}])
 def test_bad_posts_are_refused_without_a_cookie_or_an_echo(client, data):
     r = client.post("/marketer", data=data, follow_redirects=False)
-    assert r.status_code == 400 and r.text == "Unknown marketer."
+    assert r.status_code == 400 and "Unknown marketer." in r.text and "<h1" in r.text
     assert "marketer" not in r.headers.get("set-cookie", "")
     assert "Mallory" not in r.text
 

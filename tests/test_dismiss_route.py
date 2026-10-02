@@ -149,7 +149,7 @@ def test_note_too_long_keeps_and_escapes_the_typed_text(client):
     typed = '"><script>alert(1)</script>' + "x" * 1000
     r = post(client, note=typed)
     assert r.status_code == 422
-    assert field_error(r.text) == "Keep the note under 1,000 characters."
+    assert field_error(r.text) == "Keep the note to 1,000 characters or fewer."
     assert "<script>alert(1)" not in r.text and "&lt;script&gt;alert(1)" in r.text
     assert re.search(r"<textarea[^>]*>\n&#34;&gt;&lt;script&gt;", r.text)
 

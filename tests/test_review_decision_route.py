@@ -161,7 +161,7 @@ def test_request_changes_needs_a_reason(client, reason):
 def test_reason_too_long(client):
     before = snapshot()
     r = post(client, outcome="rejected", reason="x" * 2001)
-    assert r.status_code == 422 and banner(r.text) == "Keep the reason under 2000 characters."
+    assert r.status_code == 422 and banner(r.text) == "Keep the reason to 2,000 characters or fewer."
     assert snapshot() == before
     assert post(client, outcome="rejected", reason="x" * 2000).status_code == 303
 

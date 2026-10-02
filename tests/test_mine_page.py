@@ -81,13 +81,13 @@ def test_an_old_decision_is_not_shown_as_current_feedback(mclient):
 def test_status_urgency_and_flags_are_written_in_words(mclient):
     row = item(mclient.get("/mine").text, 'href="/review/1"')
     assert re.search(r'class="status status-new">New<', row)
-    assert "Launches tomorrow" in row and "open flag" in row and "v1" in row
+    assert "Rush: launches tomorrow" in row and "open flag" in row and "v1" in row
     assert "Loan / Email" in row
 
 
 def test_a_marketer_with_nothing_gets_an_empty_state_with_a_next_action(mclient):
     html = as_marketer(mclient, "Sam Patel").text
-    assert "You haven&rsquo;t submitted anything yet." in html or "You haven’t submitted anything yet." in html
+    assert "You haven't submitted anything yet." in html
     assert 'role="status"' in html and 'href="/submit"' in html
     assert headings(html, "h2") == [] and items(html) == []
 
@@ -139,7 +139,7 @@ def test_reviewer_sees_it_read_only_with_no_resubmit_actions_at_all(client):
 def test_reviewer_looking_at_an_empty_marketer(client):
     client.post("/marketer", data={"name": "Sam Patel"})
     html = client.get("/mine").text
-    assert "Sam Patel hasn&rsquo;t submitted anything yet." in html or "Sam Patel hasn’t submitted anything yet." in html
+    assert "Sam Patel hasn't submitted anything yet. Choose another marketer above." in html
     assert "Submit your first" not in html
 
 

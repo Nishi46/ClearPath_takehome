@@ -4,11 +4,12 @@ import math
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Form, HTTPException, Request
-from fastapi.responses import PlainTextResponse, RedirectResponse, Response
+from fastapi.responses import RedirectResponse, Response
 
 from app import audit, clock, db, review, seed
 from app.queue import FILTER_FIELDS, FILTER_OPTIONS, empty_kind, filters_from_query, list_queue, row_view, summary_text
 from app.cooldown import Cooldown
+from app.errors import error_response
 from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, REVIEWER_NAME, ROLES, get_role
 from app.security import same_origin
 from app.templating import render
@@ -68,7 +69,7 @@ def _is_https(request):
 def set_role(request: Request, role: str = Form("")):
     if role not in ROLES:
         # Do not echo the submitted value back.
-        return PlainTextResponse("Unknown role.", status_code=400)
+        return error_response(request, 400, "Unknown role. Use the Role buttons above.")
     # A marketer lands on their own submissions, a reviewer on the queue.
     response = RedirectResponse("/mine" if role == "marketer" else "/", status_code=303)
     response.set_cookie(
@@ -91,13 +92,13 @@ def reset_confirm(request: Request):
 @router.post("/reset")
 def reset(request: Request, confirm: str = Form("")):
     if not same_origin(request):
-        return PlainTextResponse("Reset must be started from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Reset must be started from this site. Reload the page and try again.")
     if confirm != "reset":
-        return PlainTextResponse("Please confirm the reset.", status_code=400, headers=NO_STORE)
+        return error_response(request, 400, "Please confirm the reset. Open Reset demo and use the confirm button.")
     wait = reset_cooldown.acquire(clock.now())
     if wait:
-        return PlainTextResponse("A reset just ran. Please wait a few seconds and try again.",
-                                 status_code=429, headers={**NO_STORE, "Retry-After": str(math.ceil(wait))})
+        return error_response(request, 429, "A reset just ran. Please wait a few seconds and try again.",
+                              {"Retry-After": str(math.ceil(wait))})
     try:
         with db.connect() as conn:
             seed.reset_to_seed(conn)
@@ -177,14 +178,14 @@ async def decide(request: Request, submission_id: str):
     # The guards run in this order: origin, id, role, existence, form, then the decision rules.
     # All of the real rules live in review.record_decision; nothing here decides anything itself.
     if not same_origin(request):
-        return PlainTextResponse("Decisions must be made from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Decisions must be made from this site. Reload the page and try again.")
     sid = review.parse_id(submission_id)
     if sid is None:
         raise HTTPException(status_code=404)
     # The role is a demo label (assumption A4), so this is a product guard, not authorization:
     # a marketer should not approve their own copy.
     if get_role(request) != "reviewer":
-        return PlainTextResponse("Only reviewers can record decisions.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Only reviewers can record decisions. Switch role using the Role buttons above.")
     with db.connect() as conn:
         data = review.load_review(conn, sid)
     if data is None:
@@ -216,12 +217,12 @@ async def dismiss(request: Request, submission_id: str):
     # Same guard order as /decision: origin, id, role, existence, form, then the dismissal rules,
     # which all live in review.dismiss_flag. The reviewer and time come from the server.
     if not same_origin(request):
-        return PlainTextResponse("Dismissals must be made from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Dismissals must be made from this site. Reload the page and try again.")
     sid = review.parse_id(submission_id)
     if sid is None:
         raise HTTPException(status_code=404)
     if get_role(request) != "reviewer":
-        return PlainTextResponse("Only reviewers can dismiss flags.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Only reviewers can dismiss flags. Switch role using the Role buttons above.")
     with db.connect() as conn:
         data = review.load_review(conn, sid)
     if data is None:
@@ -257,12 +258,12 @@ async def dismiss(request: Request, submission_id: str):
 async def comment(request: Request, submission_id: str):
     # Same guard order as /decision and /dismiss. The author and time come from the server.
     if not same_origin(request):
-        return PlainTextResponse("Comments must be made from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Comments must be made from this site. Reload the page and try again.")
     sid = review.parse_id(submission_id)
     if sid is None:
         raise HTTPException(status_code=404)
     if get_role(request) != "reviewer":
-        return PlainTextResponse("Only reviewers can comment.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Only reviewers can comment. Switch role using the Role buttons above.")
     with db.connect() as conn:
         data = review.load_review(conn, sid)
     if data is None:

@@ -87,7 +87,7 @@ def test_post_role_rejects_bad_values_and_sets_no_cookie(client, data):
     r = client.post("/role", data=data, follow_redirects=False)
     assert r.status_code == 400
     assert "set-cookie" not in r.headers
-    assert "script" not in r.text and "admin" not in r.text
+    assert "alert(1)" not in r.text and "admin" not in r.text and "Unknown role." in r.text
 
 
 def test_post_role_with_json_body_is_rejected(client):

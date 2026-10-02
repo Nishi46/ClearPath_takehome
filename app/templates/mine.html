@@ -13,13 +13,13 @@
 {% endif %}
 {% include "_marketer_picker.html" %}
 {% if role != "marketer" %}
-<p class="mine-readonly">You are viewing {{ marketer }}&rsquo;s submissions as a reviewer. This page is read-only.</p>
+<p class="mine-readonly">You are viewing {{ marketer }}'s submissions as a reviewer. This page is read-only.</p>
 {% endif %}
 {% if role == "marketer" %}<p><a class="button-link" href="/submit">+ Submit</a></p>{% endif %}
 {% if not total %}
 <p class="empty-state" role="status">
-  {% if role == "marketer" %}You haven&rsquo;t submitted anything yet. <a href="/submit">Submit your first piece of copy</a>
-  {%- else %}{{ marketer }} hasn&rsquo;t submitted anything yet.{% endif %}</p>
+  {% if role == "marketer" %}You haven't submitted anything yet. <a href="/submit">Submit your first piece of copy</a>
+  {%- else %}{{ marketer }} hasn't submitted anything yet. Choose another marketer above.{% endif %}</p>
 {% endif %}
 {% for g in groups if g.rows %}
 <section class="mine-group" aria-labelledby="group-{{ g.key }}">

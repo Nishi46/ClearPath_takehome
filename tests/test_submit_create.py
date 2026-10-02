@@ -209,7 +209,7 @@ def test_the_new_item_shows_up_in_the_queue_with_its_flags(client):
         row = next(r for r in rows if r["id"] == sid)
         view = row_view(row, datetime(2026, 10, 7).date())
     assert row["status"] == "new" and row["version_number"] == 1 and row["flag_count"] >= 2
-    assert view["urgency_label"] == "Launches tomorrow"
+    assert view["urgency_label"] == "Rush: launches tomorrow"
     page = client.get("/").text
     assert 'href="/review/%d' % sid in page and "Spring promo" in page
 

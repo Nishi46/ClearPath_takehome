@@ -143,7 +143,7 @@ def test_blank_text_is_a_field_error_and_the_page_is_intact(client, text):
 def test_too_long_keeps_text_and_linked_rule_and_escapes(client):
     typed = '"><script>alert(1)</script>' + "x" * 2000
     r = post(client, 12, typed, version="1", rule="R4")
-    assert r.status_code == 422 and field_error(r.text) == "Keep the comment under 2,000 characters."
+    assert r.status_code == 422 and field_error(r.text) == "Keep the comment to 2,000 characters or fewer."
     assert "<script>alert(1)" not in r.text and "&lt;script&gt;alert(1)" in r.text
     assert 'name="rule_id" value="R4"' in r.text  # a failed snippet comment stays linked
     assert textarea(r.text).startswith("&#34;&gt;&lt;script&gt;")

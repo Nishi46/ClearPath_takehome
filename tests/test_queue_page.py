@@ -73,7 +73,7 @@ def test_first_row_is_the_overdue_item(client):
 
 def test_rush_rows(client):
     html = client.get("/").text
-    assert "Launches tomorrow" in row_for(html, 1)
+    assert "Rush: launches tomorrow" in row_for(html, 1)
     assert "urgency-rush" in row_for(html, 1) and "urgency-rush" in row_for(html, 2)
     assert "Rush" in row_for(html, 2) or "Launches" in row_for(html, 2)
 
@@ -208,5 +208,5 @@ def test_database_failure_gives_the_friendly_500_without_details(client, monkeyp
 
     monkeypatch.setattr(db, "connect", broken)
     r = TestClient(app, raise_server_exceptions=False).get("/")
-    assert r.status_code == 500 and "Something went wrong" in r.text
+    assert r.status_code == 500 and "We hit a problem" in r.text
     assert "secret" not in r.text and "RuntimeError" not in r.text

@@ -34,4 +34,4 @@ def test_missing_static_file_is_still_a_404_and_path_traversal_is_refused(client
 def test_pages_are_not_given_the_static_policy(client):
     assert client.get("/").headers["cache-control"] == "no-store"      # the queue's own header is untouched
     assert client.get("/reset/confirm").headers["cache-control"] == "no-store"
-    assert "cache-control" not in client.get("/missing-page").headers   # error pages get no static policy
+    assert client.get("/missing-page").headers["cache-control"] == "no-store"   # error pages: never the static "no-cache" policy

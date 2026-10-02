@@ -29,7 +29,7 @@ def make(**kw):
 
 def test_seed_urgency_on_a_thursday(views):
     assert views[11]["urgency_label"] == "Overdue by 1 day"
-    assert views[1]["urgency_label"] == "Launches tomorrow"
+    assert views[1]["urgency_label"] == "Rush: launches tomorrow"
     assert views[2]["urgency_label"] == "Rush: launches in 1 business day"   # Saturday: only Friday in between
     assert views[10]["urgency_label"] == "" and views[10]["urgency"] is None
 
@@ -57,8 +57,8 @@ def test_an_approved_item_with_a_past_date_shows_no_urgency():
     ("2026-09-30", "Overdue by 1 day"),
     ("2026-09-29", "Overdue by 2 days"),
     ("2025-10-01", "Overdue by 365 days"),
-    ("2026-10-01", "Launches today"),
-    ("2026-10-02", "Launches tomorrow"),
+    ("2026-10-01", "Rush: launches today"),
+    ("2026-10-02", "Rush: launches tomorrow"),
     ("2026-10-03", "Rush: launches in 1 business day"),    # Thu -> Sat
     ("2026-10-05", "Rush: launches in 2 business days"),   # Thu -> Mon
 ])
@@ -69,7 +69,7 @@ def test_label_wording_and_pluralization(launch, expected):
 def test_weekend_launch_from_a_friday_reads_naturally():
     fri = date(2026, 10, 2)
     assert row_view(make(launch_date="2026-10-04"), fri)["urgency_label"] == "Rush: launches this weekend"
-    assert row_view(make(launch_date="2026-10-03"), fri)["urgency_label"] == "Launches tomorrow"
+    assert row_view(make(launch_date="2026-10-03"), fri)["urgency_label"] == "Rush: launches tomorrow"
 
 
 def test_not_urgent_beyond_two_business_days():

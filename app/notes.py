@@ -9,7 +9,7 @@ MAX_NOTE_CHARS = 1000
 CODES = ("note_required", "note_too_long", "note_bad_chars")
 MESSAGES = {
     "note_required": "Add a note saying why this flag doesn't apply.",
-    "note_too_long": "Keep the note under 1,000 characters.",
+    "note_too_long": "Keep the note to 1,000 characters or fewer.",
     "note_bad_chars": "The note can't contain control characters.",
 }
 
@@ -44,7 +44,7 @@ MAX_COMMENT_CHARS = 2000
 COMMENT_CODES = ("text_required", "text_too_long", "text_bad_chars")
 COMMENT_MESSAGES = {
     "text_required": "Write a comment before posting.",
-    "text_too_long": "Keep the comment under 2,000 characters.",
+    "text_too_long": "Keep the comment to 2,000 characters or fewer.",
     "text_bad_chars": "The comment can't contain control characters.",
 }
 

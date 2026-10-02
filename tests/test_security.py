@@ -98,7 +98,7 @@ def test_500_is_friendly_and_leaks_nothing(boom_client):
     r = boom_client.get("/__boom")
     assert r.status_code == 500
     assert r.headers["content-type"].startswith("text/html")
-    assert "Something went wrong" in r.text
+    assert "We hit a problem" in r.text
     assert "Back to the queue" in r.text
     for leak in ("Traceback", "RuntimeError", "secret-internal-detail", "/Users/", ".py",
                  "File \"", "site-packages"):
@@ -115,7 +115,7 @@ def test_500_falls_back_if_template_breaks(boom_client, monkeypatch):
     monkeypatch.setattr(errors, "render", broken)
     r = boom_client.get("/__boom")
     assert r.status_code == 500
-    assert "Something went wrong" in r.text and "template exploded" not in r.text
+    assert "We hit a problem" in r.text and "template exploded" not in r.text
     assert_secure(r)
 
 

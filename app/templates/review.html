@@ -125,7 +125,7 @@
     {%- endfor %}
   </ul>
   {%- else %}
-  <p class="comment-empty">No comments yet.</p>
+  <p class="comment-empty">No comments yet.{% if comment_form and role == "reviewer" %} Add the first one below.{% endif %}</p>
   {%- endif %}
   {%- if role != "reviewer" %}
   <p class="comment-readonly">Only reviewers can comment.</p>

@@ -238,7 +238,7 @@ def test_a_failing_reset_is_a_friendly_500_and_changes_nothing(live, db_path, mo
     monkeypatch.setattr(seed, "reset_to_seed", boom)
     r = live.post("/reset", data=GOOD)
     assert r.status_code == 500
-    assert "Something went wrong" in r.text and "/" in r.text
+    assert "We hit a problem" in r.text and "/" in r.text
     for leak in ("secret-internal-detail", "Traceback", "RuntimeError", "/Users/"):
         assert leak not in r.text
     assert_secure(r)

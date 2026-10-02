@@ -132,7 +132,7 @@ def test_stylesheet_is_served_with_a_css_content_type(client):
 
 def test_urgency_and_status_are_in_the_markup_as_words(client):
     html = client.get("/").text
-    for word in ("Overdue by 1 day", "Launches tomorrow", "In review", "Changes requested"):
+    for word in ("Overdue by 1 day", "Rush: launches tomorrow", "In review", "Changes requested"):
         assert word in html
 
 

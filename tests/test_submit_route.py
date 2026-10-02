@@ -182,7 +182,7 @@ def test_extra_fields_are_ignored(mclient):
 def test_reviewer_role_is_refused_and_nothing_is_written(client):
     client.cookies.set("role", "reviewer")
     r = post(client)
-    assert r.status_code == 403 and r.text == "Only marketers can submit." and count() == 14
+    assert r.status_code == 403 and "Only marketers can submit." in r.text and count() == 14
 
 
 def test_a_missing_or_forged_role_cookie_counts_as_reviewer(client):

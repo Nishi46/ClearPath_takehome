@@ -112,7 +112,15 @@ class BodyLimitMiddleware:
 
     @staticmethod
     async def _too_large(scope, receive, send):
-        response = PlainTextResponse("Request too large.", status_code=413)
+        # Imported here: errors imports this module. The page is the same shared error page.
+        from starlette.requests import Request
+
+        from app.errors import error_response
+
+        try:
+            response = error_response(Request(scope), 413)
+        except Exception:
+            response = PlainTextResponse("Request too large.", status_code=413)
         await response(scope, receive, send)
 
 

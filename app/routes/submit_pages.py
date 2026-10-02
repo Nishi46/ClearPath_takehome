@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import PlainTextResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from app import clock, db, mine as mine_view, review, submit
+from app.errors import error_response
 from app.queue import FILTER_OPTIONS
 from app.roles import COOKIE_MAX_AGE, MARKETER_COOKIE_NAME, MARKETERS, get_marketer, get_role
 from app.routes.pages import NO_STORE, _is_https, _single
@@ -24,11 +25,11 @@ async def set_marketer(request: Request):
     # Like /role, this is a demo label, not a login. The value is only ever compared with the
     # allowlist and never echoed back.
     if not same_origin(request):
-        return PlainTextResponse("This must be started from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "This must be started from this site. Reload the page and try again.")
     form = await request.form()
     name = _single(form, "name")
     if name not in MARKETERS:
-        return PlainTextResponse("Unknown marketer.", status_code=400, headers=NO_STORE)
+        return error_response(request, 400, "Unknown marketer. Choose one from the list on My submissions.")
     response = RedirectResponse("/mine", status_code=303, headers=NO_STORE)
     response.set_cookie(MARKETER_COOKIE_NAME, name, max_age=COOKIE_MAX_AGE, path="/",
                         httponly=True, samesite="lax", secure=_is_https(request))
@@ -98,10 +99,10 @@ async def submit_post(request: Request):
     # The guards run in this order: origin, role, form, validation, then create_submission, which
     # holds all the real rules. submitted_by, status, version and timestamps are never read from the form.
     if not same_origin(request):
-        return PlainTextResponse("Submissions must be made from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Submissions must be made from this site. Reload the page and try again.")
     # The role is a demo label (assumption A4): this is a product guard, not authorization.
     if get_role(request) != "marketer":
-        return PlainTextResponse("Only marketers can submit.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Only marketers can submit. Switch role using the Role buttons above.")
     form = await request.form()
     raw = {name: _single(form, name) for name in FIELDS}
     values = {name: raw[name] or "" for name in FIELDS}
@@ -125,9 +126,9 @@ async def submit_post(request: Request):
 async def submit_check(request: Request):
     # Read-only: this route never opens the database. It shows what the rules say about the draft.
     if not same_origin(request):
-        return PlainTextResponse("This must be started from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "This must be started from this site. Reload the page and try again.")
     if get_role(request) != "marketer":
-        return PlainTextResponse("Only marketers can submit.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Only marketers can submit. Switch role using the Role buttons above.")
     form = await request.form()
     raw = {name: _single(form, name) for name in FIELDS}
     values = {name: raw[name] or "" for name in FIELDS}
@@ -199,19 +200,19 @@ async def resubmit_post(request: Request, submission_id: str):
     # Guards in order: origin, id, role, existence and owner, form, validation, then create_version, which
     # holds the real rules. Title, product, channel, submitter, status and version numbers never come from the form.
     if not same_origin(request):
-        return PlainTextResponse("Resubmissions must be made from this site.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Resubmissions must be made from this site. Reload the page and try again.")
     sid = review.parse_id(submission_id)
     if sid is None:
         raise HTTPException(status_code=404)
     # The role and marketer are demo labels (assumption A4): product guards, not authorization.
     if get_role(request) != "marketer":
-        return PlainTextResponse("Only marketers can resubmit.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "Only marketers can resubmit. Switch role using the Role buttons above.")
     data = _load(sid)
     if data is None:
         raise HTTPException(status_code=404)
     marketer = get_marketer(request)
     if data["submission"]["submitted_by"] != marketer:
-        return PlainTextResponse("This item belongs to another marketer.", status_code=403, headers=NO_STORE)
+        return error_response(request, 403, "This item belongs to another marketer. Switch marketer on My submissions to edit it.")
 
     form = await request.form()
     raw = {name: _single(form, name) for name in RESUBMIT_FIELDS}
@@ -235,7 +236,7 @@ async def resubmit_post(request: Request, submission_id: str):
         if exc.code == "not_found":
             raise HTTPException(status_code=404)
         if exc.code == "not_owner":
-            return PlainTextResponse("This item belongs to another marketer.", status_code=403, headers=NO_STORE)
+            return error_response(request, 403, "This item belongs to another marketer. Switch marketer on My submissions to edit it.")
         if exc.code == "unchanged":
             return _render_resubmit(request, data, values, {"copy": UNCHANGED_TEXT}, warnings, status_code=422,
                                 show_diff=True)

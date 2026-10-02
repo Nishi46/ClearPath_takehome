@@ -5,7 +5,10 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app import db, seed
-from app.errors import not_found, server_error
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.errors import http_error, server_error, validation_error
 from app.routes import pages, submit_pages
 from app.security import BodyLimitMiddleware, SecurityHeadersMiddleware
 from app.templating import APP_DIR
@@ -47,5 +50,6 @@ app.mount("/static", StaticFiles(directory=str(APP_DIR / "static")), name="stati
 # Added last means outermost: headers are applied to everything, including the 413 from the body limit.
 app.add_middleware(BodyLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_exception_handler(404, not_found)
+app.add_exception_handler(StarletteHTTPException, http_error)
+app.add_exception_handler(RequestValidationError, validation_error)
 app.add_exception_handler(Exception, server_error)
