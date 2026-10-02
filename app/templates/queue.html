@@ -5,5 +5,34 @@
 <p class="banner" role="status">Demo reset to the original data.</p>
 {% endif %}
 <h1>Review queue</h1>
-<p>Queue coming next</p>
+<table class="queue">
+  <caption class="visually-hidden">Submissions, earliest launch date first</caption>
+  <thead>
+    <tr>
+      <th scope="col">Title</th>
+      <th scope="col">Product</th>
+      <th scope="col">Channel</th>
+      <th scope="col" aria-sort="ascending">Launch date (earliest first)</th>
+      <th scope="col">Status</th>
+      <th scope="col">Submitter</th>
+      <th scope="col">Flags</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr{% if r.urgency_class %} class="{{ r.urgency_class }}"{% endif %}>
+      <td data-label="Title"><a href="/review/{{ r.id }}">{{ r.title }}</a></td>
+      <td data-label="Product">{{ r.product_label }}</td>
+      <td data-label="Channel">{{ r.channel_label }}</td>
+      <td data-label="Launch date">
+        <time datetime="{{ r.launch_date }}">{{ r.launch_text }}</time>
+        {% if r.urgency_label %}<span class="urgency">{{ r.urgency_label }}</span>{% endif %}
+      </td>
+      <td data-label="Status"><span class="status status-{{ r.status }}">{{ r.status_label }}</span></td>
+      <td data-label="Submitter">{{ r.submitted_by }}</td>
+      <td data-label="Flags"><span{% if r.flags_title %} title="{{ r.flags_title }}"{% endif %}>{{ r.flags_text }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

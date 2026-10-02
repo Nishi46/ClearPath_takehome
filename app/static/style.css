@@ -117,3 +117,13 @@ main { max-width: 72rem; margin: 0 auto; padding: var(--space); }
 @media (max-width: 40rem) {
   .header-controls { margin-left: 0; width: 100%; }
 }
+
+/* Queue table: basic layout only. Urgency and status styling and the narrow layout come in step 16. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+table.queue { width: 100%; border-collapse: collapse; background: var(--surface); }
+table.queue th, table.queue td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+table.queue th { font-weight: 700; }
+table.queue .urgency { display: block; font-weight: 700; }

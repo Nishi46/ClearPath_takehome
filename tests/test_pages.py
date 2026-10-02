@@ -8,7 +8,7 @@ def test_home_renders_layout(client):
     r = client.get("/")
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("text/html")
-    for text in ("ClearPath Review", "Submit", "Reset demo", "Queue coming next"):
+    for text in ("ClearPath Review", "Submit", "Reset demo", "Review queue"):
         assert text in r.text
     assert 'href="/submit"' in r.text
 

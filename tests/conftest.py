@@ -11,9 +11,11 @@ def db_path(tmp_path, monkeypatch):
 
 @pytest.fixture
 def client(db_path):
+    """A client that has run app startup, so the schema exists and the demo seed is loaded."""
     from app.main import app
 
-    return TestClient(app)
+    with TestClient(app) as c:
+        yield c
 
 
 @pytest.fixture
