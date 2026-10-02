@@ -1,9 +1,10 @@
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import Response
 
 from app import db
+from app.templating import templates
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -27,3 +28,8 @@ def healthz():
         logger.exception("Health check failed")
         return _json('{"status":"unavailable"}', 503)
     return _json('{"status":"ok"}', 200)
+
+
+@router.get("/")
+def queue(request: Request):
+    return templates.TemplateResponse(request, "queue.html")

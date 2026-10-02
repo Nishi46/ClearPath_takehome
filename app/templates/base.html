@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ClearPath Review{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/htmx.min.js"
+          integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+          crossorigin="anonymous" defer></script>
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="brand" href="/">ClearPath Review</a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="/">Queue</a>
+      <a href="/submit">Submit</a>
+    </nav>
+    <div class="header-controls">
+      {# Step 10 replaces this placeholder with a POST form per role. #}
+      <nav class="role-switcher" aria-label="Role">
+        <span class="role-label">Role:</span>
+        <span class="role-option" aria-current="true">Reviewer (current)</span>
+        <span class="role-option">Marketer</span>
+      </nav>
+      <button type="button" class="reset-demo" disabled title="Coming in phase 2">Reset demo</button>
+    </div>
+  </header>
+  <main id="main" role="main">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

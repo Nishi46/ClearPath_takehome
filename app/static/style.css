@@ -1,0 +1,85 @@
+:root {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --text: #1c2430;
+  --text-muted: #5a6575;
+  --border: #d5dae1;
+  --accent: #1d4ed8;
+  --accent-text: #ffffff;
+  --focus: #b45309;
+  --space: 1rem;
+  --radius: 6px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 var(--space); }
+
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.skip-link {
+  position: absolute;
+  left: var(--space);
+  top: -4rem;
+  z-index: 10;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.875rem;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.skip-link:focus { top: calc(100% + 0.5rem); outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.site-header {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  padding: 0.75rem var(--space);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.brand { font-weight: 700; font-size: 1.125rem; color: var(--text); text-decoration: none; }
+.site-nav { display: flex; gap: 1rem; }
+.header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-left: auto;
+}
+.role-switcher { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.role-label { color: var(--text-muted); }
+.role-option { padding: 0.125rem 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.role-option[aria-current="true"] { border-color: var(--accent); font-weight: 700; }
+
+.reset-demo {
+  font: inherit;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+.reset-demo:disabled { cursor: not-allowed; }
+
+main { max-width: 72rem; margin: 0 auto; padding: var(--space); }
+
+@media (max-width: 40rem) {
+  .header-controls { margin-left: 0; width: 100%; }
+}

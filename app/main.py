@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from app import db
 from app.routes import pages
+from app.templating import APP_DIR
 
 
 @asynccontextmanager
@@ -23,3 +25,4 @@ app = FastAPI(
 )
 
 app.include_router(pages.router)
+app.mount("/static", StaticFiles(directory=str(APP_DIR / "static")), name="static")
