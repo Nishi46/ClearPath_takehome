@@ -79,7 +79,7 @@ def test_forgiving_forms_fire_and_slice_the_original(copy, text):
 
 def test_r1_and_r4_both_fire_ordered_by_rule_then_position():
     copy = "You're approved! Also, guaranteed approval for everyone. Pre-approved too."
-    flags = evaluate("loan", "email", copy)
+    flags = [f for f in evaluate("loan", "email", copy) if f.kind == "phrase"]
     assert [(f.rule_id, f.matched_text) for f in flags] == [
         ("R1", "guaranteed approval"), ("R4", "You're approved"), ("R4", "Pre-approved")]
     r4_flags = [f for f in flags if f.rule_id == "R4"]

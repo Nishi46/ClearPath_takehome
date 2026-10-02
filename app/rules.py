@@ -309,7 +309,7 @@ class Flag:
 
 # Rules the engine evaluates so far. Later steps add the rest; the engine never reports a rule
 # it has not been tested for.
-_EVALUATED = {"R1", "R3", "R4"}
+_EVALUATED = {"R1", "R3", "R4", "R5", "R7"}
 
 
 @functools.lru_cache(maxsize=None)
@@ -336,14 +336,30 @@ def is_present(norm_text, patterns):
 
 @functools.lru_cache(maxsize=None)
 def _required_patterns(rule_id):
-    """Phrases that, if any is present, satisfy a missing-text rule."""
+    """Phrases that, if any is present, satisfy a missing-text rule.
+
+    A rule lists its accepted forms in `variants` (R5) or `satisfiedBy` (R7); otherwise `required`
+    is the text itself (R3). R7's `required` is a description, not text to look for.
+    """
     det = get_rule(rule_id).detection
-    texts = tuple(det["required"]) + tuple(det.get("variants", ())) + tuple(det.get("satisfiedBy", ()))
+    texts = tuple(det.get("variants", ())) + tuple(det.get("satisfiedBy", ())) or tuple(det["required"])
     return tuple(compile_phrase(t) for t in texts)
+
+
+# A link counts as a reference to the full terms when it has a scheme or a path:
+# "https://x.example", "clearpath.example/card". A bare domain ("clearpath.com") only names the
+# site, so it does not count. Labels and TLDs are length-bounded so a long string of dots cannot
+# make the search slow.
+_URL = re.compile(
+    r"(?<![\w@.-])(?:https?://[^\s]"
+    r"|(?:[a-z0-9-]{1,63}\.){1,5}[a-z]{2,24}/)")
+_URL_SATISFIES = {"R7"}
 
 
 def _missing_flags(rule, norm):
     if is_present(norm, _required_patterns(rule.id)):
+        return []
+    if rule.id in _URL_SATISFIES and _URL.search(norm):
         return []
     return [Flag(rule.id, rule.severity, "missing")]
 

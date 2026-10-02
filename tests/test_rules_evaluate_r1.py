@@ -38,7 +38,7 @@ def test_each_phrase_fires_alone_in_clean_copy(phrase):
     (f,) = r1("loan", "email", copy)
     assert f.matched_text == phrase.capitalize()
     assert copy[f.start:f.end] == f.matched_text
-    assert evaluate("loan", "email", copy) == (f,)  # nothing else evaluated in this step
+    assert [g for g in evaluate("loan", "email", copy) if g.kind == "phrase"] == [f]
 
 
 @pytest.mark.parametrize("copy", [
@@ -150,4 +150,4 @@ def test_same_input_same_output_and_fast_on_long_copy():
     first = evaluate("loan", "email", copy)
     assert time.perf_counter() - start < 1.0
     assert first == evaluate("loan", "email", copy)
-    assert len(first) == 4000
+    assert len([f for f in first if f.kind == "phrase"]) == 4000
