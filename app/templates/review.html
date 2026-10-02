@@ -130,3 +130,4 @@
   </ol>
 </section>
 {% endblock %}
+{% block scripts %}{% if decision_form and role == "reviewer" %}<script src="{{ asset_url('review.js') }}" defer></script>{% endif %}{% endblock %}

@@ -295,3 +295,4 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .decision-reject { border: 2px solid var(--overdue-border); color: var(--overdue-text); }
 .decision-form button:focus-visible, .decision-form textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 .decision-readonly { color: var(--text-muted); }
+.decision-form button:disabled { opacity: 0.55; cursor: not-allowed; }
