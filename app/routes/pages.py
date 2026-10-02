@@ -1,6 +1,8 @@
 import logging
 import math
 
+from urllib.parse import urlencode
+
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 
@@ -49,7 +51,9 @@ def queue(request: Request):
         empty = empty_kind(conn, rows, filters)
     response = render(request, "queue.html", reset_done=reset_done, rows=rows, filters=filters,
                       filter_fields=FILTER_FIELDS, filter_options=FILTER_OPTIONS,
-                      summary=summary_text(rows), empty=empty)
+                      summary=summary_text(rows), empty=empty,
+                      review_query=review.with_back("", review.safe_back("/?" + urlencode(
+                          [(k, v) for k, v in filters.items() if v]))))
     response.headers["Cache-Control"] = "no-store"  # urgency labels depend on today's date
     return response
 
@@ -102,14 +106,14 @@ def reset(request: Request, confirm: str = Form("")):
     return RedirectResponse("/?reset=done", status_code=303, headers=NO_STORE)
 
 
-def _render_review(request, data, status_code=200, error=None, reason=""):
+def _render_review(request, data, status_code=200, error=None, reason="", back="/"):
     pieces = review.copy_view(data)
-    response = render(request, "review.html", status_code=status_code, head=review.header_view(data),
+    response = render(request, "review.html", status_code=status_code, head=review.header_view(data, back),
                       copy=pieces, cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data),
-                      versions=review.versions_view(data), notices=review.notices_view(data),
+                      versions=review.versions_view(data, back), notices=review.notices_view(data, back),
                       history=review.history_view(data), comments=review.comments_view(data),
                       notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason,
-                      decision_form=review.decision_form_view(data))
+                      decision_form=review.decision_form_view(data, back))
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response
 
@@ -127,11 +131,13 @@ def review_page(request: Request, submission_id: str):
         number = review.parse_id(versions[0])
         if number is None:
             raise HTTPException(status_code=404)
+    backs = request.query_params.getlist("back")
+    back = review.safe_back(backs[0]) if len(backs) == 1 else "/"
     with db.connect() as conn:
         data = review.load_review(conn, sid, number)
     if data is None:
         raise HTTPException(status_code=404)
-    return _render_review(request, data)
+    return _render_review(request, data, back=back)
 
 
 def _single(form, name):
@@ -161,9 +167,10 @@ async def decide(request: Request, submission_id: str):
     form = await request.form()
     outcome, version, reason = _single(form, "outcome"), _single(form, "version"), _single(form, "reason")
     reason_text = reason or ""
+    back = review.safe_back(_single(form, "back"))
     number = review.parse_id(version) if version is not None else None
     if outcome is None or number is None or (reason is None and form.getlist("reason")):
-        return _render_review(request, data, 422, review.DECISION_MESSAGES["bad_form"], reason_text)
+        return _render_review(request, data, 422, review.DECISION_MESSAGES["bad_form"], reason_text, back)
 
     try:
         with db.connect() as conn:
@@ -174,5 +181,5 @@ async def decide(request: Request, submission_id: str):
         if data is None:
             raise HTTPException(status_code=404)
         return _render_review(request, data, review.DECISION_STATUS[exc.code],
-                              review.conflict_message(exc.code, data), reason_text)
-    return RedirectResponse("/review/%d" % sid, status_code=303, headers=NO_STORE)
+                              review.conflict_message(exc.code, data), reason_text, back)
+    return RedirectResponse(review.with_back("/review/%d" % sid, back), status_code=303, headers=NO_STORE)

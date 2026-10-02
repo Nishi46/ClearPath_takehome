@@ -3,7 +3,7 @@
 {% block content %}
 <header class="review-head">
 <div class="review-bar">
-<p class="review-back"><a href="/">&larr; Back to the queue</a></p>
+<p class="review-back"><a href="{{ head.back_href }}">&larr; Back to the queue</a></p>
 <nav class="version-nav" aria-label="Versions">
   <span class="version-nav-label">Versions:</span>
   {%- for v in versions %}
@@ -117,6 +117,9 @@
   {%- if role == "reviewer" %}
   <form method="post" action="/review/{{ decision_form.id }}/decision" class="decision-form">
     <input type="hidden" name="version" value="{{ decision_form.version }}">
+    {%- if decision_form.back %}
+    <input type="hidden" name="back" value="{{ decision_form.back }}">
+    {%- endif %}
     <label for="decision-reason">Reason (required for Request changes and Reject)</label>
     <textarea id="decision-reason" name="reason" rows="3" maxlength="{{ decision_form.max_reason }}">
 {{ reason }}</textarea>

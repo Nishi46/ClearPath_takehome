@@ -76,7 +76,7 @@ def load_review(conn, submission_id, version_number=None):
     }
 
 
-def header_view(data):
+def header_view(data, back="/"):
     """Plain-text values for the review page header. The template escapes them."""
     from datetime import date
 
@@ -98,6 +98,7 @@ def header_view(data):
         "submitted_by": s["submitted_by"],
         "version_text": "v%d" % number,
         "is_current": number == s["current_version"],
+        "back_href": back,
     }
 
 
@@ -255,17 +256,17 @@ _LOCK_TEXT = {
 }
 
 
-def versions_view(data):
+def versions_view(data, back="/"):
     """The version selector: one link per version, the viewed one and the current one marked."""
     sid = data["submission"]["id"]
     current = data["submission"]["current_version"]
     shown = data["version"]["version_number"]
     return [{"text": "v%d" % n, "current": n == current, "selected": n == shown,
-             "href": "/review/%d" % sid if n == current else "/review/%d?v=%d" % (sid, n)}
+             "href": with_back("/review/%d" % sid if n == current else "/review/%d?v=%d" % (sid, n), back)}
             for n in data["version_numbers"]]
 
 
-def notices_view(data):
+def notices_view(data, back="/"):
     """Banners for the selected version: an old-version notice and a lock banner, either may be None."""
     sid = data["submission"]["id"]
     current = data["submission"]["current_version"]
@@ -273,7 +274,7 @@ def notices_view(data):
     old = None
     if shown != current:
         old = {"text": "You are viewing v%d. The current version is v%d." % (shown, current),
-               "href": "/review/%d" % sid, "link_text": "Go to v%d" % current}
+               "href": with_back("/review/%d" % sid, back), "link_text": "Go to v%d" % current}
     lock = None
     d = data["decision"]
     if d is not None:
@@ -456,7 +457,7 @@ def conflict_message(code, data):
     return DECISION_MESSAGES.get(code, DECISION_MESSAGES["bad_form"])
 
 
-def decision_form_view(data):
+def decision_form_view(data, back="/"):
     """What the decision form needs, or None when this page must not offer one.
 
     A form is offered only for the submission's current version, with no decision on it yet, while
@@ -468,4 +469,49 @@ def decision_form_view(data):
         return None
     if s["status"] not in DECIDABLE_STATUSES:
         return None
-    return {"id": s["id"], "version": v["version_number"], "max_reason": MAX_REASON_CHARS}
+    return {"id": s["id"], "version": v["version_number"], "max_reason": MAX_REASON_CHARS,
+            "back": back if back != "/" else ""}
+
+
+# ---- back link to the queue, with its filters ----
+
+class _Query:
+    """Just enough of a query-parameter object for queue.filters_from_query."""
+
+    def __init__(self, parsed):
+        self._parsed = parsed
+
+    def getlist(self, name):
+        return self._parsed.get(name, [])
+
+
+def safe_back(raw):
+    """The queue URL to go back to: "/" or "/?status=..&product=..&channel=..", always rebuilt here.
+
+    `raw` is untrusted. It must start with "/?"; its query is parsed and only the three known
+    filters with allowed values are kept (a repeated or unknown value is dropped), and a fresh
+    URL is built from those. Nothing from `raw` is passed through, so it cannot point off-site,
+    carry markup or add parameters. Anything else gives "/".
+    """
+    from urllib.parse import parse_qs, urlencode
+
+    from app.queue import FILTER_FIELDS, filters_from_query
+
+    if not isinstance(raw, str) or len(raw) > 300 or not raw.startswith("/?"):
+        return "/"
+    try:
+        parsed = parse_qs(raw[2:], keep_blank_values=True, max_num_fields=20)
+    except ValueError:
+        return "/"
+    filters = filters_from_query(_Query(parsed))
+    pairs = [(name, filters[name]) for name, _ in FILTER_FIELDS if filters[name]]
+    return "/?" + urlencode(pairs) if pairs else "/"
+
+
+def with_back(url, back):
+    """`url` with ?back=<back> (or &back=) added, unless back is the plain queue."""
+    from urllib.parse import urlencode
+
+    if back == "/":
+        return url
+    return url + ("&" if "?" in url else "?") + urlencode({"back": back})

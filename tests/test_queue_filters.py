@@ -12,7 +12,7 @@ from starlette.datastructures import QueryParams
 
 
 def ids(html):
-    return [int(i) for i in re.findall(r'<a href="/review/(\d+)">', html)]
+    return [int(i) for i in re.findall(r'<a href="/review/(\d+)(?:\?[^"]*)?">', html)]
 
 
 def summary(html):

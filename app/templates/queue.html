@@ -43,7 +43,7 @@
   <tbody>
     {% for r in rows %}
     <tr{% if r.urgency_class %} class="{{ r.urgency_class }}"{% endif %}>
-      <td data-label="Title"><a href="/review/{{ r.id }}">{{ r.title }}</a></td>
+      <td data-label="Title"><a href="/review/{{ r.id }}{{ review_query }}">{{ r.title }}</a></td>
       <td data-label="Product">{{ r.product_label }}</td>
       <td data-label="Channel">{{ r.channel_label }}</td>
       <td data-label="Launch date">
