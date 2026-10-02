@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from starlette.datastructures import MutableHeaders
 from starlette.responses import PlainTextResponse
 
@@ -112,3 +114,22 @@ class BodyLimitMiddleware:
     async def _too_large(scope, receive, send):
         response = PlainTextResponse("Request too large.", status_code=413)
         await response(scope, receive, send)
+
+
+def same_origin(request):
+    """False if the browser says this request came from another site.
+
+    Browsers send Origin (or at least Referer) on cross-site form posts. Neither header means
+    a non-browser client such as curl, which is allowed: the guard is against a hostile web
+    page, not against someone who can already send requests. The Origin value "null" is refused.
+    """
+    host = request.headers.get("host", "")
+    for name in ("origin", "referer"):
+        value = request.headers.get(name)
+        if value is None:
+            continue
+        try:
+            return bool(host) and urlparse(value).netloc == host
+        except ValueError:
+            return False
+    return True

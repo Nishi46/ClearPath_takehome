@@ -135,12 +135,15 @@ def test_get_role_unit():
 
 def test_role_cookie_is_not_used_for_authorization():
     """The cookie is a demo label (assumption A4). Only roles.py may read it, and only the
-    template helper may call get_role, so no route can gate anything on it yet."""
+    template helper and the review decision route may call get_role. The route's use is a product
+    guard (a marketer should not approve their own copy), not authorization, and it is the only one."""
     roles_py = APP_DIR / "roles.py"
     assert "demo label" in roles_py.read_text()
     for path in APP_DIR.rglob("*.py"):
         text = path.read_text()
         if path != roles_py:
             assert "request.cookies" not in text, path
-        if path.name not in ("roles.py", "templating.py"):
+        if path.name not in ("roles.py", "templating.py", "pages.py"):
             assert "get_role" not in text, path
+        if path.name == "pages.py":
+            assert text.count("get_role(") == 1, path

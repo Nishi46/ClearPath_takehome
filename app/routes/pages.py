@@ -1,6 +1,5 @@
 import logging
 import math
-from urllib.parse import urlparse
 
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
@@ -8,7 +7,8 @@ from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from app import clock, db, review, seed
 from app.queue import FILTER_FIELDS, FILTER_OPTIONS, empty_kind, filters_from_query, list_queue, row_view, summary_text
 from app.cooldown import Cooldown
-from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, ROLES
+from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, REVIEWER_NAME, ROLES, get_role
+from app.security import same_origin
 from app.templating import render
 
 logger = logging.getLogger(__name__)
@@ -73,25 +73,6 @@ def set_role(request: Request, role: str = Form("")):
     return response
 
 
-def _same_origin(request):
-    """False if the browser says this request came from another site.
-
-    Browsers send Origin (or at least Referer) on cross-site form posts. Neither header means
-    a non-browser client such as curl, which is allowed: the guard is against a hostile web
-    page, not against someone who can already send requests. The Origin value "null" is refused.
-    """
-    host = request.headers.get("host", "")
-    for name in ("origin", "referer"):
-        value = request.headers.get(name)
-        if value is None:
-            continue
-        try:
-            return bool(host) and urlparse(value).netloc == host
-        except ValueError:
-            return False
-    return True
-
-
 @router.get("/reset/confirm")
 def reset_confirm(request: Request):
     response = render(request, "reset_confirm.html")
@@ -104,7 +85,7 @@ def reset_confirm(request: Request):
 # check and the cooldown.
 @router.post("/reset")
 def reset(request: Request, confirm: str = Form("")):
-    if not _same_origin(request):
+    if not same_origin(request):
         return PlainTextResponse("Reset must be started from this site.", status_code=403, headers=NO_STORE)
     if confirm != "reset":
         return PlainTextResponse("Please confirm the reset.", status_code=400, headers=NO_STORE)
@@ -119,6 +100,17 @@ def reset(request: Request, confirm: str = Form("")):
         reset_cooldown.release()
         raise
     return RedirectResponse("/?reset=done", status_code=303, headers=NO_STORE)
+
+
+def _render_review(request, data, status_code=200, error=None, reason=""):
+    pieces = review.copy_view(data)
+    response = render(request, "review.html", status_code=status_code, head=review.header_view(data),
+                      copy=pieces, cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data),
+                      versions=review.versions_view(data), notices=review.notices_view(data),
+                      history=review.history_view(data), comments=review.comments_view(data),
+                      notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason)
+    response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
+    return response
 
 
 @router.get("/review/{submission_id}")
@@ -138,10 +130,48 @@ def review_page(request: Request, submission_id: str):
         data = review.load_review(conn, sid, number)
     if data is None:
         raise HTTPException(status_code=404)
-    pieces = review.copy_view(data)
-    response = render(request, "review.html", head=review.header_view(data), copy=pieces,
-                      cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data),
-                      versions=review.versions_view(data), notices=review.notices_view(data),
-                      history=review.history_view(data), comments=review.comments_view(data), notes=(data["version"]["notes"] or "").strip())
-    response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
-    return response
+    return _render_review(request, data)
+
+
+def _single(form, name):
+    """The one value of a form field, or None if it is missing, repeated or an uploaded file."""
+    values = form.getlist(name)
+    return values[0] if len(values) == 1 and isinstance(values[0], str) else None
+
+
+@router.post("/review/{submission_id}/decision")
+async def decide(request: Request, submission_id: str):
+    # The guards run in this order: origin, id, role, existence, form, then the decision rules.
+    # All of the real rules live in review.record_decision; nothing here decides anything itself.
+    if not same_origin(request):
+        return PlainTextResponse("Decisions must be made from this site.", status_code=403, headers=NO_STORE)
+    sid = review.parse_id(submission_id)
+    if sid is None:
+        raise HTTPException(status_code=404)
+    # The role is a demo label (assumption A4), so this is a product guard, not authorization:
+    # a marketer should not approve their own copy.
+    if get_role(request) != "reviewer":
+        return PlainTextResponse("Only reviewers can record decisions.", status_code=403, headers=NO_STORE)
+    with db.connect() as conn:
+        data = review.load_review(conn, sid)
+    if data is None:
+        raise HTTPException(status_code=404)
+
+    form = await request.form()
+    outcome, version, reason = _single(form, "outcome"), _single(form, "version"), _single(form, "reason")
+    reason_text = reason or ""
+    number = review.parse_id(version) if version is not None else None
+    if outcome is None or number is None or (reason is None and form.getlist("reason")):
+        return _render_review(request, data, 422, review.DECISION_MESSAGES["bad_form"], reason_text)
+
+    try:
+        with db.connect() as conn:
+            review.record_decision(conn, sid, number, outcome, reason, REVIEWER_NAME, clock.now())
+    except review.DecisionError as exc:
+        with db.connect() as conn:
+            data = review.load_review(conn, sid)
+        if data is None:
+            raise HTTPException(status_code=404)
+        return _render_review(request, data, review.DECISION_STATUS[exc.code],
+                              review.conflict_message(exc.code, data), reason_text)
+    return RedirectResponse("/review/%d" % sid, status_code=303, headers=NO_STORE)

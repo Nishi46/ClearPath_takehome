@@ -430,3 +430,27 @@ def record_decision(conn, submission_id, version_number, outcome, reason, review
     conn.commit()
     return {"submission_id": submission_id, "version_number": version_number, "outcome": outcome,
             "reviewer": reviewer, "reason": reason, "created_at": created_at}
+
+
+# What the page says for each refusal, and the HTTP status that goes with it. Fixed text only.
+DECISION_STATUS = {"bad_outcome": 422, "reason_required": 422, "reason_too_long": 422, "not_found": 404,
+                   "stale_version": 409, "already_decided": 409, "locked": 409}
+DECISION_MESSAGES = {
+    "bad_outcome": "Choose Approve, Request changes or Reject.",
+    "reason_required": "A reason is required to request changes or reject.",
+    "reason_too_long": "Keep the reason under %d characters." % MAX_REASON_CHARS,
+    "stale_version": "A newer version exists, so this page was out of date. Your decision was not saved.",
+    "locked": "This version is locked. Your decision was not saved.",
+    "bad_form": "This form was incomplete or out of date. Reload the page and try again.",
+}
+
+
+def conflict_message(code, data):
+    """Banner text for a refused decision, using the page's current state (plain text)."""
+    d = data["decision"] if data else None
+    if code == "already_decided" and d:
+        return "This version was already %s by %s at %s. Your decision was not saved." % (
+            _outcome_label(d["outcome"]).lower(), d["reviewer"], when_text(d["created_at"]))
+    if code == "already_decided":
+        return "This version was already decided. Your decision was not saved."
+    return DECISION_MESSAGES.get(code, DECISION_MESSAGES["bad_form"])

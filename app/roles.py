@@ -5,6 +5,9 @@ from fastapi import Request
 # It only changes what the header shows and which view is the default.
 ROLES = ("reviewer", "marketer")
 DEFAULT_ROLE = ROLES[0]
+# The demo reviewer every recorded decision is attributed to. There is no login, so the name
+# never comes from the request.
+REVIEWER_NAME = "Alex Rivera"
 COOKIE_NAME = "role"
 COOKIE_MAX_AGE = 30 * 24 * 60 * 60
 

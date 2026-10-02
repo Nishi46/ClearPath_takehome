@@ -283,3 +283,4 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .comment-meta { color: var(--text-muted); font-size: 0.875rem; }
 .comment-text { white-space: pre-wrap; }
 .post-decision { font-weight: 700; border: 1px solid currentColor; border-radius: 999px; padding: 0 0.5rem; }
+.notice-error { border-left-color: var(--overdue-border); background: var(--overdue-bg); color: var(--overdue-text); font-weight: 700; }
