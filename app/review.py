@@ -58,6 +58,15 @@ def load_review(conn, submission_id, version_number=None):
         " WHERE submission_id = ? AND version_number = ? ORDER BY created_at, id",
         (submission_id, number))]
 
+    # The version just before the one shown, for the diff view: its copy and its open rules.
+    previous = None
+    before = next((v for v in versions if v["version_number"] == number - 1), None)
+    if before is not None:
+        gone = {r[0] for r in conn.execute("SELECT rule_id FROM flag_dismissal WHERE version_id = ?", (before["id"],))}
+        rules_before = {r[0] for r in conn.execute("SELECT rule_id FROM flag WHERE version_id = ?", (before["id"],))}
+        previous = {"version_number": before["version_number"], "copy": before["copy"],
+                    "open_rules": rules_before - gone}
+
     history = [{"kind": "version", "version_number": v["version_number"], "who": submission["submitted_by"],
                 "at": v["created_at"]} for v in versions]
     history += [{"kind": "decision", "version_number": d["version_number"], "who": d["reviewer"],
@@ -68,6 +77,7 @@ def load_review(conn, submission_id, version_number=None):
         "submission": submission,
         "version": version,
         "version_numbers": [v["version_number"] for v in versions],
+        "previous": previous,
         "version_times": {v["version_number"]: v["created_at"] for v in versions},
         "flags": flags,
         "dismissals": dismissals,
@@ -258,15 +268,57 @@ _LOCK_TEXT = {
 }
 
 
-def versions_view(data, back="/"):
+def review_href(sid, number, current, back="/", diff=False):
+    """Link to a review page: the current version has no ?v, and ?diff=1 is kept when asked."""
+    url = "/review/%d" % sid if number == current else "/review/%d?v=%d" % (sid, number)
+    if diff:
+        url += ("&" if "?" in url else "?") + "diff=1"
+    return with_back(url, back)
+
+
+def versions_view(data, back="/", diff=False):
     """The version selector: one link per version, the viewed one and the current one marked."""
     sid = data["submission"]["id"]
     current = data["submission"]["current_version"]
     shown = data["version"]["version_number"]
     return [{"text": "v%d" % n, "current": n == current, "selected": n == shown,
              "resubmitted": ("Resubmitted " + day_text(data["version_times"].get(n))) if n > 1 else None,
-             "href": with_back("/review/%d" % sid if n == current else "/review/%d?v=%d" % (sid, n), back)}
+             "href": review_href(sid, n, current, back, diff and n > 1)}
             for n in data["version_numbers"]]
+
+
+def diff_view(data, wanted, back="/"):
+    """The "changes since the previous version" view of the shown version, as plain data.
+
+    `wanted` is whether ?diff=1 was given. Returns None when it is not wanted and there is
+    nothing to offer (v1). Otherwise a dict: `toggle_text` and `toggle_href` (absent on v1), `on`,
+    and when on either `first` (v1: nothing to compare), `too_long`, or `pieces` (list of
+    {"kind", "text"}), `summary` and `flags_line`. Everything is text; the template escapes it.
+    """
+    from app import diff
+
+    sid = data["submission"]["id"]
+    current = data["submission"]["current_version"]
+    number = data["version"]["version_number"]
+    previous = data["previous"]
+    if number == 1 or previous is None:
+        return {"on": True, "first": True} if wanted else None
+    out = {"on": wanted,
+           "toggle_text": "Show copy" if wanted else "Changes since v%d" % previous["version_number"],
+           "toggle_href": review_href(sid, number, current, back, not wanted)}
+    if not wanted:
+        return out
+    pieces = diff.diff_text(previous["copy"], data["version"]["copy"])
+    if pieces is None:
+        out["too_long"] = True
+        return out
+    added, removed = diff.count_words(pieces, "added"), diff.count_words(pieces, "removed")
+    out["pieces"] = [{"kind": k, "text": t} for k, t in pieces]
+    out["summary"] = "%d word%s added, %d removed" % (added, "" if added == 1 else "s", removed)
+    now = {f["rule_id"] for f in data["flags"]} - {d["rule_id"] for d in data["dismissals"]}
+    fixed, new = sorted(previous["open_rules"] - now), sorted(now - previous["open_rules"])
+    out["flags_line"] = "Flags: fixed %s. New: %s" % (", ".join(fixed) or "none", ", ".join(new) or "none")
+    return out
 
 
 def notices_view(data, back="/"):

@@ -107,11 +107,13 @@ def reset(request: Request, confirm: str = Form("")):
     return RedirectResponse("/?reset=done", status_code=303, headers=NO_STORE)
 
 
-def _render_review(request, data, status_code=200, error=None, reason="", back="/"):
-    pieces = review.copy_view(data)
+def _render_review(request, data, status_code=200, error=None, reason="", back="/", diff=False):
+    diff_data = review.diff_view(data, diff, back)
+    # In diff mode nothing is highlighted, so no flag card links to a highlight that is not there.
+    pieces = [] if diff_data and diff_data.get("pieces") else review.copy_view(data)
     response = render(request, "review.html", status_code=status_code, head=review.header_view(data, back),
                       copy=pieces, cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data),
-                      versions=review.versions_view(data, back), notices=review.notices_view(data, back),
+                      versions=review.versions_view(data, back, bool(diff_data and diff_data["on"])), diff=diff_data, notices=review.notices_view(data, back),
                       history=review.history_view(data), comments=review.comments_view(data),
                       notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason,
                       decision_form=review.decision_form_view(data, back), feedback=review.feedback_view(data))
@@ -140,7 +142,8 @@ def review_page(request: Request, submission_id: str):
         data = review.load_review(conn, sid, number)
     if data is None:
         raise HTTPException(status_code=404)
-    return _render_review(request, data, back=back)
+    # Only exactly one ?diff=1 turns the diff on; anything else is ignored, never an error.
+    return _render_review(request, data, back=back, diff=request.query_params.getlist("diff") == ["1"])
 
 
 def _single(form, name):

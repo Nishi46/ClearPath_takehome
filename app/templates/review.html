@@ -59,15 +59,31 @@
 {%- endif %}
 <section class="copy-pane" aria-labelledby="copy-heading">
   <h2 id="copy-heading">Asset copy</h2>
+  {%- if diff %}
+  <p class="diff-toggle">
+    {%- if diff.first %}First version. Nothing to compare.
+    {%- else %}<a href="{{ diff.toggle_href }}">{{ diff.toggle_text }}</a>{% endif %}</p>
+  {%- if diff.too_long %}<p class="diff-summary" role="status">Too long to compare.</p>
+  {%- elif diff.pieces %}<p class="diff-summary" role="status">{{ diff.summary }}</p>{% endif %}
+  {%- endif %}
   {# No whitespace may be added between pieces: the pane is pre-wrap, so extra spaces would show as copy. #}
   <div class="copy-text">
+    {%- if diff and diff.pieces -%}
+    {%- for p in diff.pieces -%}
+      {%- if p.kind == "added" -%}<ins class="diff-added"><span class="visually-hidden">added: </span><span aria-hidden="true" class="diff-marker">+</span>{{ p.text }}</ins>
+      {%- elif p.kind == "removed" -%}<del class="diff-removed"><span class="visually-hidden">removed: </span><span aria-hidden="true" class="diff-marker">&minus;</span>{{ p.text }}</del>
+      {%- else -%}{{ p.text }}{%- endif -%}
+    {%- endfor -%}
+    {%- else -%}
     {%- for p in copy -%}
       {%- if p.flagged -%}
         {%- for a in p.anchors[1:] %}<span id="flag-{{ a }}"></span>{% endfor -%}
         <mark{% if p.anchors %} id="flag-{{ p.anchors[0] }}"{% endif %} class="flag-mark mark-{{ p.severity }}">{{ p.text }}<span class="flag-tag"><span class="visually-hidden"> {{ p.label }}</span><span class="sev sev-{{ p.severity }}" aria-hidden="true">{{ p.letter }}</span></span></mark>
       {%- else -%}{{ p.text }}{%- endif -%}
     {%- endfor -%}
+    {%- endif -%}
   </div>
+  {%- if diff and diff.flags_line %}<p class="diff-flags">{{ diff.flags_line }}</p>{% endif %}
   <h3 class="notes-heading">Notes from marketer</h3>
   {% if notes %}<p class="notes-text">{{ notes }}</p>{% else %}<p class="notes-text">No notes.</p>{% endif %}
 </section>
