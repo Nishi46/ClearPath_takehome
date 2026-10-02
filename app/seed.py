@@ -332,3 +332,27 @@ def seed_all(conn, now=None):
         conn.rollback()
         raise
     conn.commit()
+
+
+def reset_to_seed(conn, now=None):
+    """Replace everything in the database with the original seed, in one transaction.
+
+    Children are deleted before parents, and every table is emptied (including flags and
+    anything users added). Ids are not AUTOINCREMENT, so an emptied table restarts at 1 and a
+    reset reproduces the same ids as a first start. A failure rolls back to the data as it was.
+    The seed file is checked before the write lock is taken, so a bad file changes nothing.
+    """
+    data = load_seed()
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        conn.execute("DELETE FROM flag_dismissal")
+        conn.execute("DELETE FROM flag")
+        conn.execute("DELETE FROM comment")
+        conn.execute("DELETE FROM decision")
+        conn.execute("DELETE FROM version")
+        conn.execute("DELETE FROM submission")
+        seed_rows(conn, now, data)
+    except BaseException:
+        conn.rollback()
+        raise
+    conn.commit()
