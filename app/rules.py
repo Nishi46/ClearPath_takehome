@@ -1,4 +1,5 @@
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
@@ -187,3 +188,48 @@ def normalize(text):
         # first so the length does not change.
         lowered = "".join(c.lower()[0] for c in text)
     return lowered
+
+
+# ---- phrase matching ----
+
+_WORD = re.compile(r"[^\W_]+")
+# One separator character: anything that is not a letter or digit (underscore counts as
+# punctuation here). IGNORABLE is skipped separately and does not count toward the limit.
+_SEP_CHAR = r"(?:[^\w]|_)"
+_SKIP = "*"
+MAX_GAP = 3
+
+
+def compile_phrase(phrase):
+    """Compile a rule phrase into a regex that runs on normalize()d text.
+
+    The phrase is split into word tokens and each token is escaped, so nothing in a phrase is
+    ever treated as a pattern. Between tokens the copy may have 1 to 3 punctuation or space
+    characters; a closed-up form is also allowed where the phrase has an apostrophe or hyphen
+    ("pre-approved" also matches "preapproved", "you're" also matches "youre"). The phrase must
+    start and end on a word boundary, so "act now" does not match inside "react now".
+    """
+    if not isinstance(phrase, str):
+        raise TypeError("phrase must be a string")
+    phrase = normalize(phrase)
+    tokens = list(_WORD.finditer(phrase))
+    if not tokens:
+        raise ValueError("phrase has no words")
+    parts = []
+    for i, tok in enumerate(tokens):
+        parts.append(_SKIP.join(re.escape(ch) for ch in tok.group()))
+        if i + 1 < len(tokens):
+            between = phrase[tok.end():tokens[i + 1].start()]
+            closed_up_ok = between != "" and all(c in "-'" for c in between)
+            low = 0 if closed_up_ok else 1
+            parts.append(f"{_SKIP}(?:{_SEP_CHAR}{_SKIP}){{{low},{MAX_GAP}}}")
+    body = "".join(parts)
+    return re.compile(rf"(?<![^\W_])(?<![^\W_]){body}(?![^\W_])")
+
+
+def find_phrase(norm_text, compiled):
+    """Return the (start, end) spans of every match in `norm_text`, in order, without overlap.
+
+    Offsets are valid on the original copy because normalize() keeps the length.
+    """
+    return [m.span() for m in compiled.finditer(norm_text)]

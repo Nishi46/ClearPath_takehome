@@ -130,7 +130,8 @@ def test_rule_ids_used_by_the_seed_exist():
 
 def test_no_dynamic_code_and_fixed_path():
     src = (ROOT / "app" / "rules.py").read_text()
-    for banned in ("eval(", "exec(", "pickle", "yaml.load", "compile("):
+    for banned in ("eval(", "exec(", "pickle", "yaml.load"):
         assert banned not in src
+    assert not re.search(r"(?<![\w.])compile\(", src)  # re.compile is fine, builtin compile is not
     assert re.search(r"^RULES_PATH = Path\(__file__\)", src, re.M)
     assert rules.RULES_PATH.is_absolute()

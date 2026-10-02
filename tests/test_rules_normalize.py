@@ -1,3 +1,4 @@
+import re
 import random
 import string
 import time
@@ -99,5 +100,6 @@ def test_null_byte_and_markup_pass_through_untouched():
 
 def test_source_has_no_dynamic_code():
     src = Path(rules.__file__).read_text()
-    for banned in ("eval(", "exec(", "pickle", "yaml.load", "compile("):
+    for banned in ("eval(", "exec(", "pickle", "yaml.load"):
         assert banned not in src
+    assert not re.search(r"(?<![\w.])compile\(", src)  # re.compile is fine, builtin compile is not
