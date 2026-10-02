@@ -20,7 +20,7 @@
 | 3. Rules engine | 1.5 hrs | Done |
 | 4. Review screen and decisions | 2 hrs | Done |
 | 5. Submit, marketer view, resubmit and diff | 2 hrs | Done |
-| 6. Flag dismissal, snippets, audit trail | 1.5 hrs | Next |
+| 6. Flag dismissal, snippets, audit trail | 1.5 hrs | Built, local manual walkthrough and deploy check to do |
 | 7. Edge cases, microcopy, polish | 2 hrs | |
 | 8. README, deploy check, demo prep | 2 hrs | |
 | 9. Buffer, final walkthroughs | remainder | |
@@ -103,7 +103,11 @@ Detail in phase-4-steps.md.
 - Comments on a locked version allowed (see #6).
 - Audit trail: ordered union of versions, decisions, comments and dismissals, each with who, what and timestamp.
 
-**Done when:** #12's R4 flag can be dismissed live and appears in the trail; #14's comments show built-from-snippet text.
+- Built (details and step-by-step status in [phase-6-steps.md](phase-6-steps.md)): `review.dismiss_flag` and `review.add_comment` (the only code that writes a dismissal or a comment, each under the write lock), `POST /review/{id}/dismiss` and `POST /review/{id}/comment`, `?snippet=R2` prefill (a GET that never writes), `app/audit.py` (the ordered trail, loaded in four queries) and an "Audit trail" section on the review screen. `BEFORE UPDATE` triggers stop decisions, comments and dismissals from being edited (schema version 2).
+- Rules the server enforces: dismiss and comment are reviewer-only; a dismissal needs a note (1 to 1,000 characters), only on the current version with no decision yet, and is permanent; comments (1 to 2,000 characters, 200 per item) are allowed on any status including approved and rejected, but only on the current version; a dismissal never carries to the next version.
+- Tests: about 3,300 in total, including `tests/test_phase6_sweep.py` (route table, mass assignment, role and locked matrices, CSRF, XSS, fuzz, caps, headers) and `tests/test_phase6_integration.py` (queue, My submissions, resubmit, approve, reset).
+
+**Done when:** #12's R4 flag can be dismissed live and appears in the trail; #14's comments show built-from-snippet text. Verified by automated tests, including a headless Chrome check of the snippet script and the laptop layout. The manual walkthrough (step 17 of phase-6-steps.md) and the public-URL run are still to do.
 
 ## Phase 7: Edge cases, microcopy, polish (2 hrs)
 

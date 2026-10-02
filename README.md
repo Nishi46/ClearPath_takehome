@@ -30,6 +30,16 @@ changes or reject; a reason is required for the last two. Once a version has a d
 the server refuses a second one even if the page is stale or the request is sent directly. Decisions are
 recorded as one fixed demo reviewer, and the Reviewer/Marketer switch is a demo label, not a login.
 
+**Dismissing flags, snippets and the audit trail.** Flags can be wrong, so a reviewer can dismiss one with a
+required note (try R4 on #12, a phrase inside a sentence that explains the rule). A dismissal is permanent and
+visible: it is listed with its note and reviewer, it removes the flag from the open list and the queue count,
+and nothing can edit or delete it. It applies to the current version before a decision only, and the next
+version starts with fresh flags. **Use snippet** on a flag card fills the comment box with that rule's ready-made
+comment (try R2 on #14); the reviewer edits it and posts it, linked to the rule. Comments are allowed on locked
+items too, such as an approved one. Every review page ends with an **Audit trail**: versions, dismissals,
+comments and decisions in time order, each with who, what and when. Names are demo labels, so the trail shows
+the shape of a real record, not proof of who acted. Marketer replies in comments are out of scope.
+
 **Submitting and resubmitting.** A marketer submits from **Submit**, sees the flags in a pre-check before
 sending (they never block), and follows their items on **My submissions**, where anything that needs action
 comes first. After changes are requested or an item is rejected, the marketer edits and resubmits it as a new

@@ -204,3 +204,15 @@ def test_view_module_is_pure_text():
     src = Path(audit.__file__).read_text()
     for banned in ("Markup", "|safe", "datetime.now", "utcnow", "time.time"):
         assert banned not in src
+
+
+def test_a_decision_and_the_next_version_in_the_same_second_stay_in_causal_order(seeded):
+    same = "2026-10-03T00:00:00Z"
+    seeded.execute("INSERT INTO version (submission_id, version_number, copy, notes, created_at)"
+                   " VALUES (14, 2, 'v2 copy', NULL, ?)", (same,))
+    seeded.execute("UPDATE submission SET current_version = 2 WHERE id = 14")
+    tamper(seeded, "UPDATE decision SET created_at = ? WHERE submission_id = 14", (same,))
+    seeded.execute("UPDATE version SET created_at = ? WHERE submission_id = 14 AND version_number = 1", (same,))
+    seeded.commit()
+    assert [(e["kind"], e["version_number"]) for e in load_trail(seeded, 14)
+            if e["kind"] in ("version", "decision")] == [("version", 1), ("decision", 1), ("version", 2)]

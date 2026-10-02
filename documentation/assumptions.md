@@ -88,6 +88,8 @@ Assumptions fall into five groups: users and process, assets, rules and flags, w
 ### C4. Reviewers can dismiss a flag with a note
 - **Why:** Pattern rules will produce false positives. If reviewers can't override a flag, they will distrust the tool. A dismissal with a note also keeps the audit record honest.
 - **Tradeoff:** Builds reviewer trust and handles false positives. Gives up strictness: a reviewer could dismiss a valid flag, so the dismissal needs to be recorded.
+- **How it is bounded (built):** only a reviewer can dismiss, a note is required (1 to 1,000 characters), and only on the current version before any decision. A dismissal is permanent: no undo or edit, and the database refuses updates to it. It hides that rule's flag on that version only, and the stored flag is kept as evidence. The next version is checked afresh. Everything appears in the audit trail.
+- **Comments on locked items:** reviewers can still comment on an approved or rejected item (a comment is not a decision and never changes status). Marketer replies in comments are out of scope.
 - **Revisit if:** Dismissals are being misused, which would call for a second approver on high-severity flags.
 
 ### C5. Each rule can apply to specific products and channels

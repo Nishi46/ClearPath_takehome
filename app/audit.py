@@ -4,7 +4,8 @@ from datetime import datetime
 # and decisions, each with who, what and when. Read-only: nothing here writes, and the clock is
 # passed in. Presentation is plain strings; escaping is the template's job.
 
-# Events with the same timestamp are ordered by kind (this order), then by id.
+# Events with the same timestamp are ordered by version number (so v1's decision comes before v2's
+# submission even within one second), then by kind (this order), then by id.
 KIND_ORDER = ("version", "dismissal", "comment", "decision")
 KIND_WORDS = {"version": "Version", "dismissal": "Dismissed", "comment": "Comment", "decision": "Decision"}
 
@@ -21,7 +22,8 @@ def _parse(value):
 def _sort_key(event):
     moment = _parse(event["at"])
     # An unreadable timestamp sorts last and keeps its row: never dropped, never guessed.
-    return (moment is None, moment or datetime.min, KIND_ORDER.index(event["kind"]), event["id"])
+    return (moment is None, moment or datetime.min, event["version_number"],
+            KIND_ORDER.index(event["kind"]), event["id"])
 
 
 def load_trail(conn, submission_id):
