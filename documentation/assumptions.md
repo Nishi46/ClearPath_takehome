@@ -138,6 +138,11 @@ Assumptions fall into five groups: users and process, assets, rules and flags, w
 - **Tradeoff:** Keeps the tool the path of least resistance. Gives up some discipline: it can't force marketers to plan ahead.
 - **Revisit if:** Rush submissions overwhelm the queue, which could justify an escalation path or a reason field.
 
+### D8. "Today" is the UTC date
+- **Why:** One date source (`app/clock.py`) keeps the queue label, the submit-form warning and the seed dates in agreement, and avoids daylight-saving surprises. Rush counts Monday to Friday only, with no holidays.
+- **Tradeoff:** A user far from UTC can see "today" change a few hours early or late (a launch at 11pm local may read as already past). Accepted for a demo.
+- **Revisit if:** Real users in several time zones need a per-user or per-market date.
+
 ### D6. No assignment or claiming in version one
 - **Why:** With a small pooled team, claiming adds a step to every review. Open items are visible to everyone.
 - **Tradeoff:** Fewer clicks, simpler model. Gives up protection against two reviewers working the same item.
