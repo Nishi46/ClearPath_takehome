@@ -138,6 +138,7 @@ def review_page(request: Request, submission_id: str):
         data = review.load_review(conn, sid, number)
     if data is None:
         raise HTTPException(status_code=404)
-    response = render(request, "review.html", head=review.header_view(data))
+    response = render(request, "review.html", head=review.header_view(data), copy=review.copy_view(data),
+                      notes=(data["version"]["notes"] or "").strip())
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response

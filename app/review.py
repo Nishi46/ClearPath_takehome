@@ -141,3 +141,36 @@ def segments(copy, flags):
         active = {o: v for o, v in active.items() if v[0] > left}
         pieces.append((copy[left:right], tuple(v[1] for _, v in sorted(active.items()))))
     return pieces
+
+
+_SEVERITY_RANK = {"high": 0, "medium": 1, "low": 2}
+_SEVERITY_WORD = {"high": ("H", "High"), "medium": ("M", "Medium"), "low": ("L", "Low")}
+
+
+def copy_view(data):
+    """Pieces of the copy for the template: text, plus a tag for flagged pieces.
+
+    Dismissed rules are not highlighted. Each flag's anchor id is attached to the first piece it
+    appears in only, so ids stay unique when overlaps split a flag. The text stays a plain
+    string; the template escapes it.
+    """
+    dismissed = {d["rule_id"] for d in data["dismissals"]}
+    shown = [f for f in data["flags"] if f["rule_id"] not in dismissed]
+    by_id = {f["id"]: f for f in shown}
+    seen, pieces = set(), []
+    for text, ids in segments(data["version"]["copy"], shown):
+        if not ids:
+            pieces.append({"text": text, "flagged": False})
+            continue
+        flags = [by_id[i] for i in ids]
+        top = min(flags, key=lambda f: _SEVERITY_RANK.get(f["severity"], 3))
+        letter, word = _SEVERITY_WORD.get(top["severity"], ("?", "Unknown"))
+        new = [i for i in ids if i not in seen]
+        seen.update(new)
+        pieces.append({
+            "text": text, "flagged": True, "severity": top["severity"] if word != "Unknown" else "",
+            "letter": letter,
+            "label": "%s severity flag: %s" % (word, ", ".join(dict.fromkeys(f["rule_id"] for f in flags))),
+            "anchors": new,
+        })
+    return pieces

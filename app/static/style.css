@@ -231,3 +231,19 @@ select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 /* Set by queue.js: the whole row follows the title link, so show it is clickable. */
 table.queue.row-clickable tbody tr { cursor: pointer; }
+
+/* Review screen: the copy keeps its line breaks and long words wrap instead of widening the page.
+   Highlights carry a severity letter and a border style as well as color. */
+.copy-text { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: var(--space); }
+.notes-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.flag-mark { color: inherit; padding: 0 0.125rem; border-radius: 2px; scroll-margin: 4rem; }
+.mark-high { background: var(--overdue-bg); border-bottom: 3px solid var(--overdue-border); }
+.mark-medium { background: var(--rush-bg); border-bottom: 3px double var(--rush-border); }
+.mark-low { background: var(--bg); border-bottom: 2px dashed var(--text-muted); }
+.flag-tag { margin-left: 0.25rem; font-size: 0.75rem; white-space: nowrap; }
+.flag-mark:target { outline: 3px solid var(--focus); }
+@media (prefers-reduced-motion: no-preference) {
+  .flag-mark:target { animation: flag-pulse 1.2s ease-out 1; }
+}
+@keyframes flag-pulse { from { outline-offset: 6px; outline-color: transparent; } to { outline-offset: 0; } }

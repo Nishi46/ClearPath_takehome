@@ -6,4 +6,18 @@
 <p class="review-meta">{{ head.product_label }} &middot; {{ head.channel_label }} &middot; Launch {{ head.launch_text }}
   &middot; Status: {{ head.status_label }} &middot; {{ head.version_text }}{% if head.is_current %} (current){% endif %}
   &middot; Submitted by {{ head.submitted_by }}</p>
+<section class="copy-pane" aria-labelledby="copy-heading">
+  <h2 id="copy-heading">Asset copy</h2>
+  {# No whitespace may be added between pieces: the pane is pre-wrap, so extra spaces would show as copy. #}
+  <div class="copy-text">
+    {%- for p in copy -%}
+      {%- if p.flagged -%}
+        {%- for a in p.anchors[1:] %}<span id="flag-{{ a }}"></span>{% endfor -%}
+        <mark{% if p.anchors %} id="flag-{{ p.anchors[0] }}"{% endif %} class="flag-mark mark-{{ p.severity }}">{{ p.text }}<span class="flag-tag"><span class="visually-hidden"> {{ p.label }}</span><span class="sev sev-{{ p.severity }}" aria-hidden="true">{{ p.letter }}</span></span></mark>
+      {%- else -%}{{ p.text }}{%- endif -%}
+    {%- endfor -%}
+  </div>
+  <h3 class="notes-heading">Notes from marketer</h3>
+  {% if notes %}<p class="notes-text">{{ notes }}</p>{% else %}<p class="notes-text">No notes.</p>{% endif %}
+</section>
 {% endblock %}
