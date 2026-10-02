@@ -267,3 +267,30 @@ def insert_submission(conn, sub):
         [(sub["seedId"], v["versionNumber"], v["copy"], v.get("notes"), v["createdAt"])
          for v in sub["versions"]],
     )
+
+
+def insert_history(conn, sub):
+    """Insert a resolved submission's decisions, comments and dismissals.
+
+    Call after insert_submission: each row must point at a version that exists (composite
+    foreign key). Does not commit and does not touch the flag table; phase 3 computes flags.
+    """
+    sid = sub["seedId"]
+    conn.executemany(
+        "INSERT INTO decision (submission_id, version_number, outcome, reviewer, reason, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        [(sid, d["versionNumber"], d["outcome"], d["reviewer"], d["reason"], d["createdAt"])
+         for d in sub["decisions"]],
+    )
+    conn.executemany(
+        "INSERT INTO comment (submission_id, version_number, author, text, rule_id, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        [(sid, c["versionNumber"], c["author"], c["text"], c["ruleId"], c["createdAt"])
+         for c in sub["comments"]],
+    )
+    conn.executemany(
+        "INSERT INTO flag_dismissal (version_id, rule_id, note, dismissed_by, created_at)"
+        " VALUES ((SELECT id FROM version WHERE submission_id = ? AND version_number = ?), ?, ?, ?, ?)",
+        [(sid, x["versionNumber"], x["ruleId"], x["note"], x["dismissedBy"], x["createdAt"])
+         for x in sub["dismissals"]],
+    )
