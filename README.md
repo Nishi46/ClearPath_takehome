@@ -30,6 +30,19 @@ changes or reject; a reason is required for the last two. Once a version has a d
 the server refuses a second one even if the page is stale or the request is sent directly. Decisions are
 recorded as one fixed demo reviewer, and the Reviewer/Marketer switch is a demo label, not a login.
 
+**Submitting and resubmitting.** A marketer submits from **Submit**, sees the flags in a pre-check before
+sending (they never block), and follows their items on **My submissions**, where anything that needs action
+comes first. After changes are requested or an item is rejected, the marketer edits and resubmits it as a new
+version; the reviewer can read a word-level diff against the previous version (`?diff=1` on the review screen).
+Rules the server enforces:
+- A resubmission with the same copy as the previous version is blocked.
+- Approved items are locked. A change after approval is out of scope.
+- Only the marketer who submitted an item can resubmit it, and only its current version.
+- The demo holds at most 300 submissions and 10 versions per submission, and an identical double submit is refused.
+
+"Who I am" as a marketer is a demo label (Maya Chen, Jordan Lee or Sam Patel), not a login. Try Jordan Lee:
+#14 (changes requested) and #8 (rejected) can be resubmitted, and #5 shows a v1 to v2 diff.
+
 Run the tests (from the project root, with the venv active):
 
 ```bash

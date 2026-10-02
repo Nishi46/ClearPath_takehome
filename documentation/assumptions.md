@@ -35,6 +35,8 @@ Assumptions fall into five groups: users and process, assets, rules and flags, w
 - **Revisit if:** Moving beyond a demo. Real identity is a prerequisite for a defensible audit record.
 - **In the build:** the review screen records decisions as one fixed demo reviewer (Alex Rivera), and only the reviewer role can post a decision. That is a product guard (a marketer should not approve their own copy), not authorization: anyone can switch the role in the header or send a request with no cookie, which counts as reviewer.
 
+- **In the build (marketers):** "who I am as a marketer" is a `marketer` cookie limited to three demo names (Maya Chen, Jordan Lee, Sam Patel). `submitted_by` comes only from that cookie, never from a form, and only the submitter's identity can resubmit. Like the role, it is a demo label: anyone can switch it, so it narrows what the page shows and is not access control.
+
 ### A5. Launch date is the main urgency signal
 - **Why:** Marketing deadlines are the most concrete, universal reason a review is urgent, and the field is easy for marketers to supply accurately.
 - **Tradeoff:** Simple, explainable sorting. Gives up nuance: risk level, campaign spend, or channel could matter more than date. A low-risk email launching tomorrow outranks a high-risk mortgage page launching in three days.
@@ -122,6 +124,13 @@ Assumptions fall into five groups: users and process, assets, rules and flags, w
 - **Tradeoff:** Protects the integrity of approvals. Gives up convenience: a typo fix after approval requires a new version and a new review.
 - **Revisit if:** Compliance defines a class of minor edits that can bypass review. That would need a policy, not a quiet loophole.
 
+- **In the build:** a change after approval is out of scope. The resubmit page says the item is approved and locked, and the server refuses it.
+
+### D7. An unchanged resubmission is blocked, not warned
+- **Why:** A reviewer decides on the copy. Resubmitting identical copy (after line-ending and trimming normalization) would cost them a full review for nothing, so the server refuses it with a message telling the marketer to edit or reply to the reviewer. A notes-only or launch-date-only change counts as unchanged.
+- **Tradeoff:** Protects reviewer time. Gives up the case where a marketer only wants to add a note or move a date; that has to go through the reviewer.
+- **Revisit if:** Reviewers want a lighter path for date-only changes.
+
 ### D5. Rush launch dates produce a warning, not a block
 - **Why:** Marketers sometimes have genuine short deadlines. Blocking them would push people to work around the tool, such as going back to email.
 - **Tradeoff:** Keeps the tool the path of least resistance. Gives up some discipline: it can't force marketers to plan ahead.
@@ -151,6 +160,11 @@ Assumptions fall into five groups: users and process, assets, rules and flags, w
 - **Tradeoff:** Real shared state, a stronger audit trail, and no dependence on browser storage (works in a private window). Gives up a static-host deploy: it needs a small server host, and free tiers may cold-start on first load. The UI is server-rendered with light HTMX, so it is less richly interactive than a React app.
 - **Revisit if:** Cold starts hurt the demo (consider a paid tier or keep-warm ping), or the UI needs more client-side interactivity than HTMX handles comfortably.
 - **Note:** This replaces the earlier assumption of browser-only persistence. Shared state does not change A4: there is still no authentication, so "who did this" is a demo label.
+
+### E6. The shared demo is capped
+- **Why:** The demo database is public and shared, so a script could fill it. The server allows at most 300 submissions in total and 10 versions per submission, and refuses an identical resubmission by the same marketer (title, product, channel and copy) as a duplicate. Reset clears everything.
+- **Tradeoff:** A demo that cannot be filled or flooded. Gives up unlimited use, which a real deployment would not want to cap this way.
+- **Revisit if:** This becomes more than a demo.
 
 ### E4. Notifications and integrations are out of scope
 - **Why:** Email and Slack alerts are real needs but are integrations, not product logic, and can't be demonstrated meaningfully without real accounts.

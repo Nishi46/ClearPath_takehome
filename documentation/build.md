@@ -19,8 +19,8 @@
 | 2. Seed loader and queue | 1.5 hrs | Done |
 | 3. Rules engine | 1.5 hrs | Done |
 | 4. Review screen and decisions | 2 hrs | Done |
-| 5. Submit, marketer view, resubmit and diff | 2 hrs | Next |
-| 6. Flag dismissal, snippets, audit trail | 1.5 hrs | |
+| 5. Submit, marketer view, resubmit and diff | 2 hrs | Done |
+| 6. Flag dismissal, snippets, audit trail | 1.5 hrs | Next |
 | 7. Edge cases, microcopy, polish | 2 hrs | |
 | 8. README, deploy check, demo prep | 2 hrs | |
 | 9. Buffer, final walkthroughs | remainder | |
@@ -89,7 +89,12 @@ Detail in phase-4-steps.md.
 - Resubmit as a new version: pre-filled from the previous version; unchanged resubmission blocked with a clear message; history preserved after reject then resubmit.
 - Version diff between versions (try #5).
 
-**Done when:** the full loop works unaided: submit, review, request changes, resubmit, approve.
+- Built (details and step-by-step status in [phase-5-steps.md](phase-5-steps.md)): `app/submit.py` (validation, `create_submission`, `create_version`, pre-check, copy comparison), `app/mine.py`, `app/diff.py` (pure word diff), `app/routes/submit_pages.py` (`/submit`, `/submit/check`, `/mine`, `/resubmit/{id}`, `/marketer`), and `?diff=1` on the review screen. Only `create_submission` and `create_version` write submissions and versions, each in one transaction under the write lock.
+- Demo marketer identity: a `marketer` cookie limited to Maya Chen, Jordan Lee (owns #8 and #14, the live resubmit demos) and Sam Patel (no submissions). A label, not a login (assumption A4).
+- Rules the server enforces: resubmit only by the submitter, only on the current version, only after changes requested or rejected; approved is locked; a copy equal to the previous version's (after line-ending and trimming normalization) is blocked; at most 300 submissions and 10 versions per submission in the shared demo.
+- Tests: about 2,760 in total, including a sweep (`tests/test_phase5_sweep.py`) for the route table, mass assignment, CSRF, XSS, fuzz, caps and reset.
+
+**Done when:** the full loop works unaided: submit, review, request changes, resubmit, approve. Verified locally, including the step 21 manual walkthrough; the public-URL run in incognito is still to do after the next deploy.
 
 ## Phase 6: Flag dismissal, snippets, audit trail (1.5 hrs)
 
