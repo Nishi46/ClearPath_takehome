@@ -27,7 +27,12 @@
           {% endfor %}
         </form>
       </nav>
-      <button type="button" class="reset-demo" disabled title="Coming in phase 2">Reset demo</button>
+      {# Stub only: no /reset route exists until phase 2 adds it with its guards. #}
+      <div class="reset-demo-group">
+        <button type="button" class="reset-demo" disabled aria-describedby="reset-demo-note"
+                title="Coming in phase 2: restores the original demo data">Reset demo</button>
+        <small id="reset-demo-note" class="reset-demo-note">Resets data for everyone using this demo.</small>
+      </div>
     </div>
   </header>
   <main id="main" role="main">

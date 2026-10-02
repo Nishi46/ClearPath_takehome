@@ -87,6 +87,8 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline
   color: var(--text-muted);
 }
 .reset-demo:disabled { cursor: not-allowed; }
+.reset-demo-group { display: flex; flex-direction: column; align-items: flex-start; gap: 0.125rem; }
+.reset-demo-note { font-size: 0.75rem; color: var(--text-muted); line-height: 1.25; }
 
 main { max-width: 72rem; margin: 0 auto; padding: var(--space); }
 
