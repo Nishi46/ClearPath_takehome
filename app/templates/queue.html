@@ -5,6 +5,22 @@
 <p class="banner" role="status">Demo reset to the original data.</p>
 {% endif %}
 <h1>Review queue</h1>
+<form class="filters" method="get" action="/">
+  {% for name, label in filter_fields %}
+  <div class="filter">
+    <label for="filter-{{ name }}">{{ label }}</label>
+    <select id="filter-{{ name }}" name="{{ name }}">
+      <option value=""{% if not filters[name] %} selected{% endif %}>All</option>
+      {% for value, text in filter_options[name] %}
+      <option value="{{ value }}"{% if filters[name] == value %} selected{% endif %}>{{ text }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endfor %}
+  <button type="submit" class="filter-apply">Apply</button>
+  <a class="filter-clear" href="/">Clear filters</a>
+</form>
+<p class="summary">{{ summary }}</p>
 <table class="queue">
   <caption class="visually-hidden">Submissions, earliest launch date first</caption>
   <thead>

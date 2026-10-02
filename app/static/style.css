@@ -127,3 +127,13 @@ table.queue { width: 100%; border-collapse: collapse; background: var(--surface)
 table.queue th, table.queue td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
 table.queue th { font-weight: 700; }
 table.queue .urgency { display: block; font-weight: 700; }
+
+.filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1rem; margin: 0 0 0.5rem; }
+.filter { display: flex; flex-direction: column; gap: 0.125rem; }
+.filter label { font-size: 0.875rem; color: var(--text-muted); }
+.filter select, .filter-apply {
+  font: inherit; padding: 0.25rem 0.5rem; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--surface); color: var(--text);
+}
+.filter-apply { cursor: pointer; }
+.summary { margin: 0 0 var(--space); color: var(--text-muted); }

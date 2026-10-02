@@ -145,3 +145,31 @@ def row_view(row, today=None):
         "flags_text": flags_text,
         "flags_title": flags_title,
     }
+
+
+FILTER_FIELDS = (("status", "Status"), ("product", "Product"), ("channel", "Channel"))
+
+
+def filters_from_query(query_params):
+    """Read the three filters from a request's query string; anything unusable means "All".
+
+    A filter given more than once is ambiguous, so it also means "All". Only the exact key
+    names are read (status[] is a different key and is ignored).
+    """
+    chosen = {}
+    for name, _ in FILTER_FIELDS:
+        values = query_params.getlist(name)
+        chosen[name] = clean_filter(name, values[0]) if len(values) == 1 else None
+    return chosen
+
+
+def summary_text(views):
+    """"N items" plus how many of them need attention; plain words, no color."""
+    n = len(views)
+    items = "%d item%s" % (n, "" if n == 1 else "s")
+    if n == 0:
+        return items
+    attention = sum(1 for v in views if v["needs_attention"])
+    if attention == 0:
+        return items + " \u00b7 none need attention"
+    return items + " \u00b7 %d %s attention" % (attention, "needs" if attention == 1 else "need")

@@ -96,7 +96,8 @@ def test_status_and_urgency_are_words_in_the_markup_not_only_classes(client):
     html = client.get("/").text
     for word in ("New", "In review", "Changes requested", "Approved", "Rejected", "Overdue by"):
         assert word in html
-    assert "in_review" not in re.sub(r'class="[^"]*"', "", html)   # raw database words only inside class names
+    shown = re.sub(r'class="[^"]*"', "", "".join(body_rows(html)))
+    assert "in_review" not in shown and "changes_requested" not in shown   # raw words only inside class names
 
 
 def test_flags_show_a_dash_with_a_title(client):

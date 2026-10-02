@@ -6,7 +6,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 
 from app import clock, db, seed
-from app.queue import list_queue, row_view
+from app.queue import FILTER_FIELDS, FILTER_OPTIONS, filters_from_query, list_queue, row_view, summary_text
 from app.cooldown import Cooldown
 from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, ROLES
 from app.templating import render
@@ -42,10 +42,13 @@ def healthz():
 def queue(request: Request):
     # A fixed flag, never the query value itself: only exactly ?reset=done shows the banner.
     reset_done = request.query_params.getlist("reset") == ["done"]
+    filters = filters_from_query(request.query_params)
     with db.connect() as conn:
         today = clock.today()
-        rows = [row_view(r, today) for r in list_queue(conn)]
-    response = render(request, "queue.html", reset_done=reset_done, rows=rows)
+        rows = [row_view(r, today) for r in list_queue(conn, **filters)]
+    response = render(request, "queue.html", reset_done=reset_done, rows=rows, filters=filters,
+                      filter_fields=FILTER_FIELDS, filter_options=FILTER_OPTIONS,
+                      summary=summary_text(rows))
     response.headers["Cache-Control"] = "no-store"  # urgency labels depend on today's date
     return response
 
