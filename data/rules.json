@@ -1,0 +1,95 @@
+[
+  {
+    "id": "R1",
+    "name": "No guaranteed-approval claims",
+    "description": "Marketing copy must not promise or imply that approval is certain.",
+    "appliesToProducts": ["loan", "card", "mortgage"],
+    "appliesToChannels": ["email", "paid_social", "affiliate_page", "display"],
+    "severity": "high",
+    "kind": "phrase",
+    "detection": {
+      "phrases": ["guaranteed approval", "everyone is approved", "no credit check", "can't be denied"]
+    },
+    "snippetText": "Remove guaranteed-approval language. Approval depends on credit review."
+  },
+  {
+    "id": "R2",
+    "name": "Rate shown requires APR",
+    "description": "If a rate or interest percentage is shown, the APR must appear alongside it.",
+    "appliesToProducts": ["loan", "card", "mortgage"],
+    "appliesToChannels": ["email", "paid_social", "affiliate_page", "display"],
+    "severity": "high",
+    "kind": "missing",
+    "detection": {
+      "trigger": "a percentage near the word 'rate' or 'interest'",
+      "required": ["APR"]
+    },
+    "snippetText": "Rate is shown without APR. Add the APR alongside it."
+  },
+  {
+    "id": "R3",
+    "name": "Equal Housing Lender statement",
+    "description": "Mortgage marketing must include the Equal Housing Lender statement.",
+    "appliesToProducts": ["mortgage"],
+    "appliesToChannels": ["email", "paid_social", "affiliate_page", "display"],
+    "severity": "high",
+    "kind": "missing",
+    "detection": {
+      "required": ["Equal Housing Lender"]
+    },
+    "snippetText": "Add the Equal Housing Lender statement."
+  },
+  {
+    "id": "R4",
+    "name": "\"Prequalified\" must not imply final approval",
+    "description": "Prequalification language must not read as a final credit decision.",
+    "appliesToProducts": ["mortgage", "loan"],
+    "appliesToChannels": ["email", "paid_social", "affiliate_page", "display"],
+    "severity": "medium",
+    "kind": "phrase",
+    "detection": {
+      "phrases": ["you're approved", "pre-approved", "approved in minutes"]
+    },
+    "snippetText": "Use 'prequalify' wording. This isn't a final approval."
+  },
+  {
+    "id": "R5",
+    "name": "Credit approval disclaimer",
+    "description": "Loan and card offers must state that they are subject to credit approval.",
+    "appliesToProducts": ["loan", "card"],
+    "appliesToChannels": ["email", "paid_social", "affiliate_page", "display"],
+    "severity": "medium",
+    "kind": "missing",
+    "detection": {
+      "required": ["subject to credit approval"]
+    },
+    "snippetText": "Add 'subject to credit approval' language."
+  },
+  {
+    "id": "R6",
+    "name": "No pressure or false urgency",
+    "description": "Urgency language is only acceptable when the actual offer end date is stated.",
+    "appliesToProducts": ["loan", "card", "mortgage"],
+    "appliesToChannels": ["email", "paid_social", "affiliate_page", "display"],
+    "severity": "low",
+    "kind": "phrase",
+    "detection": {
+      "phrases": ["act now", "last chance", "hurry", "limited time"],
+      "unlessStatedEndDate": true
+    },
+    "snippetText": "Remove urgency language or state the actual offer end date."
+  },
+  {
+    "id": "R7",
+    "name": "Disclosure reachable in short formats",
+    "description": "Short formats must point to the full terms.",
+    "appliesToProducts": ["loan", "card", "mortgage"],
+    "appliesToChannels": ["paid_social", "display"],
+    "severity": "medium",
+    "kind": "missing",
+    "detection": {
+      "required": ["terms apply", "link or reference to full terms"]
+    },
+    "snippetText": "Add 'terms apply' with a link to full disclosures."
+  }
+]

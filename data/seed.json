@@ -1,0 +1,497 @@
+{
+  "_comment": "Seed data for ClearPath Compliance Review. Launch dates are day offsets from today; timestamps are hours before now. Flags are NOT stored here: the rules engine computes them at seed time. Source of truth: documentation/seed-data.md.",
+  "people": {
+    "marketers": ["Maya Chen", "Jordan Lee"],
+    "reviewers": ["Alex Rivera"]
+  },
+  "submissions": [
+    {
+      "seedId": 1,
+      "title": "Personal loan holiday email",
+      "product": "loan",
+      "channel": "email",
+      "launchOffsetDays": 1,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 20,
+      "status": "new",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 20,
+          "notes": "Holiday send for the existing customer list. Needs to go out tomorrow morning.",
+          "copy": "Subject: Make this holiday season a little easier\n\nHi there,\n\nThe holidays are expensive, and ClearPath is here to help you stay ahead of it. Guaranteed approval, rates as low as 5.99%, and funds that can reach your account fast, so you can focus on the people who matter.\n\nUse a ClearPath personal loan to cover gifts, travel, or that year-end home repair you have been putting off. Choose a payment that fits your budget and pay it down on your own schedule.\n\nApplying takes just a few minutes, and there is no obligation to accept an offer.\n\nWishing you a warm and stress-free season,\nThe ClearPath Team"
+        }
+      ],
+      "decisions": [],
+      "comments": [],
+      "dismissals": []
+    },
+    {
+      "seedId": 2,
+      "title": "Cashback card paid social",
+      "product": "card",
+      "channel": "paid_social",
+      "launchOffsetDays": 2,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 14,
+      "status": "new",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 14,
+          "notes": "Single-image paid social ad. Character limit is tight, so the fine print was cut.",
+          "copy": "Your everyday spending should pay you back. Earn 3% cash back on groceries, gas, and dining with the ClearPath Cashback Card. No annual fee, and your rewards never expire while your account is open.\n\nSee how much you could earn this year. Tap to learn more and start your application today.\n\n#ClearPath #Cashback #SmartSpending"
+        }
+      ],
+      "decisions": [],
+      "comments": [],
+      "dismissals": []
+    },
+    {
+      "seedId": 3,
+      "title": "Mortgage prequal landing page",
+      "product": "mortgage",
+      "channel": "affiliate_page",
+      "launchOffsetDays": 5,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 52,
+      "status": "in_review",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 52,
+          "notes": "Landing page copy for our home-buying affiliate partner. Hero section and first form step only.",
+          "copy": "Ready to buy your first home? Start here.\n\nMost buyers spend weeks wondering what they can afford. With ClearPath, you can find out in a few clicks, without affecting your credit score. Answer a handful of questions about your income, savings, and the home you have in mind, and see your options right away.\n\nYou're approved to start shopping the moment you finish. Check in minutes and walk into open houses with confidence, knowing where you stand.\n\nOur mortgage specialists are available by phone or chat to walk you through every step, from your first question to closing day.\n\nGet started below. It only takes a few minutes."
+        }
+      ],
+      "decisions": [],
+      "comments": [
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Starting review. The approval wording in paragraph 3 is the main concern.",
+          "ruleId": null,
+          "hoursAgo": 3
+        }
+      ],
+      "dismissals": []
+    },
+    {
+      "seedId": 4,
+      "title": "Debt consolidation display ad",
+      "product": "loan",
+      "channel": "display",
+      "launchOffsetDays": 6,
+      "submittedBy": "Jordan Lee",
+      "createdHoursAgo": 30,
+      "status": "new",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 30,
+          "notes": "300x250 banner. Disclosure line is set in the footer strip of the creative.",
+          "copy": "One payment. One plan. Less stress.\n\nRoll your credit card balances into a single ClearPath personal loan with a fixed monthly payment and a clear payoff date. Guaranteed approval for qualified applicants, so you can start simplifying your finances today.\n\nCheck your options in minutes with no impact to your credit score.\n\nSubject to credit approval."
+        }
+      ],
+      "decisions": [],
+      "comments": [],
+      "dismissals": []
+    },
+    {
+      "seedId": 5,
+      "title": "Balance transfer email",
+      "product": "card",
+      "channel": "email",
+      "launchOffsetDays": 8,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 120,
+      "status": "in_review",
+      "currentVersion": 2,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 120,
+          "notes": "First draft of the balance transfer promo for existing cardholders.",
+          "copy": "Subject: Pay down your balance faster\n\nHi there,\n\nHigh-interest balances can feel like running in place. With a ClearPath balance transfer, you can move your existing balances to your ClearPath card and enjoy a 0% intro interest rate for 15 months, so more of every payment goes toward the principal.\n\nThere is no need to juggle several due dates. Bring your balances together, see one clear payment, and make real progress.\n\nStart your transfer in the ClearPath app or online in minutes.\n\nThe ClearPath Team"
+        },
+        {
+          "versionNumber": 2,
+          "createdHoursAgo": 40,
+          "notes": "Added the APR and the credit approval disclaimer per Alex's feedback.",
+          "copy": "Subject: Pay down your balance faster\n\nHi there,\n\nHigh-interest balances can feel like running in place. With a ClearPath balance transfer, you can move your existing balances to your ClearPath card and enjoy a 0% intro APR for 15 months, so more of every payment goes toward the principal. After the intro period, the variable APR is 19.99% to 28.99% based on your creditworthiness.\n\nThere is no need to juggle several due dates. Bring your balances together, see one clear payment, and make real progress.\n\nStart your transfer in the ClearPath app or online in minutes.\n\nThe ClearPath Team\n\nBalance transfers are subject to credit approval. A 3% balance transfer fee applies."
+        }
+      ],
+      "decisions": [
+        {
+          "versionNumber": 1,
+          "outcome": "changes_requested",
+          "reviewer": "Alex Rivera",
+          "reason": "The intro rate is shown without an APR, and there is no credit approval language. Please add both and resubmit.",
+          "hoursAgo": 96
+        }
+      ],
+      "comments": [
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Rate is shown without APR. Add the APR alongside it.",
+          "ruleId": "R2",
+          "hoursAgo": 96
+        },
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Add 'subject to credit approval' language.",
+          "ruleId": "R5",
+          "hoursAgo": 96
+        },
+        {
+          "versionNumber": 2,
+          "author": "Maya Chen",
+          "text": "Both items are fixed in v2. The APR range comes from the current card terms sheet.",
+          "ruleId": null,
+          "hoursAgo": 40
+        }
+      ],
+      "dismissals": []
+    },
+    {
+      "seedId": 6,
+      "title": "Refinance email series pt 1",
+      "product": "mortgage",
+      "channel": "email",
+      "launchOffsetDays": 10,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 170,
+      "status": "approved",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 170,
+          "notes": "First of three emails in the refinance series. Disclosures are in the footer.",
+          "copy": "Subject: Is it time to take another look at your mortgage?\n\nHi there,\n\nIf you bought or refinanced a few years ago, your situation may have changed. Your income, your home's value, and your goals might look different today, and a refinance could help you meet them.\n\nWhether you want to lower your monthly payment, shorten your loan term, or tap into your home's equity, our mortgage specialists can walk you through the options and explain the tradeoffs in plain language.\n\nThere is no cost to start the conversation. Reply to this email or call us any weekday between 8am and 6pm.\n\nBest,\nThe ClearPath Mortgage Team\n\nClearPath Financial. NMLS #1847260. Equal Housing Lender. Loans are subject to credit approval and property evaluation. Not all applicants will qualify. Terms and conditions apply."
+        }
+      ],
+      "decisions": [
+        {
+          "versionNumber": 1,
+          "outcome": "approved",
+          "reviewer": "Alex Rivera",
+          "reason": "Clean copy. Required disclosures are present in the footer.",
+          "hoursAgo": 140
+        }
+      ],
+      "comments": [
+        {
+          "versionNumber": 1,
+          "author": "Maya Chen",
+          "text": "Thanks Alex. Parts 2 and 3 will reuse the same footer, so I will send those through next week.",
+          "ruleId": null,
+          "hoursAgo": 130
+        }
+      ],
+      "dismissals": []
+    },
+    {
+      "seedId": 7,
+      "title": "Student-friendly card promo",
+      "product": "card",
+      "channel": "paid_social",
+      "launchOffsetDays": 12,
+      "submittedBy": "Jordan Lee",
+      "createdHoursAgo": 240,
+      "status": "approved",
+      "currentVersion": 2,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 240,
+          "notes": "Back-to-school concept aimed at college students.",
+          "copy": "Textbooks, takeout, and spring break trips: you deserve all of it. Swipe now and sort out the bill later with the ClearPath Student Card.\n\nLive like the semester never ends. Terms apply."
+        },
+        {
+          "versionNumber": 2,
+          "createdHoursAgo": 120,
+          "notes": "Entirely new concept based on building credit responsibly. Replaces the v1 idea.",
+          "copy": "Building credit starts with a good first step. The ClearPath Student Card helps you build a credit history by paying on time, with no annual fee and a simple app to track your spending.\n\nSee if you prequalify in a couple of minutes without affecting your credit score. Subject to credit approval. Terms apply. See full details at clearpath.example/student-card."
+        }
+      ],
+      "decisions": [
+        {
+          "versionNumber": 1,
+          "outcome": "rejected",
+          "reviewer": "Alex Rivera",
+          "reason": "The concept encourages spending without regard to ability to repay, which is a problem we cannot fix with edits. Please submit a new concept.",
+          "hoursAgo": 200
+        },
+        {
+          "versionNumber": 2,
+          "outcome": "approved",
+          "reviewer": "Alex Rivera",
+          "reason": "The new concept is responsible, and the disclosures are in place.",
+          "hoursAgo": 100
+        }
+      ],
+      "comments": [
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "This is a concept issue rather than a wording issue, so a resubmission needs a different angle.",
+          "ruleId": null,
+          "hoursAgo": 200
+        },
+        {
+          "versionNumber": 2,
+          "author": "Jordan Lee",
+          "text": "Rebuilt around credit-building. Thanks for the clear guidance on v1.",
+          "ruleId": null,
+          "hoursAgo": 120
+        }
+      ],
+      "dismissals": []
+    },
+    {
+      "seedId": 8,
+      "title": "Quick cash loan landing page",
+      "product": "loan",
+      "channel": "affiliate_page",
+      "launchOffsetDays": 14,
+      "submittedBy": "Jordan Lee",
+      "createdHoursAgo": 160,
+      "status": "rejected",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 160,
+          "notes": "Copy supplied by the affiliate partner. We have not edited it.",
+          "copy": "NEED CASH TODAY? Get the money you need, fast!\n\nWith ClearPath Quick Cash, everyone gets a yes. Guaranteed approval, no credit check, and you can be approved in minutes. Bad credit? Past mistakes? We do not care.\n\nAct now! This is your last chance to lock in same-day funding before this offer disappears. Hurry, spots are filling up.\n\nClick the button and your money could be in your account by tonight.\n\nSubject to credit approval."
+        }
+      ],
+      "decisions": [
+        {
+          "versionNumber": 1,
+          "outcome": "rejected",
+          "reviewer": "Alex Rivera",
+          "reason": "The copy promises approval to everyone, uses false urgency, and tells applicants we do not care about credit history. It needs a full rewrite and cannot be fixed with edits. Please resubmit a new version.",
+          "hoursAgo": 110
+        }
+      ],
+      "comments": [
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Remove guaranteed-approval language. Approval depends on credit review.",
+          "ruleId": "R1",
+          "hoursAgo": 112
+        },
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Remove urgency language or state the actual offer end date.",
+          "ruleId": "R6",
+          "hoursAgo": 112
+        },
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "'Everyone gets a yes' is a guarantee claim too, even though it is not one of the listed phrases.",
+          "ruleId": null,
+          "hoursAgo": 111
+        }
+      ],
+      "dismissals": []
+    },
+    {
+      "seedId": 9,
+      "title": "Rate-drop mortgage email",
+      "product": "mortgage",
+      "channel": "email",
+      "launchOffsetDays": 20,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 18,
+      "status": "new",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 18,
+          "notes": "Rate announcement for the prospect list. Rate is from the current rate sheet.",
+          "copy": "Subject: Mortgage rates just moved in your favor\n\nHi there,\n\nGood news for anyone watching the housing market. ClearPath is now offering a 30-year fixed mortgage with an interest rate starting at 6.125%. For a lot of buyers, even a small drop can make a meaningful difference in the monthly payment.\n\nOur mortgage specialists can help you compare options, estimate your payment, and see how much home you may be able to afford. Schedule a free call at a time that works for you.\n\nTalk soon,\nThe ClearPath Mortgage Team\n\nClearPath Financial. NMLS #1847260. Equal Housing Lender."
+        }
+      ],
+      "decisions": [],
+      "comments": [],
+      "dismissals": []
+    },
+    {
+      "seedId": 10,
+      "title": "Brand awareness display ad",
+      "product": "card",
+      "channel": "display",
+      "launchOffsetDays": 25,
+      "submittedBy": "Jordan Lee",
+      "createdHoursAgo": 10,
+      "status": "new",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 10,
+          "notes": "Brand-level banner for the card line. No offer details.",
+          "copy": "A card that keeps up with you.\n\nThe ClearPath Card comes with a money-back guarantee on our service: if you are not happy with your experience in the first 90 days, we will refund your annual fee. Simple tools, helpful support, and rewards you will actually use.\n\nLearn more at clearpath.example/card. Subject to credit approval. Terms apply."
+        }
+      ],
+      "decisions": [],
+      "comments": [],
+      "dismissals": []
+    },
+    {
+      "seedId": 11,
+      "title": "Spring loan promo",
+      "product": "loan",
+      "channel": "email",
+      "launchOffsetDays": -1,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 100,
+      "status": "in_review",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 100,
+          "notes": "Submitted late because of a calendar mix-up on our side. Launch date has already passed, so this is waiting on the review.",
+          "copy": "Subject: Give your plans a fresh start\n\nHi there,\n\nSpring is a great time for a project you have been putting off. A ClearPath personal loan can help you cover it, with fixed monthly payments and no prepayment penalty.\n\nFor a limited time: offer ends Oct 31, new personal loan customers can enjoy rates from 7.49% to 17.99% APR with no origination fee. Your actual rate depends on your credit profile.\n\nSee your options in minutes without affecting your credit score.\n\nThe ClearPath Team\n\nSubject to credit approval. Terms and conditions apply."
+        }
+      ],
+      "decisions": [],
+      "comments": [
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Picked this up first thing. The launch date has already passed, so I am reviewing it ahead of the rest of the queue.",
+          "ruleId": null,
+          "hoursAgo": 2
+        }
+      ],
+      "dismissals": []
+    },
+    {
+      "seedId": 12,
+      "title": "Long-form mortgage guide",
+      "product": "mortgage",
+      "channel": "affiliate_page",
+      "launchOffsetDays": 30,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 8,
+      "status": "new",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 8,
+          "notes": "Evergreen educational guide for the partner site. Long by design.",
+          "copy": "The First-Time Homebuyer's Guide to Getting a Mortgage\n\nBuying a home is one of the biggest financial decisions most people ever make, and the mortgage process can feel like a maze of unfamiliar terms. This guide walks you through each stage in plain language so you know what to expect before you start.\n\nStep 1: Know your budget\n\nBefore you look at a single listing, take an honest look at your finances. Add up your monthly income, your regular expenses, and any debts you are paying down. Lenders look at your debt-to-income ratio, which compares your monthly debt payments to your gross monthly income. A lower ratio generally gives you more options. Remember that the price of the home is only part of the cost. Property taxes, homeowners insurance, maintenance, and possibly association dues all belong in your monthly plan.\n\nStep 2: Check your credit\n\nYour credit history is one of the main factors lenders review. Request your free credit reports and look for errors. If you find any, dispute them early, because corrections can take a few weeks. Paying bills on time and keeping credit card balances low are two of the most reliable ways to strengthen your profile over time.\n\nStep 3: Save for the down payment and closing costs\n\nMany buyers assume they need twenty percent down, but that is not always the case. Some loan programs allow much smaller down payments, though a smaller down payment can mean mortgage insurance. Closing costs are separate and typically include fees for the appraisal, title search, and loan processing. Ask your lender for a written estimate so none of it comes as a surprise.\n\nStep 4: Understand prequalification and pre-approval\n\nThese two terms are often used interchangeably, but they are not the same thing. Prequalification is a quick, informal estimate of what you might be able to borrow, based on information you provide. A pre-approved status usually means a lender has verified more of your documentation and reviewed your credit, which is a deeper step but still not a final commitment to lend. Neither one guarantees a loan. A final decision comes only after full underwriting and an appraisal of the property.\n\nStep 5: Compare loan types and terms\n\nFixed-rate loans keep the same rate for the life of the loan, which makes budgeting simple. Adjustable-rate loans start lower but can change over time. A shorter term usually means a higher monthly payment and less interest paid overall. When you compare offers, look at the APR, which reflects the interest rate plus certain fees, rather than the interest rate alone.\n\nStep 6: Choose a home and make an offer\n\nOnce you know your budget and your options, you can shop with confidence. Work with a real estate agent you trust, tour homes in person, and keep your priorities in order: location, size, condition, and cost. When you make an offer, your agent can help you decide on a price and any contingencies, such as an inspection.\n\nStep 7: Get through underwriting and closing\n\nAfter your offer is accepted, the lender verifies your income, assets, and the property itself. Respond quickly to document requests, avoid opening new credit accounts, and keep your finances steady until closing. At closing, you will sign the final paperwork, pay your closing costs, and receive the keys.\n\nOur mortgage specialists are happy to talk through any step. Call or chat with us any time.\n\nClearPath Financial. NMLS #1847260. Equal Housing Lender. This guide is for general education and is not financial advice."
+        }
+      ],
+      "decisions": [],
+      "comments": [],
+      "dismissals": []
+    },
+    {
+      "seedId": 13,
+      "title": "Why we don't promise guaranteed approval",
+      "product": "loan",
+      "channel": "email",
+      "launchOffsetDays": 9,
+      "submittedBy": "Maya Chen",
+      "createdHoursAgo": 90,
+      "status": "approved",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 90,
+          "notes": "Trust-building email explaining how we make lending decisions. The phrase is used to say what we do NOT do.",
+          "copy": "Subject: Why we don't promise guaranteed approval\n\nHi there,\n\nYou may have seen lenders advertise guaranteed approval. At ClearPath, we don't, and here is why.\n\nEvery application is reviewed on its own merits. We look at your income, your credit history, and your current obligations to make sure a loan is something you can comfortably repay. That is better for you, and it is how responsible lending works.\n\nWhat we can promise is a clear process: you can check your options with no impact to your credit score, you will see your rate and APR before you decide, and there are no hidden fees. Personal loan rates range from 7.49% to 17.99% APR depending on your credit profile.\n\nThe ClearPath Team\n\nSubject to credit approval. Terms and conditions apply."
+        }
+      ],
+      "decisions": [
+        {
+          "versionNumber": 1,
+          "outcome": "approved",
+          "reviewer": "Alex Rivera",
+          "reason": "The R1 flag is a false positive. The email uses the phrase only to explain that we do not promise approval. Dismissed with a note, and the rest of the copy is clean.",
+          "hoursAgo": 60
+        }
+      ],
+      "comments": [],
+      "dismissals": [
+        {
+          "versionNumber": 1,
+          "ruleId": "R1",
+          "note": "False positive. The phrase appears in a sentence explaining that we do not offer guaranteed approval.",
+          "dismissedBy": "Alex Rivera",
+          "hoursAgo": 62
+        }
+      ]
+    },
+    {
+      "seedId": 14,
+      "title": "Home equity display ad",
+      "product": "mortgage",
+      "channel": "display",
+      "launchOffsetDays": 3,
+      "submittedBy": "Jordan Lee",
+      "createdHoursAgo": 60,
+      "status": "changes_requested",
+      "currentVersion": 1,
+      "versions": [
+        {
+          "versionNumber": 1,
+          "createdHoursAgo": 60,
+          "notes": "Banner for the home equity line. Creative is space-constrained.",
+          "copy": "Your home has been working for you. Put your equity to work with a ClearPath home equity line, with an interest rate as low as 6.5% and flexible access to funds for renovations, tuition, or a rainy day.\n\nSee how much you could access in just a few clicks."
+        }
+      ],
+      "decisions": [
+        {
+          "versionNumber": 1,
+          "outcome": "changes_requested",
+          "reviewer": "Alex Rivera",
+          "reason": "Three required disclosures are missing: the APR, the Equal Housing Lender statement, and a pointer to full terms. Please add them and resubmit.",
+          "hoursAgo": 30
+        }
+      ],
+      "comments": [
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Rate is shown without APR. Add the APR alongside it.",
+          "ruleId": "R2",
+          "hoursAgo": 30
+        },
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Add the Equal Housing Lender statement.",
+          "ruleId": "R3",
+          "hoursAgo": 30
+        },
+        {
+          "versionNumber": 1,
+          "author": "Alex Rivera",
+          "text": "Add 'terms apply' with a link to full disclosures.",
+          "ruleId": "R7",
+          "hoursAgo": 30
+        }
+      ],
+      "dismissals": []
+    }
+  ]
+}
