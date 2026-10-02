@@ -69,7 +69,8 @@ def set_role(request: Request, role: str = Form("")):
     if role not in ROLES:
         # Do not echo the submitted value back.
         return PlainTextResponse("Unknown role.", status_code=400)
-    response = RedirectResponse("/", status_code=303)
+    # A marketer lands on their own submissions, a reviewer on the queue.
+    response = RedirectResponse("/mine" if role == "marketer" else "/", status_code=303)
     response.set_cookie(
         COOKIE_NAME, role, max_age=COOKIE_MAX_AGE, path="/",
         httponly=True, samesite="lax", secure=_is_https(request),

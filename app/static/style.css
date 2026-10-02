@@ -363,3 +363,18 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 .marketer-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 var(--space); }
 .banner-submitted { border-left-color: var(--status-approved-text); background: var(--status-approved-bg); }
 .submitting-as { margin: 0 0 0.75rem; }
+
+/* My submissions */
+.mine-group { margin: 0 0 var(--space); }
+.mine-group h2 { font-size: 1.125rem; margin: var(--space) 0 0.5rem; }
+.mine-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.mine-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.625rem 0.875rem; overflow-wrap: anywhere; }
+.mine-overdue { border-left: 4px solid var(--overdue-border); }
+.mine-rush { border-left: 4px solid var(--rush-border); }
+.mine-title { margin: 0; font-size: 1rem; }
+.mine-meta { margin: 0.125rem 0 0; color: var(--text-muted); }
+.mine-feedback { margin: 0.5rem 0 0; padding-left: 0.75rem; border-left: 3px solid var(--border); }
+.mine-feedback-head, .mine-feedback-reason { margin: 0; }
+.mine-feedback-reason { white-space: pre-wrap; }
+.mine-actions { margin: 0.5rem 0 0; }
+.mine-readonly { color: var(--text-muted); margin: 0 0 0.75rem; }

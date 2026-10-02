@@ -11,6 +11,48 @@
   {%- endfor %}
 </div>
 {% endif %}
-{% if role == "marketer" %}{% include "_marketer_picker.html" %}{% endif %}
-<p><a class="button-link" href="/submit">+ Submit</a></p>
+{% include "_marketer_picker.html" %}
+{% if role != "marketer" %}
+<p class="mine-readonly">You are viewing {{ marketer }}&rsquo;s submissions as a reviewer. This page is read-only.</p>
+{% endif %}
+{% if role == "marketer" %}<p><a class="button-link" href="/submit">+ Submit</a></p>{% endif %}
+{% if not total %}
+<p class="empty-state" role="status">
+  {% if role == "marketer" %}You haven&rsquo;t submitted anything yet. <a href="/submit">Submit your first piece of copy</a>
+  {%- else %}{{ marketer }} hasn&rsquo;t submitted anything yet.{% endif %}</p>
+{% endif %}
+{% for g in groups if g.rows %}
+<section class="mine-group" aria-labelledby="group-{{ g.key }}">
+  <h2 id="group-{{ g.key }}">{{ g.title }} ({{ g.rows|length }})</h2>
+  <ul class="mine-list">
+    {%- for r in g.rows %}
+    <li class="mine-item{% if r.urgency %} mine-{{ r.urgency }}{% endif %}">
+      <h3 class="mine-title"><a href="/review/{{ r.id }}">{{ r.title }}</a></h3>
+      <p class="mine-meta">
+        <span class="status status-{{ r.status }}">{{ r.status_label }}</span>
+        &middot; v{{ r.version_number }}
+        &middot; {{ r.product|capitalize }} / {{ r.channel|replace("_", " ")|capitalize }}
+        &middot; Launch <time datetime="{{ r.launch_date }}">{{ r.launch_text }}</time>
+        {%- if r.urgency_label %} &middot; <span class="urgency">{{ r.urgency_label }}</span>{% endif %}
+        &middot; {{ r.flags_text }}</p>
+      {%- if r.feedback %}
+      <div class="mine-feedback">
+        <p class="mine-feedback-head"><strong>{{ r.feedback.outcome_label }}</strong> by {{ r.feedback.reviewer }}, {{ r.feedback.when }}</p>
+        {%- if r.feedback.reason %}<p class="mine-feedback-reason">{{ r.feedback.reason }}</p>{% endif %}
+      </div>
+      {%- endif %}
+      <p class="mine-actions">
+        {%- if role == "marketer" and r.status == "changes_requested" %}
+        <a class="button-link" href="/resubmit/{{ r.id }}">Edit and resubmit<span class="visually-hidden"> {{ r.title }}</span></a>
+        {%- elif role == "marketer" and r.status == "rejected" %}
+        <a class="button-link" href="/resubmit/{{ r.id }}">Fix and resubmit as new version<span class="visually-hidden"> {{ r.title }}</span></a>
+        {%- else %}
+        <a class="button-link" href="/review/{{ r.id }}">View<span class="visually-hidden"> {{ r.title }}</span></a>
+        {%- endif %}
+      </p>
+    </li>
+    {%- endfor %}
+  </ul>
+</section>
+{% endfor %}
 {% endblock %}

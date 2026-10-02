@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse
 
-from app import clock, db, review, submit
+from app import clock, db, mine as mine_view, review, submit
 from app.queue import FILTER_OPTIONS
 from app.roles import COOKIE_MAX_AGE, MARKETER_COOKIE_NAME, MARKETERS, get_marketer, get_role
 from app.routes.pages import NO_STORE, _is_https, _single
@@ -37,8 +37,9 @@ async def set_marketer(request: Request):
 
 @router.get("/mine")
 def mine(request: Request):
-    # Step 7: the success banner. It is built from the database, never from the query value, and
-    # only for the current marketer's own submission. Part B adds the list of submissions.
+    # The success banner is built from the database, never from the query value, and only for the
+    # current marketer's own submission. The list is whichever marketer is selected, shown to either
+    # role; only the marketer role gets the resubmit actions (a product guard, not authorization).
     banner = None
     values = request.query_params.getlist("submitted")
     sid = review.parse_id(values[0]) if len(values) == 1 else None
@@ -56,7 +57,10 @@ def mine(request: Request):
             except ValueError:
                 pass
             banner = {"id": row["id"], "title": row["title"], "warnings": warnings}
-    response = render(request, "mine.html", banner=banner)
+    today = clock.today()
+    with db.connect() as conn:
+        rows = mine_view.list_mine(conn, get_marketer(request), today)
+    response = render(request, "mine.html", banner=banner, groups=mine_view.group_mine(rows), total=len(rows))
     response.headers["Cache-Control"] = "no-store"
     return response
 

@@ -49,10 +49,15 @@ def test_tampered_cookie_falls_back_to_reviewer(client, bad):
     assert "admin" not in r.text and "aaaaaaaaaa" not in r.text
 
 
+def test_switching_to_reviewer_lands_on_the_queue(client):
+    r = client.post("/role", data={"role": "reviewer"}, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/"
+
+
 def test_post_role_sets_cookie_and_redirects(client):
     r = client.post("/role", data={"role": "marketer"}, follow_redirects=False)
     assert r.status_code == 303
-    assert r.headers["location"] == "/"
+    assert r.headers["location"] == "/mine"        # a marketer lands on their own submissions
     cookie = r.headers["set-cookie"].lower()
     assert cookie.startswith("role=marketer")
     assert "httponly" in cookie

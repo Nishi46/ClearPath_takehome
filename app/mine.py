@@ -1,5 +1,5 @@
 from app import clock
-from app.queue import _label
+from app.queue import _launch_text, _label, _plural, _urgency_label
 
 # The marketer's view of their own submissions ("My submissions"). Plain functions with no web
 # code: list_mine reads (one fixed, parameterized query, nothing is written) and group_mine sorts
@@ -58,13 +58,17 @@ def list_mine(conn, marketer, today=None):
     for r in conn.execute(sql_mine, (marketer,)):
         try:
             urgency = clock.urgency(today, r["launch_date"], r["status"])
+            launch = clock.date.fromisoformat(r["launch_date"])
+            launch_text = _launch_text(launch)
+            urgency_label = _urgency_label(urgency, today, launch) if urgency else ""
         except ValueError:
-            urgency = None
+            urgency, launch_text, urgency_label = None, "unknown date", ""
         rows.append({
             "id": r["id"], "title": r["title"], "product": r["product"], "channel": r["channel"],
             "status": r["status"], "status_label": _label("status", r["status"]),
             "version_number": r["version_number"], "launch_date": r["launch_date"], "urgency": urgency,
-            "flag_count": r["flag_count"], "feedback": _feedback(r),
+            "launch_text": launch_text, "urgency_label": urgency_label,
+            "flags_text": _plural(r["flag_count"], "open flag"), "flag_count": r["flag_count"], "feedback": _feedback(r),
             "_decision_at": r["decision_at"] or "",
         })
     return rows
