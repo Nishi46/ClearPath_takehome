@@ -180,9 +180,9 @@ def test_response_headers(client):
     assert r.headers["x-content-type-options"] == "nosniff"
 
 
-def test_review_links_lead_to_the_friendly_404_until_phase_4(client):
+def test_review_links_lead_to_the_review_page(client):
     r = client.get("/review/1")
-    assert r.status_code == 404 and "Page not found" in r.text
+    assert r.status_code == 200 and "Personal loan holiday email" in r.text
 
 
 def test_queue_reflects_the_database_on_every_request(client, db_path):

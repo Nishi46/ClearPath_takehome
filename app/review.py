@@ -73,3 +73,28 @@ def load_review(conn, submission_id, version_number=None):
         "comments": comments,
         "history": history,
     }
+
+
+def header_view(data):
+    """Plain-text values for the review page header. The template escapes them."""
+    from datetime import date
+
+    from app.queue import _label, _launch_text
+
+    s = data["submission"]
+    try:
+        launch_text = _launch_text(date.fromisoformat(s["launch_date"]))
+    except (ValueError, TypeError):
+        launch_text = str(s["launch_date"])
+    number = data["version"]["version_number"]
+    return {
+        "id": s["id"],
+        "title": s["title"],
+        "product_label": _label("product", s["product"]),
+        "channel_label": _label("channel", s["channel"]),
+        "status_label": _label("status", s["status"]),
+        "launch_text": launch_text,
+        "submitted_by": s["submitted_by"],
+        "version_text": "v%d" % number,
+        "is_current": number == s["current_version"],
+    }

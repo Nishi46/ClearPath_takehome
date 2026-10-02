@@ -2,10 +2,10 @@ import logging
 import math
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 
-from app import clock, db, seed
+from app import clock, db, review, seed
 from app.queue import FILTER_FIELDS, FILTER_OPTIONS, empty_kind, filters_from_query, list_queue, row_view, summary_text
 from app.cooldown import Cooldown
 from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, ROLES
@@ -119,3 +119,25 @@ def reset(request: Request, confirm: str = Form("")):
         reset_cooldown.release()
         raise
     return RedirectResponse("/?reset=done", status_code=303, headers=NO_STORE)
+
+
+@router.get("/review/{submission_id}")
+def review_page(request: Request, submission_id: str):
+    # The id is a plain str on purpose: a typed int would make FastAPI answer bad input with its
+    # own JSON 422. Anything unparseable or unknown gets the same 404 page.
+    sid = review.parse_id(submission_id)
+    versions = request.query_params.getlist("v")
+    if sid is None or len(versions) > 1:
+        raise HTTPException(status_code=404)
+    number = None
+    if versions:
+        number = review.parse_id(versions[0])
+        if number is None:
+            raise HTTPException(status_code=404)
+    with db.connect() as conn:
+        data = review.load_review(conn, sid, number)
+    if data is None:
+        raise HTTPException(status_code=404)
+    response = render(request, "review.html", head=review.header_view(data))
+    response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
+    return response

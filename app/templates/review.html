@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ head.title }} - Review - ClearPath Review{% endblock %}
+{% block content %}
+<p><a href="/">&larr; Back to the queue</a></p>
+<h1>{{ head.title }}</h1>
+<p class="review-meta">{{ head.product_label }} &middot; {{ head.channel_label }} &middot; Launch {{ head.launch_text }}
+  &middot; Status: {{ head.status_label }} &middot; {{ head.version_text }}{% if head.is_current %} (current){% endif %}
+  &middot; Submitted by {{ head.submitted_by }}</p>
+{% endblock %}
