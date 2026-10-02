@@ -107,17 +107,27 @@ def reset(request: Request, confirm: str = Form("")):
     return RedirectResponse("/?reset=done", status_code=303, headers=NO_STORE)
 
 
-def _render_review(request, data, status_code=200, error=None, reason="", back="/", diff=False, dismiss_state=None):
+def _render_review(request, data, status_code=200, error=None, reason="", back="/", diff=False, dismiss_state=None,
+                   comment_state=None):
     diff_data = review.diff_view(data, diff, back)
     # In diff mode nothing is highlighted, so no flag card links to a highlight that is not there.
     pieces = [] if diff_data and diff_data.get("pieces") else review.copy_view(data)
+    cards, dismissed = review.cards_view(data, pieces), review.dismissals_view(data)
+    comment_form = review.comment_form_view(data, back)
+    if comment_form:  # "Use snippet" links only where a comment can be posted
+        sid = data["submission"]["id"]
+        for item in cards + dismissed:
+            if item["snippet"]:
+                item["snippet_href"] = review.snippet_href(sid, comment_form["version"], comment_form["version"],
+                                                          item["rule_id"], back)
     response = render(request, "review.html", status_code=status_code, head=review.header_view(data, back),
-                      copy=pieces, cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data),
+                      copy=pieces, cards=cards, dismissed=dismissed,
                       versions=review.versions_view(data, back, bool(diff_data and diff_data["on"])), diff=diff_data, notices=review.notices_view(data, back),
                       history=review.history_view(data), comments=review.comments_view(data),
                       notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason,
                       decision_form=review.decision_form_view(data, back), feedback=review.feedback_view(data),
-                      dismiss_form=review.dismiss_form_view(data, back), dismiss_state=dismiss_state)
+                      dismiss_form=review.dismiss_form_view(data, back), dismiss_state=dismiss_state,
+                      comment_form=comment_form, comment_state=comment_state)
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response
 
@@ -144,7 +154,13 @@ def review_page(request: Request, submission_id: str):
     if data is None:
         raise HTTPException(status_code=404)
     # Only exactly one ?diff=1 turns the diff on; anything else is ignored, never an error.
-    return _render_review(request, data, back=back, diff=request.query_params.getlist("diff") == ["1"])
+    # ?snippet=R2 prefills the comment box for a reviewer on the current version; any other value is
+    # ignored silently and never printed. Nothing is written by a GET.
+    prefill = None
+    if get_role(request) == "reviewer" and review.comment_form_view(data) is not None:
+        prefill = review.prefill_view(data, request.query_params.getlist("snippet"))
+    return _render_review(request, data, back=back, diff=request.query_params.getlist("diff") == ["1"],
+                          comment_state=prefill)
 
 
 def _single(form, name):
@@ -231,4 +247,48 @@ async def dismiss(request: Request, submission_id: str):
         return _render_review(request, data, status, review.dismiss_conflict_message(exc.code, data, rule_id),
                               back=back)
     return RedirectResponse(review.with_back("/review/%d" % sid, back) + "#flags-heading", status_code=303,
+                            headers=NO_STORE)
+
+
+@router.post("/review/{submission_id}/comment")
+async def comment(request: Request, submission_id: str):
+    # Same guard order as /decision and /dismiss. The author and time come from the server.
+    if not same_origin(request):
+        return PlainTextResponse("Comments must be made from this site.", status_code=403, headers=NO_STORE)
+    sid = review.parse_id(submission_id)
+    if sid is None:
+        raise HTTPException(status_code=404)
+    if get_role(request) != "reviewer":
+        return PlainTextResponse("Only reviewers can comment.", status_code=403, headers=NO_STORE)
+    with db.connect() as conn:
+        data = review.load_review(conn, sid)
+    if data is None:
+        raise HTTPException(status_code=404)
+
+    form = await request.form()
+    text, version = _single(form, "text"), _single(form, "version")
+    rules = form.getlist("rule_id")  # absent means a free comment; "" is not absent
+    rule_id = rules[0] if len(rules) == 1 and isinstance(rules[0], str) else None
+    back = review.safe_back(_single(form, "back"))
+    number = review.parse_id(version) if version is not None else None
+    if text is None or number is None or (rules and rule_id is None):
+        return _render_review(request, data, 422, review.DECISION_MESSAGES["bad_form"], back=back)
+
+    try:
+        with db.connect() as conn:
+            review.add_comment(conn, sid, number, text, rule_id, REVIEWER_NAME, clock.now())
+    except review.CommentError as exc:
+        with db.connect() as conn:
+            data = review.load_review(conn, sid)
+        if data is None:
+            raise HTTPException(status_code=404)
+        status = review.COMMENT_STATUS[exc.code]
+        state = {"text": text, "rule_id": rule_id if rule_id and any(
+            f["rule_id"] == rule_id for f in data["flags"]) else None, "snippet": False, "error": None}
+        if exc.code in review.COMMENT_FIELD_CODES:
+            state["error"] = review.COMMENT_MESSAGES[exc.code]
+            return _render_review(request, data, status, back=back, comment_state=state)
+        banner = review.COMMENT_CONFLICTS.get(exc.code, review.DECISION_MESSAGES["bad_form"])
+        return _render_review(request, data, status, banner, back=back, comment_state=state)
+    return RedirectResponse(review.with_back("/review/%d" % sid, back) + "#comments-heading", status_code=303,
                             headers=NO_STORE)

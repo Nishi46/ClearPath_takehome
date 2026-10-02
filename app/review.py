@@ -1,7 +1,8 @@
 import re
 import sqlite3
 
-from app.notes import MAX_NOTE_CHARS, MESSAGES as NOTE_MESSAGES, validate_note
+from app.notes import (COMMENT_MESSAGES, MAX_COMMENT_CHARS, MAX_NOTE_CHARS, MESSAGES as NOTE_MESSAGES,
+                       validate_comment, validate_note)
 from app.textclean import clean_text
 
 # Review screen logic. Routes only parse input, call these functions and render.
@@ -248,7 +249,7 @@ def dismissals_view(data):
     for d in data["dismissals"]:
         info = describe({"rule_id": d["rule_id"]})
         out.append({"rule_id": info["rule_id"], "name": info["name"], "by": d["dismissed_by"],
-                    "when": when_text(d["created_at"]), "note": d["note"]})
+                    "when": when_text(d["created_at"]), "note": d["note"], "snippet": info["snippet"]})
     return out
 
 
@@ -402,6 +403,135 @@ def comments_view(data):
             "post_decision": bool(decided_at and posted and posted > decided_at),
         })
     return out
+
+
+# ---- comments ----
+
+MAX_COMMENTS_PER_SUBMISSION = 200
+
+
+class CommentError(Exception):
+    """A comment was refused. `code` is one of a fixed set; the message is never user text."""
+
+    CODES = ("not_found", "stale_version", "text_required", "text_too_long", "text_bad_chars",
+             "no_such_flag", "capacity", "duplicate")
+
+    def __init__(self, code):
+        assert code in self.CODES
+        super().__init__(code)
+        self.code = code
+
+
+def add_comment(conn, submission_id, version_number, text, rule_id, author, now):
+    """Record a reviewer comment on the current version of a submission. The only place that does.
+
+    Allowed on any status, including approved and rejected: a comment never changes the status
+    and is not a decision. The text is validated first; then the write lock is taken (BEGIN
+    IMMEDIATE) and, in order: the submission exists; `version_number` is its current version
+    (`stale_version`); `rule_id`, if not None, matches a flag row on that version (dismissed or
+    open, but a rule that merely exists in rules.json is not enough: `no_such_flag`, and "" is
+    not None); the submission is under the comment cap (`capacity`); the text is not identical to
+    this author's latest comment on the version (`duplicate`, which covers a double click).
+    The author and timestamp come from the caller, never from the browser. Commits once and
+    returns the new row; any refusal or failure rolls back and raises CommentError.
+    """
+    from app import seed
+
+    clean, code = validate_comment(text)
+    if code:
+        raise CommentError(code)
+    if not isinstance(author, str) or not author.strip():
+        raise ValueError("author must be a non-blank name")
+    if not hasattr(now, "tzinfo"):
+        raise TypeError("now must be a datetime")
+    if conn.in_transaction:
+        raise RuntimeError("add_comment needs a connection with no open transaction")
+
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        row = conn.execute("SELECT current_version FROM submission WHERE id = ?",
+                           (submission_id,)).fetchone() if _is_int(submission_id) else None
+        if row is None:
+            raise CommentError("not_found")
+        if not _is_int(version_number) or version_number != row["current_version"]:
+            raise CommentError("stale_version")
+        if rule_id is not None:
+            version_id = conn.execute("SELECT id FROM version WHERE submission_id = ? AND version_number = ?",
+                                      (submission_id, version_number)).fetchone()["id"]
+            if not isinstance(rule_id, str) or not conn.execute(
+                    "SELECT 1 FROM flag WHERE version_id = ? AND rule_id = ?", (version_id, rule_id)).fetchone():
+                raise CommentError("no_such_flag")
+        if conn.execute("SELECT count(*) FROM comment WHERE submission_id = ?",
+                        (submission_id,)).fetchone()[0] >= MAX_COMMENTS_PER_SUBMISSION:
+            raise CommentError("capacity")
+        last = conn.execute("SELECT author, text, rule_id FROM comment WHERE submission_id = ?"
+                            " AND version_number = ? AND author = ? ORDER BY id DESC LIMIT 1",
+                            (submission_id, version_number, author)).fetchone()
+        if last is not None and last["text"] == clean and last["rule_id"] == rule_id:
+            raise CommentError("duplicate")
+        created_at = seed.format_timestamp(now)
+        conn.execute(
+            "INSERT INTO comment (submission_id, version_number, author, text, rule_id, created_at)"
+            " VALUES (?, ?, ?, ?, ?, ?)", (submission_id, version_number, author, clean, rule_id, created_at))
+    except BaseException:
+        conn.rollback()
+        raise
+    conn.commit()
+    return {"submission_id": submission_id, "version_number": version_number, "author": author,
+            "text": clean, "rule_id": rule_id, "created_at": created_at}
+
+
+COMMENT_FIELD_CODES = ("text_required", "text_too_long", "text_bad_chars")
+COMMENT_STATUS = {"text_required": 422, "text_too_long": 422, "text_bad_chars": 422, "no_such_flag": 422,
+                  "not_found": 404, "stale_version": 409, "capacity": 409, "duplicate": 409}
+COMMENT_CONFLICTS = {
+    "stale_version": "A newer version exists, so this page was out of date. Your comment was not saved.",
+    "duplicate": "You just posted this comment, so it was not posted again.",
+    "capacity": "This item has reached the limit of %d comments. Your comment was not saved." % MAX_COMMENTS_PER_SUBMISSION,
+}
+
+
+def comment_form_view(data, back="/"):
+    """What the comment form needs, or None when this page must not offer one.
+
+    Offered only on the submission's current version, in any status. The template adds the role
+    check; the server enforces both again on POST.
+    """
+    s, v = data["submission"], data["version"]
+    if v["version_number"] != s["current_version"]:
+        return None
+    return {"id": s["id"], "version": v["version_number"], "max_text": MAX_COMMENT_CHARS,
+            "back": back if back != "/" else ""}
+
+
+def snippet_href(sid, number, current, rule_id, back="/"):
+    """Link that reloads the review page with `rule_id`'s snippet prefilled in the comment box."""
+    from urllib.parse import urlencode
+
+    query = ([("v", number)] if number != current else []) + [("snippet", rule_id)]
+    if back != "/":
+        query.append(("back", back))
+    return "/review/%d?%s#comment-form" % (sid, urlencode(query))
+
+
+def prefill_view(data, wanted, back="/"):
+    """The comment box state for ?snippet=, or None to leave the box empty.
+
+    `wanted` is the list of `snippet` query values. It counts only when exactly one value is given
+    and that rule has a flag on the selected version and has snippet text. The text comes from
+    rules.json through rules.describe: the query value is only a lookup key and is never printed.
+    The caller checks the role and that the comment form is offered.
+    """
+    from app.rules import describe
+
+    if len(wanted) != 1 or not isinstance(wanted[0], str):
+        return None
+    for f in data["flags"]:
+        if f["rule_id"] == wanted[0]:
+            info = describe(f)
+            if info["snippet"]:
+                return {"text": info["snippet"], "rule_id": f["rule_id"], "snippet": True, "error": None}
+    return None
 
 
 # ---- decisions ----

@@ -44,7 +44,8 @@ def test_marketer_sees_no_form_only_a_note(client):
 @pytest.mark.parametrize("sid", [6, 8, 13, 14])
 def test_locked_items_have_no_form_and_no_buttons(client, sid):
     html = client.get(f"/review/{sid}").text
-    assert 'name="outcome"' not in html and "<textarea" not in html and "Decision</h2>" not in html
+    assert 'name="outcome"' not in html and 'name="reason"' not in html and "Decision</h2>" not in html
+    assert html.count("<textarea") == 1 and 'id="comment-text"' in html     # comments are allowed on locked items
     assert "Only reviewers can decide" not in html
     assert re.search(r"Locked|Changes requested by", html)               # something explains why
 

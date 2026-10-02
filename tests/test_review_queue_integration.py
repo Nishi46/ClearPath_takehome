@@ -182,4 +182,6 @@ def test_a_refused_decision_keeps_the_back_link(client):
 
 def test_no_form_means_no_back_field(client):
     assert 'name="back"' not in client.get("/review/3").text
-    assert 'name="back"' not in client.get("/review/6", params={"back": "/?status=approved"}).text
+    html = client.get("/review/6", params={"back": "/?status=approved"}).text
+    assert 'name="outcome"' not in html  # no decision form, so no decision form back field
+    assert html.count('name="back"') == 1 and html.index('name="back"') > html.index('class="comment-form"')

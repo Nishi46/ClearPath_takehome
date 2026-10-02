@@ -99,4 +99,4 @@ def test_dismissals_view_is_plain_text(client):
         from app.review import load_review
         data = load_review(c, 13)
     v = dismissals_view(data)
-    assert len(v) == 1 and set(v[0]) == {"rule_id", "name", "by", "when", "note"}
+    assert len(v) == 1 and set(v[0]) == {"rule_id", "name", "by", "when", "note", "snippet"}

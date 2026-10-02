@@ -42,7 +42,7 @@ def test_missing_cards_never_link_and_phrase_cards_never_say_missing(client, sid
     cards = re.findall(r'<li class="flag-card">(.*?)\n    </li>', html, re.S)
     for c in cards:
         if "Missing: add this" in c:
-            assert "href=" not in c and "flag-occurrences" not in c
+            assert 'href="#flag-' not in c and "flag-occurrences" not in c  # nothing in the copy to link to
         else:
             assert "flag-snippet" not in c
 

@@ -103,15 +103,16 @@ def test_a_page_refilled_after_a_server_error_starts_enabled(client, tmp_path):
 
 # ---- static checks (no browser) ----
 
-def test_script_is_linked_only_when_the_form_is_shown(client):
+def test_script_is_linked_only_when_a_reviewer_has_a_form(client):
     def linked(sid, role=None):
         if role:
             client.cookies.set("role", role)
         return bool(re.search(r'<script src="/static/review\.js\?v=[0-9a-f]{10}" defer></script>',
                               client.get(f"/review/{sid}").text))
     assert linked(3, "reviewer") is True
-    assert linked(6) is False and linked(8) is False and linked(5) is True
-    assert linked(3, "marketer") is False
+    # Locked items still take comments, so a reviewer gets the script there too.
+    assert linked(6) is True and linked(8) is True and linked(5) is True
+    assert linked(3, "marketer") is False and linked(6) is False
     assert "review.js" not in client.get("/").text
 
 

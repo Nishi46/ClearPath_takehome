@@ -87,7 +87,7 @@ def test_item_1_cards_in_severity_order_with_words_and_explanation(client):
     ids = [re.match(r"\s*\S+ (R\d)", c["h3"]).group(1) if False else re.search(r"R\d", c["h3"]).group(0) for c in p.cards]
     assert ids == ["R1", "R2", "R5"]
     sev_rank = {"High": 0, "Medium": 1, "Low": 2}
-    ranks = [sev_rank[c["severity"].replace("Severity:", "").strip()] for c in p.cards]
+    ranks = [sev_rank[c["severity"].replace("Severity:", "").split()[0]] for c in p.cards]
     assert ranks == sorted(ranks)
     for c in p.cards:
         rid = re.search(r"R\d", c["h3"]).group(0)

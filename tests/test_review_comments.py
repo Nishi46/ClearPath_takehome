@@ -111,7 +111,11 @@ def test_unreadable_times_leave_the_label_off(client):
     assert client.get("/review/6").status_code == 200
 
 
-def test_no_input_form_yet(client):
+def test_only_a_reviewer_gets_the_comment_form(client):
     for sid in (3, 6):
+        client.cookies.set("role", "marketer")
         sec, _ = comments(client.get(f"/review/{sid}").text)
         assert "<form" not in sec and "<textarea" not in sec
+        client.cookies.set("role", "reviewer")
+        sec, _ = comments(client.get(f"/review/{sid}").text)
+        assert sec.count("<form") == 1 and sec.count("<textarea") == 1 and "/comment" in sec

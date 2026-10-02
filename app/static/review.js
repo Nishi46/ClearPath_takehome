@@ -61,3 +61,59 @@
 
   sync();
 })();
+
+// Snippets and the double-click guard for the dismiss and comment forms. Progressive enhancement
+// only: without this script "Use snippet" is a link the server answers with a prefilled box, and
+// the server refuses a repeated dismissal or comment.
+(function () {
+  "use strict";
+  var box = document.getElementById("comment-text");
+  var commentForm = document.getElementById("comment-form");
+
+  // Fill the comment box from the link's data-snippet (read as text, never as HTML) and link the
+  // comment to the rule. Text already typed is kept: the snippet goes on a new line after it.
+  function insert(link) {
+    var text = link.getAttribute("data-snippet");
+    var rule = link.getAttribute("data-rule");
+    if (!box || !commentForm || !text || !rule) return false;
+    box.value = box.value.replace(/\s+$/, "") ? box.value.replace(/\s+$/, "") + "\n" + text : text;
+    var hidden = commentForm.querySelector("input[name=rule_id]");
+    if (!hidden) {
+      hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = "rule_id";
+      commentForm.appendChild(hidden);
+    }
+    hidden.value = rule;
+    var note = document.getElementById("snippet-note");
+    if (note) note.textContent = "Snippet inserted from " + rule + ". Edit before posting.";
+    box.focus();
+    box.setSelectionRange(box.value.length, box.value.length);
+    return true;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("a.snippet-link"), function (link) {
+    link.addEventListener("click", function (event) {
+      if (insert(link)) event.preventDefault(); // otherwise the link works as a normal page load
+    });
+  });
+
+  // One submit disables that form's button so a double click sends one request.
+  Array.prototype.forEach.call(document.querySelectorAll("form.comment-form, form.dismiss-form"), function (form) {
+    var button = form.querySelector("button[type=submit]");
+    if (!button) return;
+    var sent = false;
+    form.addEventListener("submit", function (event) {
+      if (sent) { event.preventDefault(); return; }
+      sent = true;
+      form.setAttribute("aria-busy", "true");
+      button.disabled = true;
+    });
+    window.addEventListener("pageshow", function (event) {
+      if (!event.persisted) return;
+      sent = false;
+      form.removeAttribute("aria-busy");
+      button.disabled = false;
+    });
+  });
+})();

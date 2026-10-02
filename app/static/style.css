@@ -412,3 +412,10 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 .dismiss-form textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; }
 .dismiss-form .field-error { margin: 0; font-weight: 700; color: var(--overdue-text); }
 .dismiss-warning { margin: 0; font-size: 0.9rem; }
+
+.comment-form { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+.comment-form textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 0.5rem; }
+.comment-form textarea:focus-visible, .comment-form button:focus-visible, .snippet-link:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.comment-form .field-error { margin: 0; font-weight: 700; color: var(--overdue-text); }
+.snippet-note { margin: 0; min-height: 1.2em; font-size: 0.9rem; }
+.comment-readonly { margin: 0.5rem 0 0; }

@@ -103,7 +103,8 @@
   <ul class="flag-dismissed">
     {%- for d in dismissed %}
     <li class="flag-dismissal">
-      <p><strong>{{ d.rule_id }}: {{ d.name }}</strong> &middot; dismissed by {{ d.by }}, {{ d.when }}</p>
+      <p><strong>{{ d.rule_id }}: {{ d.name }}</strong> &middot; dismissed by {{ d.by }}, {{ d.when }}
+        {%- if d.snippet_href and role == "reviewer" %} &middot; <a class="snippet-link" href="{{ d.snippet_href }}" data-snippet="{{ d.snippet }}" data-rule="{{ d.rule_id }}">Use snippet</a>{% endif %}</p>
       <p class="dismissal-note">Note: {{ d.note }}</p>
     </li>
     {%- endfor %}
@@ -125,6 +126,29 @@
   </ul>
   {%- else %}
   <p class="comment-empty">No comments yet.</p>
+  {%- endif %}
+  {%- if role != "reviewer" %}
+  <p class="comment-readonly">Only reviewers can comment.</p>
+  {%- elif comment_form %}
+  <form method="post" action="/review/{{ comment_form.id }}/comment" class="comment-form" id="comment-form">
+    <input type="hidden" name="version" value="{{ comment_form.version }}">
+    {%- if comment_form.back %}
+    <input type="hidden" name="back" value="{{ comment_form.back }}">
+    {%- endif %}
+    {%- if comment_state and comment_state.rule_id %}
+    <input type="hidden" name="rule_id" value="{{ comment_state.rule_id }}">
+    {%- endif %}
+    {%- if comment_state and comment_state.error %}
+    <p class="field-error" role="alert" tabindex="-1" autofocus>{{ comment_state.error }}</p>
+    {%- endif %}
+    <label for="comment-text">Add a comment</label>
+    <textarea id="comment-text" name="text" rows="3" maxlength="{{ comment_form.max_text }}"{% if comment_state and comment_state.snippet %} autofocus{% endif %}>
+{% if comment_state %}{{ comment_state.text }}{% endif %}</textarea>
+    <p id="snippet-note" class="snippet-note" role="status">{% if comment_state and comment_state.snippet %}Snippet inserted from {{ comment_state.rule_id }}. Edit before posting.{% endif %}</p>
+    <button type="submit">Post comment</button>
+  </form>
+  {%- else %}
+  <p class="comment-readonly">Comments can only be added to the current version.</p>
   {%- endif %}
 </section>
 </div>
@@ -162,4 +186,4 @@
   </ol>
 </section>
 {% endblock %}
-{% block scripts %}{% if decision_form and role == "reviewer" %}<script src="{{ asset_url('review.js') }}" defer></script>{% endif %}{% endblock %}
+{% block scripts %}{% if (decision_form or comment_form or dismiss_form) and role == "reviewer" %}<script src="{{ asset_url('review.js') }}" defer></script>{% endif %}{% endblock %}
