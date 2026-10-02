@@ -3,7 +3,7 @@
 {% block content %}
 <header class="review-head">
 <div class="review-bar">
-<p class="review-back"><a href="{{ head.back_href }}">&larr; Back to the queue</a></p>
+<p class="review-back"><a href="{{ head.back_href }}">&larr; {{ head.back_text }}</a></p>
 <nav class="version-nav" aria-label="Versions">
   <span class="version-nav-label">Versions:</span>
   {%- for v in versions %}
@@ -32,6 +32,30 @@
 {%- endif %}
 <div class="review-layout{% if error %} has-error{% endif %}{% if notices.old %} has-old{% endif %}{% if notices.lock %} has-lock{% endif %}">
 <div class="review-main" role="region" aria-label="Asset copy and notes" tabindex="0">
+{%- if role == "marketer" %}
+<section class="marketer-feedback" aria-labelledby="feedback-heading">
+  <h2 id="feedback-heading">Reviewer feedback on {{ feedback.version_text }}</h2>
+  {%- if feedback.decision %}
+  <p class="feedback-decision feedback-{{ feedback.decision.outcome }}"><strong>{{ feedback.decision.outcome_label }}</strong>
+    by {{ feedback.decision.reviewer }}, {{ feedback.decision.when }}</p>
+  {%- if feedback.decision.reason %}<p class="feedback-reason">{{ feedback.decision.reason }}</p>{% endif %}
+  {%- else %}
+  <p class="feedback-none">No decision yet. A reviewer will look at this soon.</p>
+  {%- endif %}
+  {%- if feedback.comments %}
+  <ul class="feedback-comments">
+    {%- for c in feedback.comments %}
+    <li class="feedback-comment"><span class="comment-meta"><strong>{{ c.author }}</strong> &middot; {{ c.when }}
+      {%- if c.post_decision %} &middot; <span class="post-decision">Post-decision</span>{% endif %}
+      {%- if c.rule %} &middot; About {{ c.rule }}{% endif %}</span>
+      <span class="feedback-comment-text">{{ c.text }}</span></li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  <p class="feedback-none">No comments yet.</p>
+  {%- endif %}
+</section>
+{%- endif %}
 <section class="copy-pane" aria-labelledby="copy-heading">
   <h2 id="copy-heading">Asset copy</h2>
   {# No whitespace may be added between pieces: the pane is pre-wrap, so extra spaces would show as copy. #}

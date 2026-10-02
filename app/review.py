@@ -99,6 +99,7 @@ def header_view(data, back="/"):
         "version_text": "v%d" % number,
         "is_current": number == s["current_version"],
         "back_href": back,
+        "back_text": "Back to my submissions" if back == MINE_URL else "Back to the queue",
     }
 
 
@@ -283,6 +284,20 @@ def notices_view(data, back="/"):
         text = template % (who, day) if d["outcome"] in _LOCK_TEXT else "Decided by %s, %s." % (who, day)
         lock = {"text": text, "reason": d["reason"], "outcome": d["outcome"]}
     return {"old": old, "lock": lock}
+
+
+def feedback_view(data):
+    """What the marketer reads at the top of the copy: this version's decision and its comments.
+
+    Plain text for the template to escape. `decision` is None while the version is undecided.
+    """
+    d = data["decision"]
+    decision = None
+    if d is not None:
+        decision = {"outcome": d["outcome"], "outcome_label": _outcome_label(d["outcome"]),
+                    "reviewer": d["reviewer"], "reason": d["reason"], "when": day_text(d["created_at"])}
+    return {"version_text": "v%d" % data["version"]["version_number"], "decision": decision,
+            "comments": comments_view(data)}
 
 
 def history_view(data):
@@ -485,8 +500,13 @@ class _Query:
         return self._parsed.get(name, [])
 
 
+MINE_URL = "/mine"
+
+
 def safe_back(raw):
-    """The queue URL to go back to: "/" or "/?status=..&product=..&channel=..", always rebuilt here.
+    """The URL to go back to: "/", "/mine" or "/?status=..&product=..&channel=..", always rebuilt here.
+
+    "/mine" is allowed only as exactly that text; it is how a marketer returns to their list.
 
     `raw` is untrusted. It must start with "/?"; its query is parsed and only the three known
     filters with allowed values are kept (a repeated or unknown value is dropped), and a fresh
@@ -497,6 +517,8 @@ def safe_back(raw):
 
     from app.queue import FILTER_FIELDS, filters_from_query
 
+    if raw == MINE_URL:
+        return MINE_URL
     if not isinstance(raw, str) or len(raw) > 300 or not raw.startswith("/?"):
         return "/"
     try:

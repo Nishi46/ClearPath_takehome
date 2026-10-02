@@ -114,7 +114,7 @@ def _render_review(request, data, status_code=200, error=None, reason="", back="
                       versions=review.versions_view(data, back), notices=review.notices_view(data, back),
                       history=review.history_view(data), comments=review.comments_view(data),
                       notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason,
-                      decision_form=review.decision_form_view(data, back))
+                      decision_form=review.decision_form_view(data, back), feedback=review.feedback_view(data))
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response
 
@@ -134,6 +134,8 @@ def review_page(request: Request, submission_id: str):
             raise HTTPException(status_code=404)
     backs = request.query_params.getlist("back")
     back = review.safe_back(backs[0]) if len(backs) == 1 else "/"
+    if back == "/" and get_role(request) == "marketer":
+        back = review.MINE_URL  # a marketer goes back to their own list unless they came from a filtered queue
     with db.connect() as conn:
         data = review.load_review(conn, sid, number)
     if data is None:
