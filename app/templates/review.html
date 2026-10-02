@@ -25,7 +25,8 @@
 {%- if notices.lock %}
 <div class="notice lock-banner lock-{{ notices.lock.outcome }}" role="status">
   <p class="lock-text">{{ notices.lock.text }}</p>
-  {%- if notices.lock.reason %}
+  {#- A marketer reads the reason in the feedback block below, so the banner does not repeat it. #}
+  {%- if notices.lock.reason and role != "marketer" %}
   <p class="lock-reason">Reason: {{ notices.lock.reason }}</p>
   {%- endif %}
 </div>
