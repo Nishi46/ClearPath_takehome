@@ -336,3 +336,29 @@ def test_banner_is_only_for_the_owner(mclient):
 def test_the_banner_survives_a_refresh(mclient):
     loc = post(mclient).headers["location"]
     assert banner(mclient.get(loc).text) == banner(mclient.get(loc).text)
+
+
+@pytest.mark.parametrize("days", range(-3, 12))
+def test_the_form_warning_agrees_with_the_queue_label_for_the_same_date(mclient, days):
+    """Submit an item with this launch date, then compare the queue's own label with the form's warning."""
+    from app.queue import list_queue, row_view
+
+    launch = clock.today() + timedelta(days=days)
+    sid = int(post(mclient, good(title="Label %d" % days, launch_date=launch.isoformat())).headers["location"].split("=")[1])
+    with db.connect() as c:
+        row = next(r for r in list_queue(c) if r["id"] == sid)
+    label = row_view(row, clock.today())["urgency_label"] or ""
+    warning = re.findall(r'<p class="field-warning">(.*?)</p>', check_page(mclient, launch).text, re.S)
+    text = re.sub(r"<[^>]+>|&#9888;", "", warning[0]).strip() if warning else ""
+    assert bool(label) == bool(text), (label, text)
+    if label.startswith("Overdue"):
+        assert "already passed" in text
+    elif label == "Launches today":
+        assert "Launches today." in text
+    elif label == "Launches tomorrow":
+        assert "Launches in 1 business day." in text or "Launches before the next business day." in text
+    elif label == "Rush: launches this weekend":
+        assert "Launches before the next business day." in text
+    elif label.startswith("Rush: launches in "):
+        n = label.split("in ")[1].split(" business")[0]
+        assert "Launches in %s business day" % n in text
