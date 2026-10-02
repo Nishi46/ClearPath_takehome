@@ -144,3 +144,46 @@ def get_rule(rule_id):
             if rule.id == rule_id:
                 return rule
     raise RulesError(f"Unknown rule {rule_id!r}")
+
+
+# ---- text normalization ----
+
+# Stands in for invisible characters (zero-width, soft hyphen, bidi marks). It keeps the text the
+# same length, so match offsets still line up with the original copy; the phrase matcher
+# treats it as ignorable.
+IGNORABLE = ""
+
+_INVISIBLE = ("­᠎​‌‍\u200E\u200F\u202A\u202B\u202C\u202D\u202E"
+              "⁠\u2066\u2067\u2068\u2069﻿")
+_UNICODE_SPACES = ("           "
+                   "    　")
+_DASHES = "‐‑‒–—―−﹘﹣－"
+_APOSTROPHES = "‘’‚‛′ʼ＇"
+_DOUBLE_QUOTES = "“”„‟″＂"
+_LINE_BREAKS = "\u0085  "
+
+# Every entry maps one character to exactly one character.
+_TABLE = {ord(c): IGNORABLE for c in _INVISIBLE}
+_TABLE.update({ord(c): " " for c in _UNICODE_SPACES})
+_TABLE.update({ord(c): "-" for c in _DASHES})
+_TABLE.update({ord(c): "'" for c in _APOSTROPHES})
+_TABLE.update({ord(c): '"' for c in _DOUBLE_QUOTES})
+_TABLE.update({ord(c): "\n" for c in _LINE_BREAKS})
+
+
+def normalize(text):
+    """Lowercase and tidy `text` for matching without changing its length.
+
+    Each character is replaced by exactly one character, so an index into the result is the same
+    index into the original. Curly quotes and Unicode dashes and spaces become their plain forms;
+    invisible characters become IGNORABLE.
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    text = text.translate(_TABLE)
+    lowered = text.lower()
+    if len(lowered) != len(text):
+        # A few characters lowercase to more than one (for example a dotted capital I); keep the
+        # first so the length does not change.
+        lowered = "".join(c.lower()[0] for c in text)
+    return lowered
