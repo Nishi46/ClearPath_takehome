@@ -443,3 +443,55 @@ def evaluate(product, channel, copy):
         else:
             flags.extend(_missing_flags(rule, norm))
     return tuple(sorted(dict.fromkeys(flags), key=_flag_order))
+
+
+# ---- describing a flag for display ----
+
+SEVERITY_LABELS = {"high": "High", "medium": "Medium", "low": "Low"}
+KIND_LABELS = {"phrase": "Phrase found", "missing": "Missing text"}
+UNKNOWN_RULE_NAME = "Rule no longer available"
+UNKNOWN_RULE_EXPLANATION = "This rule is no longer in the rule set. The flag is kept as history."
+
+
+def _flag_field(flag, name):
+    if isinstance(flag, dict) or hasattr(flag, "keys"):  # a dict or a sqlite3.Row
+        try:
+            return flag[name]
+        except (KeyError, IndexError):
+            return None
+    return getattr(flag, name, None)
+
+
+def describe(flag):
+    """Name, explanation, snippet and labels for a flag, as a new dict of plain strings.
+
+    The one place the screens get rule text from, so a screen cannot carry its own copy that
+    drifts from data/rules.json. Takes an engine Flag or a stored flag row. Severity and kind
+    come from the flag itself (what was true when it was raised); everything else comes from
+    the rule. A rule that has since been removed gives a placeholder instead of an error, with
+    an empty snippet so nothing offers to insert text for it. Values are raw text: escaping is
+    the template's job.
+    """
+    rule_id = _flag_field(flag, "rule_id")
+    if rule_id is None:
+        raise TypeError("flag has no rule_id")
+    try:
+        rule = get_rule(rule_id)
+    except RulesError:
+        rule = None
+    severity = _flag_field(flag, "severity")
+    kind = _flag_field(flag, "kind")
+    if rule is not None:
+        severity = severity if severity in SEVERITY_LABELS else rule.severity
+        kind = kind if kind in KIND_LABELS else rule.kind
+    return {
+        "rule_id": str(rule_id),
+        "name": rule.name if rule else UNKNOWN_RULE_NAME,
+        "explanation": rule.description if rule else UNKNOWN_RULE_EXPLANATION,
+        "snippet": rule.snippet_text if rule else "",
+        "severity": severity if severity in SEVERITY_LABELS else "",
+        "severity_label": SEVERITY_LABELS.get(severity, "Unknown"),
+        "kind": kind if kind in KIND_LABELS else "",
+        "kind_label": KIND_LABELS.get(kind, "Unknown"),
+        "known": rule is not None,
+    }
