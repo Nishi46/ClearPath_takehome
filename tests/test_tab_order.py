@@ -12,6 +12,7 @@ class Focusables(HTMLParser):
         self.items = []
         self.positive_tabindex = []
         self.main_seen = False
+        self.theme_toggle = None
 
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
@@ -23,6 +24,8 @@ class Focusables(HTMLParser):
             return
         if tag == "a" and "href" in a:
             self.items.append(("a", a["href"], self.main_seen))
+        elif tag == "button" and a.get("id") == "theme-toggle":
+            self.theme_toggle = len(self.items)      # fixed at the bottom right, so it is last in the DOM and last in Tab order
         elif tag == "button":
             self.items.append((tag, a.get("value") or "", self.main_seen))   # the role buttons carry their role as the value
         elif tag in ("select", "textarea"):
@@ -75,3 +78,8 @@ def test_empty_state_link_is_reachable_after_the_filters(client):
 def test_confirm_page_cancel_and_submit_are_both_reachable(client):
     main = [(k, v) for k, v, m in focusables(client.get("/reset/confirm").text).items if m]
     assert ("button", "") in main and ("a", "/") in main
+
+
+def test_theme_toggle_is_the_last_stop_after_the_main_content(client):
+    p = focusables(client.get("/").text)
+    assert p.theme_toggle == len(p.items)

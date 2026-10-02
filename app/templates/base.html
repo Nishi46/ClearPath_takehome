@@ -37,7 +37,6 @@
           {% endfor %}
         </form>
       </nav>
-      <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false" hidden>Dark mode</button>
       <div class="reset-demo-group">
         {# A link, not a form: opening the confirmation page changes nothing. #}
         <a class="reset-demo" href="/reset/confirm" aria-describedby="reset-demo-note">Reset demo</a>
@@ -48,6 +47,10 @@
   <main id="main" role="main">
     {% block content %}{% endblock %}
   </main>
+  <button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Dark mode" title="Light or dark mode">
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2V5M12 19V22M2 12H5M19 12H22M5 5L7 7M17 17L19 19M5 19L7 17M17 7L19 5"/></g></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 14A8 8 0 0 1 10 4A8 8 0 1 0 20 14Z" fill="currentColor"/></svg>
+  </button>
   {% block scripts %}{% endblock %}
 </body>
 </html>

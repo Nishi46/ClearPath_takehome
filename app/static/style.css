@@ -780,7 +780,13 @@ main > p > a.button-link[href="/submit"]:hover { background: var(--accent-strong
 :root[data-theme="light"] .decision-buttons .decision-approve, :root[data-theme="light"] .reset-confirm-button { color: var(--accent-text); }
 :root[data-theme="dark"] .decision-buttons .decision-approve { color: #05140c; }
 :root[data-theme="dark"] .reset-confirm-button { color: #1b0606; }
-.theme-toggle { font: inherit; font-size: 0.8125rem; font-weight: 600; padding: 0.1875rem 0.625rem;
-  border: 1px solid var(--border); border-radius: var(--radius); background: transparent; color: var(--text-muted); cursor: pointer; }
-.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
-.theme-toggle[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+/* Fixed at the bottom right of every page. Shows the moon in light mode and the sun in dark mode: the mode a click switches to. */
+.theme-toggle { visibility: hidden; position: fixed; right: 1rem; bottom: 1rem; z-index: 20; width: 2.75rem; height: 2.75rem; padding: 0; display: grid; place-items: center;
+  border: 1px solid var(--control-border); border-radius: 999px; background: var(--surface); color: var(--text); cursor: pointer; box-shadow: 0 2px 8px rgba(16, 24, 40, 0.18); }
+.theme-toggle.is-ready { visibility: visible; }
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle svg { grid-area: 1 / 1; width: 1.375rem; height: 1.375rem; }
+.theme-toggle .icon-sun { opacity: 0; }
+.theme-toggle[aria-pressed="true"] .icon-sun { opacity: 1; }
+.theme-toggle[aria-pressed="true"] .icon-moon { opacity: 0; }
+main { padding-bottom: 4.5rem; }

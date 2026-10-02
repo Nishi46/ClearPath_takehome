@@ -1,6 +1,6 @@
 // Light/dark toggle. Loaded in <head> without defer so the saved choice is applied before the page
 // paints (no flash). With no saved choice the system setting decides (see style.css). The button is
-// hidden in the markup and only shown here, because without JavaScript it could do nothing.
+// invisible until this script marks it ready, because without JavaScript it could do nothing.
 (function () {
   "use strict";
   var KEY = "clearpath-theme";
@@ -21,7 +21,7 @@
     var button = document.getElementById("theme-toggle");
     if (!button) return;
     function sync() { button.setAttribute("aria-pressed", effective() === "dark" ? "true" : "false"); }
-    button.hidden = false;
+    button.classList.add("is-ready");
     sync();
     button.addEventListener("click", function () {
       var next = effective() === "dark" ? "light" : "dark";

@@ -68,7 +68,8 @@ def test_the_queue_needs_no_javascript_and_no_second_request(client):
     html = client.get("/").text
     assert len(body_rows(html)) == 14
     assert not re.search(r"hx-(get|post|trigger)|fetch\(|XMLHttpRequest", html)
-    assert re.findall(r'<script[^>]*src="([^"]+)"', html) == [re.search(r'src="(/static/htmx[^"]+)"', html).group(1),
+    assert re.findall(r'<script[^>]*src="([^"]+)"', html) == [re.search(r'src="(/static/theme[^"]+)"', html).group(1),      # the theme choice, applied before paint
+                                                              re.search(r'src="(/static/htmx[^"]+)"', html).group(1),
                                                               re.search(r'src="(/static/queue[^"]+)"', html).group(1)]
     assert 'class="queue"' in html and "<noscript" not in html            # nothing is hidden until a script runs
 

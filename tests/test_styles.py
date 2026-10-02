@@ -184,9 +184,11 @@ def test_forced_themes_use_the_same_tokens_as_the_system_dark_theme():
         assert T[name] == value, name
 
 
-def test_toggle_is_a_hidden_until_scripted_button_and_the_script_loads_in_head(client):
+def test_toggle_is_an_invisible_until_scripted_icon_button_and_the_script_loads_in_head(client):
     html = client.get("/").text
-    assert re.search(r'<button type="button" id="theme-toggle"[^>]*aria-pressed="false" hidden>Dark mode</button>', html)
+    assert re.search(r'<button type="button" id="theme-toggle" class="theme-toggle" aria-pressed="false" aria-label="Dark mode"', html)
+    assert 'class="icon-sun"' in html and 'class="icon-moon"' in html
+    assert re.search(r"\.theme-toggle \{ visibility: hidden; position: fixed; right: 1rem; bottom: 1rem", CSS)   # bottom right
     head = html.split("</head>")[0]
     assert re.search(r'<script src="/static/theme\.js\?v=\w+"></script>', head)      # no defer: applied before paint
     js = client.get("/static/theme.js")

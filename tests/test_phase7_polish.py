@@ -278,11 +278,12 @@ def test_review_still_shows_copy_and_flags_at_125_percent_zoom(client, sid):
 
 @needs_chrome
 def test_no_fixed_or_sticky_element_covers_content(client):
+    # The one exception is the small theme toggle at the bottom right; main leaves room beneath the last row for it.
     for path in ("/", "/review/3", "/submit"):
         html = render(client, "marketer" if path == "/submit" else "reviewer", "Maya Chen", path)
         found = evaluate(html, 1366, 768, """
           return [].slice.call(d.querySelectorAll('body *')).filter(function (e) {
-            var p = w.getComputedStyle(e).position; return p === 'fixed' || p === 'sticky';
+            var p = w.getComputedStyle(e).position; return (p === 'fixed' || p === 'sticky') && !e.classList.contains('theme-toggle');
           }).map(function (e) { return e.tagName + '.' + e.className; });
         """)
         assert found == [], (path, found)

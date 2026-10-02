@@ -200,7 +200,8 @@ def test_hostile_rule_id_is_refused_and_never_reflected(client, payload):
     role(client, "reviewer")
     before = dump()
     for r in (dismiss(client, 12, payload), comment(client, 12, "ok text", rule_id=payload)):
-        assert r.status_code in (409, 413, 422) and "49" not in r.text
+        page = re.sub(r"\?v=\w+", "", r.text)       # asset URLs carry a content hash that can contain any digits
+        assert r.status_code in (409, 413, 422) and "49" not in page
         assert payload not in r.text or payload in ("{{7*7}}",) and "{{7*7}}" not in r.text
         assert "X-Evil" not in r.headers
     assert dump() == before
