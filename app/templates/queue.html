@@ -17,8 +17,18 @@
     </select>
   </div>
   {% endfor %}
-  <button type="submit" class="filter-apply">Apply</button>
-  <a class="filter-clear" href="/">Clear filters</a>
+  <div class="filter">
+    <label for="filter-sort">Sort by</label>
+    <select id="filter-sort" name="sort">
+      {% for value, text in sort_options %}
+      <option value="{{ value }}"{% if sort == value %} selected{% endif %}>{{ text }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="filter-apply">Apply</button>
+    <a class="filter-apply filter-clear" href="/">Clear filters</a>
+  </div>
 </form>
 <p class="summary">{{ summary }}</p>
 {% if empty == "filtered" %}
@@ -27,16 +37,16 @@
 <p class="empty-state" role="status">No submissions yet. <a href="/submit">Submit the first one</a></p>
 {% else %}
 <table class="queue">
-  <caption class="visually-hidden">Submissions, earliest launch date first</caption>
+  <caption class="visually-hidden">Submissions, {% if sort == 'launch_desc' %}latest launch date first{% elif sort == 'flags_desc' %}most flags first{% elif sort == 'flags_asc' %}fewest flags first{% else %}earliest launch date first{% endif %}</caption>
   <thead>
     <tr>
       <th scope="col">Title</th>
       <th scope="col">Product</th>
       <th scope="col">Channel</th>
-      <th scope="col" aria-sort="ascending">Launch date (earliest first)</th>
+      <th scope="col" {% if sort == 'launch_desc' %}aria-sort="descending">Launch date (latest first){% elif sort == 'launch_asc' %}aria-sort="ascending">Launch date (earliest first){% else %}>Launch date{% endif %}</th>
       <th scope="col">Status</th>
       <th scope="col">Submitter</th>
-      <th scope="col">Flags</th>
+      <th scope="col"{% if sort == 'flags_desc' %} aria-sort="descending"{% elif sort == 'flags_asc' %} aria-sort="ascending"{% endif %}>Flags</th>
       <th scope="col">Version</th>
     </tr>
   </thead>

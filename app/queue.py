@@ -31,6 +31,16 @@ FILTER_OPTIONS = {
     ),
 }
 
+# Sort is not a filter: it never hides rows, and it always has a value. The first option is the
+# default and is left out of URLs. Ties always fall back to earliest launch date.
+SORT_OPTIONS = (
+    ("launch_asc", "Launch date: earliest first"),
+    ("launch_desc", "Launch date: latest first"),
+    ("flags_desc", "Flags: most first"),
+    ("flags_asc", "Flags: fewest first"),
+)
+DEFAULT_SORT = SORT_OPTIONS[0][0]
+
 # The partner names as one bound text value for the query, so the SQL itself never changes.
 PARTNER_LIST = "|" + "|".join(AFFILIATES) + "|"
 
@@ -56,7 +66,10 @@ SELECT s.id, s.title, s.product, s.channel, s.launch_date, s.status, s.submitted
    AND (? IS NULL OR s.product = ?)
    AND (? IS NULL OR s.channel = ?)
    AND (? IS NULL OR (instr(?, '|' || s.submitted_by || '|') > 0) = (? = 'partners'))
- ORDER BY s.launch_date ASC, s.created_at ASC, s.id ASC
+ ORDER BY CASE WHEN ? = 'launch_desc' THEN s.launch_date END DESC,
+          CASE WHEN ? = 'flags_desc' THEN flag_count END DESC,
+          CASE WHEN ? = 'flags_asc' THEN flag_count END ASC,
+          s.launch_date ASC, s.created_at ASC, s.id ASC
 """
 
 
@@ -71,8 +84,19 @@ def clean_filter(name, value):
     return value if value in dict(FILTER_OPTIONS[name]) else None
 
 
-def list_queue(conn, status=None, product=None, channel=None, source=None):
-    """One row per submission, showing its current version, earliest launch first.
+def clean_sort(value):
+    """Return `value` if it is an allowed sort, else the default."""
+    return value if isinstance(value, str) and value in dict(SORT_OPTIONS) else DEFAULT_SORT
+
+
+def sort_from_query(query_params):
+    """The sort from a request's query string; missing, repeated or unknown means the default."""
+    values = query_params.getlist("sort")
+    return clean_sort(values[0]) if len(values) == 1 else DEFAULT_SORT
+
+
+def list_queue(conn, status=None, product=None, channel=None, source=None, sort=DEFAULT_SORT):
+    """One row per submission, showing its current version, earliest launch first by default.
 
     Ties break on created_at then id, so the order is always the same. Unknown filter values
     mean "All". Runs a single query.
@@ -82,7 +106,8 @@ def list_queue(conn, status=None, product=None, channel=None, source=None):
         value = clean_filter(name, value)
         args += [value, value]
     source = clean_filter("source", source)
-    args += [source, PARTNER_LIST, source]
+    sort = clean_sort(sort)
+    args += [source, PARTNER_LIST, source, sort, sort, sort]
     return [dict(r) for r in conn.execute(sql_queue, args).fetchall()]
 
 
@@ -173,7 +198,8 @@ def row_view(row, today=None):
     }
 
 
-FILTER_FIELDS = (("status", "Status"), ("product", "Product"), ("channel", "Channel"), ("source", "Submitted by"))
+# Same left-to-right order as the table columns: Product, Channel, Status, Submitter.
+FILTER_FIELDS = (("product", "Product"), ("channel", "Channel"), ("status", "Status"), ("source", "Submitted by"))
 
 
 def filters_from_query(query_params):

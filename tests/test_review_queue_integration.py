@@ -74,8 +74,8 @@ def test_row_links_and_keyboard_target_still_reach_the_page(client):
 # ---- back link: safe_back is the only gate ----
 
 @pytest.mark.parametrize("raw, expected", [
-    ("/?status=in_review&product=loan", "/?status=in_review&product=loan"),
-    ("/?product=loan&status=in_review", "/?status=in_review&product=loan"),            # canonical order
+    ("/?status=in_review&product=loan", "/?product=loan&status=in_review"),
+    ("/?product=loan&status=in_review", "/?product=loan&status=in_review"),            # canonical order
     ("/?channel=email", "/?channel=email"),
     ("/?status=in_review&status=approved", "/"),                                        # ambiguous: dropped
     ("/?status=bogus&product=card", "/?product=card"),
@@ -108,7 +108,7 @@ def test_with_back():
 def test_filtered_queue_links_carry_the_filters(client):
     html = client.get("/?status=in_review&product=loan").text
     link = unescape(re.search(r'<a href="(/review/\d+[^"]*)"', html).group(1))
-    assert parse_qs(urlparse(link).query)["back"] == ["/?status=in_review&product=loan"]
+    assert parse_qs(urlparse(link).query)["back"] == ["/?product=loan&status=in_review"]
     assert 'href="/review/' in html
 
 
@@ -126,7 +126,7 @@ def test_bad_filters_on_the_queue_do_not_leak_into_links(client):
 def test_back_link_returns_to_the_filtered_queue(client):
     link = unescape(re.search(r'<a href="(/review/\d+[^"]*)"', client.get("/?status=in_review&product=loan").text).group(1))
     page = client.get(link).text
-    assert back_href(page) == "/?status=in_review&product=loan"
+    assert back_href(page) == "/?product=loan&status=in_review"
     assert client.get(back_href(page)).status_code == 200
 
 

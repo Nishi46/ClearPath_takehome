@@ -7,7 +7,8 @@ from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse, Response
 
 from app import audit, clock, db, review, seed
-from app.queue import FILTER_FIELDS, FILTER_OPTIONS, empty_kind, filters_from_query, list_queue, row_view, summary_text
+from app.queue import (DEFAULT_SORT, FILTER_FIELDS, FILTER_OPTIONS, SORT_OPTIONS, empty_kind, filters_from_query,
+                       list_queue, row_view, sort_from_query, summary_text)
 from app.cooldown import Cooldown
 from app.errors import error_response
 from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, REVIEWER_NAME, ROLES, get_role
@@ -46,15 +47,18 @@ def queue(request: Request):
     # A fixed flag, never the query value itself: only exactly ?reset=done shows the banner.
     reset_done = request.query_params.getlist("reset") == ["done"]
     filters = filters_from_query(request.query_params)
+    sort = sort_from_query(request.query_params)
     with db.connect() as conn:
         today = clock.today()
-        rows = [row_view(r, today) for r in list_queue(conn, **filters)]
+        rows = [row_view(r, today) for r in list_queue(conn, sort=sort, **filters)]
         empty = empty_kind(conn, rows, filters)
     response = render(request, "queue.html", reset_done=reset_done, rows=rows, filters=filters,
                       filter_fields=FILTER_FIELDS, filter_options=FILTER_OPTIONS,
+                      sort=sort, sort_options=SORT_OPTIONS,
                       summary=summary_text(rows), empty=empty,
                       review_query=review.with_back("", review.safe_back("/?" + urlencode(
-                          [(k, v) for k, v in filters.items() if v]))))
+                          [(k, v) for k, v in filters.items() if v]
+                          + ([("sort", sort)] if sort != DEFAULT_SORT else [])))))
     response.headers["Cache-Control"] = "no-store"  # urgency labels depend on today's date
     return response
 

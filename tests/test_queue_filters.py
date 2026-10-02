@@ -34,7 +34,7 @@ def test_form_is_a_plain_get_form_with_labelled_selects(client):
         assert f'<label for="filter-{name}">{label}</label>' in form
         assert f'<select id="filter-{name}" name="{name}">' in form
     assert 'type="submit"' in form and ">Apply<" in form
-    assert '<a class="filter-clear" href="/">Clear filters</a>' in form
+    assert '<a class="filter-apply filter-clear" href="/">Clear filters</a>' in form
 
 
 def test_every_select_starts_with_all_then_the_real_options(client):
@@ -210,3 +210,28 @@ def test_filtered_page_headers(client):
     r = client.get("/?status=new")
     assert r.headers["cache-control"] == "no-store"
     assert r.headers["x-content-type-options"] == "nosniff"
+
+
+def test_filters_follow_the_column_order_and_sort_comes_last(client):
+    form = re.search(r'<form class="filters".*?</form>', client.get("/").text, re.S).group(0)
+    names = re.findall(r'<select id="filter-(\w+)"', form)
+    assert names == ["product", "channel", "status", "source", "sort"]
+
+
+def test_sort_by_launch_date_latest_first_reverses_the_queue(client):
+    def order(url):
+        return [int(i) for i in re.findall(r'href="/review/(\d+)', client.get(url).text)]
+    asc, desc = order("/"), order("/?sort=launch_desc")
+    assert asc[0] == 11 and desc[0] == 12
+    assert "Launch date (latest first)" in client.get("/?sort=launch_desc").text
+    assert order("/?sort=bogus") == asc and order("/?sort=launch_desc&sort=launch_asc") == asc
+
+
+def test_sort_by_flags_orders_by_open_flag_count(client):
+    def counts(url):
+        html = client.get(url).text
+        return [int(c) for c in re.findall(r'<span class="flag-count">(\d+)</span>', html)]
+    most, fewest = counts("/?sort=flags_desc"), counts("/?sort=flags_asc")
+    assert most == sorted(most, reverse=True) and most[0] > most[-1]
+    assert fewest == sorted(fewest) and sorted(most) == fewest
+    assert "Flags: most first" in client.get("/").text

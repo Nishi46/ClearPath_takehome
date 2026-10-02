@@ -796,14 +796,14 @@ def safe_back(raw):
 
     "/mine" is allowed only as exactly that text; it is how a marketer returns to their list.
 
-    `raw` is untrusted. It must start with "/?"; its query is parsed and only the three known
-    filters with allowed values are kept (a repeated or unknown value is dropped), and a fresh
+    `raw` is untrusted. It must start with "/?"; its query is parsed and only the known
+    filters and sort with allowed values are kept (a repeated or unknown value is dropped), and a fresh
     URL is built from those. Nothing from `raw` is passed through, so it cannot point off-site,
     carry markup or add parameters. Anything else gives "/".
     """
     from urllib.parse import parse_qs, urlencode
 
-    from app.queue import FILTER_FIELDS, filters_from_query
+    from app.queue import DEFAULT_SORT, FILTER_FIELDS, filters_from_query, sort_from_query
 
     if raw == MINE_URL:
         return MINE_URL
@@ -815,6 +815,9 @@ def safe_back(raw):
         return "/"
     filters = filters_from_query(_Query(parsed))
     pairs = [(name, filters[name]) for name, _ in FILTER_FIELDS if filters[name]]
+    sort = sort_from_query(_Query(parsed))
+    if sort != DEFAULT_SORT:
+        pairs.append(("sort", sort))
     return "/?" + urlencode(pairs) if pairs else "/"
 
 

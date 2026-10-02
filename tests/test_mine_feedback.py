@@ -164,7 +164,7 @@ def test_repeated_back_values_fall_back(mclient):
 
 def test_a_marketer_who_came_from_a_filtered_queue_goes_back_there(mclient):
     href, text = back_link(mclient.get("/review/3", params={"back": "/?status=in_review&product=loan"}).text)
-    assert href == "/?status=in_review&amp;product=loan" or href == "/?status=in_review&product=loan"
+    assert href == "/?product=loan&amp;status=in_review" or href == "/?product=loan&status=in_review"
     assert text == "Back to the queue"
 
 
