@@ -293,3 +293,37 @@ def history_view(data):
             text = "v%d %s by %s" % (h["version_number"], _outcome_label(h["outcome"]).lower(), h["who"])
         out.append({"text": text, "when": day_text(h["at"]), "kind": h["kind"]})
     return out
+
+
+def _parse_timestamp(value):
+    from datetime import datetime
+
+    try:
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except (ValueError, TypeError):
+        return None
+
+
+def comments_view(data):
+    """Read-only comments of the selected version, oldest first, as plain text for the template.
+
+    A comment made after this version's decision is labeled post-decision. If either time is
+    unreadable the label is left off rather than guessed. A rule name is shown only for a rule
+    that still exists.
+    """
+    from app.rules import describe
+
+    decided_at = _parse_timestamp(data["decision"]["created_at"]) if data["decision"] else None
+    out = []
+    for c in data["comments"]:
+        posted = _parse_timestamp(c["created_at"])
+        rule_name = None
+        if c["rule_id"]:
+            info = describe({"rule_id": c["rule_id"]})
+            rule_name = "%s: %s" % (info["rule_id"], info["name"]) if info["known"] else None
+        out.append({
+            "author": c["author"], "text": c["text"], "when": when_text(c["created_at"]),
+            "rule": rule_name,
+            "post_decision": bool(decided_at and posted and posted > decided_at),
+        })
+    return out

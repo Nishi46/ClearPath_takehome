@@ -277,3 +277,9 @@ table.queue.row-clickable tbody tr { cursor: pointer; }
 .lock-reason { white-space: pre-wrap; }
 .history-list { margin: 0; padding-left: 1.25rem; overflow-wrap: anywhere; }
 .history-when { color: var(--text-muted); }
+.comment-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.comment { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; }
+.comment p { margin: 0.125rem 0; overflow-wrap: anywhere; }
+.comment-meta { color: var(--text-muted); font-size: 0.875rem; }
+.comment-text { white-space: pre-wrap; }
+.post-decision { font-weight: 700; border: 1px solid currentColor; border-radius: 999px; padding: 0 0.5rem; }

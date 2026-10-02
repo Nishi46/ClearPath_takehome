@@ -81,6 +81,23 @@
   </ul>
   {%- endif %}
 </section>
+<section class="comments-pane" aria-labelledby="comments-heading">
+  <h2 id="comments-heading">Comments ({{ comments|length }})</h2>
+  {%- if comments %}
+  <ul class="comment-list">
+    {%- for c in comments %}
+    <li class="comment">
+      <p class="comment-meta"><strong>{{ c.author }}</strong> &middot; {{ c.when }}
+        {%- if c.post_decision %} &middot; <span class="post-decision">Post-decision</span>{% endif %}
+        {%- if c.rule %} &middot; About {{ c.rule }}{% endif %}</p>
+      <p class="comment-text">{{ c.text }}</p>
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  <p class="comment-empty">No comments yet.</p>
+  {%- endif %}
+</section>
 <section class="history-strip" aria-labelledby="history-heading">
   <h2 id="history-heading">History</h2>
   <ol class="history-list">

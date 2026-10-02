@@ -142,6 +142,6 @@ def review_page(request: Request, submission_id: str):
     response = render(request, "review.html", head=review.header_view(data), copy=pieces,
                       cards=review.cards_view(data, pieces), dismissed=review.dismissals_view(data),
                       versions=review.versions_view(data), notices=review.notices_view(data),
-                      history=review.history_view(data), notes=(data["version"]["notes"] or "").strip())
+                      history=review.history_view(data), comments=review.comments_view(data), notes=(data["version"]["notes"] or "").strip())
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response
