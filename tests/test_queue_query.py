@@ -201,10 +201,13 @@ def test_values_are_bound_not_built_into_sql(seeded):
     finally:
         seeded.set_trace_callback(None)
     assert "s.status = 'new'" in seen[0] or "'new'" in seen[0]  # sqlite shows the bound value, not our text
+    # The SQL is one constant with only "?" placeholders, and execute() is only ever given that constant.
+    sql = queue_module.sql_queue
+    assert sql.count("?") == 6
+    assert "%" not in sql and "{" not in sql
     source = Path(queue_module.__file__).read_text()
-    assert not re.search(r"""\bf["']""", source)               # no f-strings at all in the module
-    assert not re.search(r"""["']\s*%\s*[\(a-z]""", source)    # no %-formatting
-    assert ".format(" not in source
+    calls = re.findall(r"\.execute\w*\(([^)]*)\)", source)
+    assert calls and all(c.split(",")[0].strip() == "sql_queue" for c in calls)
 
 
 def test_query_does_not_write(seeded):

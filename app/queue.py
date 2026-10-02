@@ -1,3 +1,7 @@
+from datetime import date
+
+from app import clock
+
 # Queue filters and the queue query. FILTER_OPTIONS is the one list of allowed filter values
 # and their display names; the filter form, the route and the query all use it.
 
@@ -21,6 +25,13 @@ FILTER_OPTIONS = {
         ("display", "Display"),
     ),
 }
+
+# Phase 3 turns this on once flags are computed. Until then a dash is honest; a "0" would claim
+# the item was checked and found clean.
+FLAGS_READY = False
+FLAGS_PENDING_TITLE = "Flags are computed in phase 3"
+
+MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 # One constant query. Each filter is "no filter (NULL) or an exact match", so a request value is
 # only ever a bound parameter and no SQL text is assembled at run time.
@@ -59,3 +70,78 @@ def list_queue(conn, status=None, product=None, channel=None):
         value = clean_filter(name, value)
         args += [value, value]
     return [dict(r) for r in conn.execute(sql_queue, args).fetchall()]
+
+
+def _label(name, value):
+    """Display name for a filter value; an unlisted value is shown readable rather than crashing the page."""
+    labels = dict(FILTER_OPTIONS[name])
+    return labels.get(value) or str(value).replace("_", " ").capitalize()
+
+
+def _plural(n, word):
+    return "%d %s%s" % (n, word, "" if n == 1 else "s")
+
+
+def _launch_text(launch):
+    return "%s %d, %d" % (MONTHS[launch.month - 1], launch.day, launch.year)
+
+
+def _urgency_label(kind, today, launch):
+    if kind == "overdue":
+        return "Overdue by " + _plural((today - launch).days, "day")
+    days = (launch - today).days
+    if days == 0:
+        return "Launches today"
+    if days == 1:
+        return "Launches tomorrow"
+    business = clock.business_days_until(today, launch)
+    if business == 0:
+        return "Rush: launches this weekend"
+    return "Rush: launches in " + _plural(business, "business day")
+
+
+def row_view(row, today=None):
+    """Turn a list_queue row into the plain-text values the queue page shows.
+
+    Everything here is a plain string; the template escapes it. Nothing raises on odd data:
+    an unknown status or an unreadable launch date just loses its label or urgency.
+    """
+    today = today or clock.today()
+    try:
+        launch = date.fromisoformat(row["launch_date"])
+        launch_text = _launch_text(launch)
+    except (ValueError, TypeError):
+        launch, launch_text = None, str(row["launch_date"])
+
+    kind = None
+    if launch is not None:
+        try:
+            kind = clock.urgency(today, launch, row["status"])
+        except ValueError:
+            kind = None
+
+    if FLAGS_READY:
+        flags_text, flags_title = str(row["flag_count"]), ""
+    else:
+        flags_text, flags_title = "-", FLAGS_PENDING_TITLE
+
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "product": row["product"],
+        "product_label": _label("product", row["product"]),
+        "channel": row["channel"],
+        "channel_label": _label("channel", row["channel"]),
+        "status": row["status"],
+        "status_label": _label("status", row["status"]),
+        "submitted_by": row["submitted_by"],
+        "version_number": row["version_number"],
+        "launch_date": row["launch_date"],
+        "launch_text": launch_text,
+        "urgency": kind,
+        "urgency_label": _urgency_label(kind, today, launch) if kind else "",
+        "urgency_class": "urgency-" + kind if kind else "",
+        "needs_attention": kind is not None,
+        "flags_text": flags_text,
+        "flags_title": flags_title,
+    }
