@@ -2,6 +2,7 @@
   "_comment": "Seed data for ClearPath Compliance Review. Launch dates are day offsets from today; timestamps are hours before now. Flags are NOT stored here: the rules engine computes them at seed time. Source of truth: documentation/seed-data.md.",
   "people": {
     "marketers": ["Maya Chen", "Jordan Lee"],
+    "affiliates": ["Northwind Referrals", "BlueLeaf Media"],
     "reviewers": ["Alex Rivera"]
   },
   "submissions": [
@@ -55,7 +56,7 @@
       "product": "mortgage",
       "channel": "affiliate_page",
       "launchOffsetDays": 5,
-      "submittedBy": "Maya Chen",
+      "submittedBy": "Northwind Referrals",
       "createdHoursAgo": 52,
       "status": "in_review",
       "currentVersion": 1,
@@ -387,7 +388,7 @@
       "product": "mortgage",
       "channel": "affiliate_page",
       "launchOffsetDays": 30,
-      "submittedBy": "Maya Chen",
+      "submittedBy": "BlueLeaf Media",
       "createdHoursAgo": 8,
       "status": "new",
       "currentVersion": 1,

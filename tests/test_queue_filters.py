@@ -149,8 +149,8 @@ def test_a_valid_filter_next_to_a_bad_one_still_applies(client):
 
 def test_filters_from_query_unit():
     f = filters_from_query(QueryParams("status=new&product=loan&channel=display"))
-    assert f == {"status": "new", "product": "loan", "channel": "display"}
-    assert filters_from_query(QueryParams("")) == {"status": None, "product": None, "channel": None}
+    assert f == {"status": "new", "product": "loan", "channel": "display", "source": None}
+    assert filters_from_query(QueryParams("")) == {"status": None, "product": None, "channel": None, "source": None}
     assert filters_from_query(QueryParams("status=new&status=new"))["status"] is None
     assert filters_from_query(QueryParams("status[]=new"))["status"] is None
 

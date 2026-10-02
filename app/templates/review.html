@@ -14,7 +14,7 @@
 <h1>{{ head.title }}</h1>
 <p class="review-meta">{{ head.product_label }} &middot; {{ head.channel_label }} &middot; Launch {{ head.launch_text }}
   &middot; Status: {{ head.status_label }} &middot; {{ head.version_text }}{% if head.is_current %} (current){% endif %}
-  &middot; Submitted by {{ head.submitted_by }}</p>
+  &middot; Submitted by {{ head.submitted_by }}{% if head.is_partner %} <span class="partner-badge">Partner</span>{% endif %}</p>
 </header>
 {%- if error %}
 <div class="notice notice-error" role="alert"><p>{{ error }}</p></div>
@@ -26,14 +26,14 @@
 <div class="notice lock-banner lock-{{ notices.lock.outcome }}" role="status">
   <p class="lock-text">{{ notices.lock.text }}</p>
   {#- A marketer reads the reason in the feedback block below, so the banner does not repeat it. #}
-  {%- if notices.lock.reason and role != "marketer" %}
+  {%- if notices.lock.reason and role not in ("marketer", "affiliate") %}
   <p class="lock-reason">Reason: {{ notices.lock.reason }}</p>
   {%- endif %}
 </div>
 {%- endif %}
 <div class="review-layout{% if error %} has-error{% endif %}{% if notices.old %} has-old{% endif %}{% if notices.lock %} has-lock{% endif %}">
 <div class="review-main" role="region" aria-label="Asset copy and notes" tabindex="0">
-{%- if role == "marketer" %}
+{%- if role in ("marketer", "affiliate") %}
 <section class="marketer-feedback" aria-labelledby="feedback-heading">
   <h2 id="feedback-heading">Reviewer feedback on {{ feedback.version_text }}</h2>
   {%- if feedback.decision %}

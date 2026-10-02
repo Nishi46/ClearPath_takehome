@@ -53,7 +53,7 @@
         </div>
       </td>
       <td data-label="Status"><span class="status status-{{ r.status }}">{{ r.status_label }}</span></td>
-      <td data-label="Submitter">{{ r.submitted_by }}</td>
+      <td data-label="Submitter">{{ r.submitted_by }}{% if r.is_partner %} <span class="partner-badge">Partner</span>{% endif %}</td>
       <td data-label="Flags">
         <span class="flags" title="{{ r.flags_label }}">
           <span aria-hidden="true"><span class="flag-count">{{ r.flags_text }}</span>{% if r.flags_letter %} <span class="sev sev-{{ r.flags_severity }}">{{ r.flags_letter }}</span>{% endif %}</span>

@@ -323,10 +323,10 @@ def test_not_the_owner_is_refused_and_writes_nothing(maya):
     assert resubmit(maya, stored_copy(14) + "!").status_code == 403 and counts() == before
 
 
-@pytest.mark.parametrize("sid", [6, 3, 1])
+@pytest.mark.parametrize("sid", [6, 9, 1])
 def test_items_that_cannot_be_resubmitted_are_refused(jordan, client, sid):
-    # #6 approved (locked); #3 and #1 have no decision yet. Whoever owns them, nothing is written.
-    owner = {6: "Maya Chen", 3: "Maya Chen", 1: "Maya Chen"}[sid]
+    # #6 approved (locked); #9 and #1 have no decision yet. Whoever owns them, nothing is written.
+    owner = {6: "Maya Chen", 9: "Maya Chen", 1: "Maya Chen"}[sid]
     as_role(client, "marketer", owner)
     before = counts()
     r = resubmit(client, "Entirely new copy. Subject to credit approval.", sid=sid)

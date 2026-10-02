@@ -20,7 +20,7 @@ def get_with_cookie(client, value):
 
 
 def test_roles_defined_in_one_place():
-    assert ROLES == ("reviewer", "marketer")
+    assert ROLES == ("reviewer", "marketer", "affiliate")
 
 
 def test_no_cookie_defaults_to_reviewer(client):
@@ -157,5 +157,6 @@ def test_role_cookie_is_not_used_for_authorization():
             # them grants or denies access to data.
             assert text.count("get_role(") == 5, path
         if path.name == "submit_pages.py":
-            # POST /submit, POST /submit/check, the resubmit page and POST /resubmit/{id}
-            assert text.count("get_role(") == 4, path
+            # POST /submit, POST /submit/check, the resubmit page and POST /resubmit/{id}, plus the affiliate
+            # channel lock that reads the form and the submit form default (product guards, not authorization)
+            assert text.count("get_role(") == 6, path

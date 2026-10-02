@@ -57,6 +57,13 @@ def mclient(client):
     return client
 
 
+@pytest.fixture
+def aclient(client):
+    """The seeded client acting as an affiliate partner (the default partner is Northwind Referrals)."""
+    client.cookies.set("role", "affiliate")
+    return client
+
+
 # ---- a pinned clock for date edge cases ----
 
 # A real week, Monday to Sunday, so every name maps to one fixed UTC date.

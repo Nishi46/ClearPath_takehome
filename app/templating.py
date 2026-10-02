@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 
-from app.roles import MARKETERS, ROLES, get_marketer, get_role
+from app.roles import AFFILIATES, MARKETERS, ROLES, get_affiliate, get_marketer, get_role, get_submitter
 
 APP_DIR = Path(__file__).resolve().parent
 
@@ -18,6 +18,9 @@ def render(request: Request, name: str, status_code: int = 200, **context):
     context["roles"] = ROLES
     context["marketer"] = get_marketer(request)
     context["marketers"] = MARKETERS
+    context["affiliate"] = get_affiliate(request)
+    context["affiliates"] = AFFILIATES
+    context["submitter"] = get_submitter(request)
     return templates.TemplateResponse(request, name, context, status_code=status_code)
 
 

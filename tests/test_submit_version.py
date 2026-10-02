@@ -123,16 +123,16 @@ def test_approved_items_are_locked(seeded, sid):
             who=seeded.execute("SELECT submitted_by FROM submission WHERE id = ?", (sid,)).fetchone()[0])
 
 
-@pytest.mark.parametrize("sid,who", [(1, "Maya Chen"), (3, "Maya Chen"), (5, "Maya Chen"), (4, "Jordan Lee")])
+@pytest.mark.parametrize("sid,who", [(1, "Maya Chen"), (9, "Maya Chen"), (5, "Maya Chen"), (4, "Jordan Lee")])
 def test_items_waiting_for_the_reviewer_cannot_be_resubmitted(seeded, sid, who):
     base = seeded.execute("SELECT current_version FROM submission WHERE id = ?", (sid,)).fetchone()[0]
     refused(seeded, "not_resubmittable", sid, base, who=who)
 
 
 def test_changes_requested_without_a_decision_row_is_refused(seeded):
-    seeded.execute("UPDATE submission SET status = 'changes_requested' WHERE id = 3")
+    seeded.execute("UPDATE submission SET status = 'changes_requested' WHERE id = 9")
     seeded.commit()
-    refused(seeded, "not_resubmittable", 3, 1, who="Maya Chen")
+    refused(seeded, "not_resubmittable", 9, 1, who="Maya Chen")
 
 
 def test_a_different_marketer_is_refused(seeded):

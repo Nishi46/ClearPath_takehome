@@ -204,7 +204,7 @@ def test_values_are_bound_not_built_into_sql(seeded):
     assert "s.status = 'new'" in seen[0] or "'new'" in seen[0]  # sqlite shows the bound value, not our text
     # The queue SQL is one constant with only "?" placeholders; no SQL text is built at run time.
     sql = queue_module.sql_queue
-    assert sql.count("?") == 6
+    assert sql.count("?") == 9
     assert "%" not in sql and "{" not in sql
     source = Path(queue_module.__file__).read_text()
     calls = re.findall(r"\.execute\w*\(([^)]*)\)", source)

@@ -151,7 +151,7 @@ def test_hostile_copy_is_escaped(mclient):
 def test_reviewer_role_is_refused(client):
     client.cookies.set("role", "reviewer")
     assert check(client, {"product": "loan"}).status_code == 403
-    assert client.post("/submit/check", data={"product": "loan"}).text.count("Only marketers can submit.") == 1
+    assert client.post("/submit/check", data={"product": "loan"}).text.count("Only marketers and affiliate partners can submit.") == 1
 
 
 @pytest.mark.parametrize("origin", ["https://evil.example", "null"])

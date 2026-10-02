@@ -1,6 +1,7 @@
 from datetime import date
 
 from app import clock
+from app.roles import AFFILIATES, is_partner
 
 # Queue filters and the queue query. FILTER_OPTIONS is the one list of allowed filter values
 # and their display names; the filter form, the route and the query all use it.
@@ -24,7 +25,14 @@ FILTER_OPTIONS = {
         ("affiliate_page", "Affiliate page"),
         ("display", "Display"),
     ),
+    "source": (
+        ("partners", "Affiliate partners"),
+        ("internal", "Internal marketers"),
+    ),
 }
+
+# The partner names as one bound text value for the query, so the SQL itself never changes.
+PARTNER_LIST = "|" + "|".join(AFFILIATES) + "|"
 
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
@@ -47,6 +55,7 @@ SELECT s.id, s.title, s.product, s.channel, s.launch_date, s.status, s.submitted
  WHERE (? IS NULL OR s.status = ?)
    AND (? IS NULL OR s.product = ?)
    AND (? IS NULL OR s.channel = ?)
+   AND (? IS NULL OR (instr(?, '|' || s.submitted_by || '|') > 0) = (? = 'partners'))
  ORDER BY s.launch_date ASC, s.created_at ASC, s.id ASC
 """
 
@@ -62,7 +71,7 @@ def clean_filter(name, value):
     return value if value in dict(FILTER_OPTIONS[name]) else None
 
 
-def list_queue(conn, status=None, product=None, channel=None):
+def list_queue(conn, status=None, product=None, channel=None, source=None):
     """One row per submission, showing its current version, earliest launch first.
 
     Ties break on created_at then id, so the order is always the same. Unknown filter values
@@ -72,6 +81,8 @@ def list_queue(conn, status=None, product=None, channel=None):
     for name, value in (("status", status), ("product", product), ("channel", channel)):
         value = clean_filter(name, value)
         args += [value, value]
+    source = clean_filter("source", source)
+    args += [source, PARTNER_LIST, source]
     return [dict(r) for r in conn.execute(sql_queue, args).fetchall()]
 
 
@@ -149,6 +160,7 @@ def row_view(row, today=None):
         "status": row["status"],
         "status_label": _label("status", row["status"]),
         "submitted_by": row["submitted_by"],
+        "is_partner": is_partner(row["submitted_by"]),
         "version_number": row["version_number"],
         "version_text": "v%d" % row["version_number"],
         "launch_date": row["launch_date"],
@@ -161,11 +173,11 @@ def row_view(row, today=None):
     }
 
 
-FILTER_FIELDS = (("status", "Status"), ("product", "Product"), ("channel", "Channel"))
+FILTER_FIELDS = (("status", "Status"), ("product", "Product"), ("channel", "Channel"), ("source", "Submitted by"))
 
 
 def filters_from_query(query_params):
-    """Read the three filters from a request's query string; anything unusable means "All".
+    """Read the filters from a request's query string; anything unusable means "All".
 
     A filter given more than once is ambiguous, so it also means "All". Only the exact key
     names are read (status[] is a different key and is ignored).

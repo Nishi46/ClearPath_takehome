@@ -46,9 +46,10 @@ def test_tab_order_on_the_queue(client):
     assert kinds[0] == ("a", "#main")
     header = kinds[1:items.index(next(i for i in items if i[2]))]
     assert header == [("a", "/"), ("a", "/"), ("a", "/submit"),
-                      ("button", "reviewer"), ("button", "marketer"), ("a", "/reset/confirm")]
+                      ("button", "reviewer"), ("button", "marketer"), ("button", "affiliate"),
+                      ("a", "/reset/confirm")]
     main = [(k, v) for k, v, in_main in items if in_main]
-    assert main[:6] == [("select", "status"), ("select", "product"), ("select", "channel"),
+    assert main[:7] == [("select", "status"), ("select", "product"), ("select", "channel"), ("select", "source"),
                         ("button", ""), ("a", "/"), ("a", "/review/11")]
     titles = [v for k, v in main if k == "a" and v.startswith("/review/")]
     assert titles == ["/review/%d" % i for i in EXPECTED_ORDER]

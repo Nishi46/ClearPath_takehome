@@ -12,13 +12,13 @@
 </div>
 {% endif %}
 {% include "_marketer_picker.html" %}
-{% if role != "marketer" %}
+{% if role not in ("marketer", "affiliate") %}
 <p class="mine-readonly">You are viewing {{ marketer }}'s submissions as a reviewer. This page is read-only.</p>
 {% endif %}
-{% if role == "marketer" %}<p><a class="button-link" href="/submit">+ Submit</a></p>{% endif %}
+{% if role in ("marketer", "affiliate") %}<p><a class="button-link" href="/submit">+ Submit</a></p>{% endif %}
 {% if not total %}
 <p class="empty-state" role="status">
-  {% if role == "marketer" %}You haven't submitted anything yet. <a href="/submit">Submit your first piece of copy</a>
+  {% if role in ("marketer", "affiliate") %}You haven't submitted anything yet. <a href="/submit">Submit your first piece of copy</a>
   {%- else %}{{ marketer }} hasn't submitted anything yet. Choose another marketer above.{% endif %}</p>
 {% endif %}
 {% for g in groups if g.rows %}
@@ -42,9 +42,9 @@
       </div>
       {%- endif %}
       <p class="mine-actions">
-        {%- if role == "marketer" and r.status == "changes_requested" %}
+        {%- if role in ("marketer", "affiliate") and r.status == "changes_requested" %}
         <a class="button-link" href="/resubmit/{{ r.id }}">Edit and resubmit<span class="visually-hidden"> {{ r.title }}</span></a>
-        {%- elif role == "marketer" and r.status == "rejected" %}
+        {%- elif role in ("marketer", "affiliate") and r.status == "rejected" %}
         <a class="button-link" href="/resubmit/{{ r.id }}">Fix and resubmit as new version<span class="visually-hidden"> {{ r.title }}</span></a>
         {%- else %}
         <a class="button-link" href="/review/{{ r.id }}">View<span class="visually-hidden"> {{ r.title }}</span></a>

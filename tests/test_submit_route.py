@@ -45,7 +45,7 @@ def test_reviewer_sees_an_explanation_and_no_form(client):
     r = client.get("/submit")
     assert r.status_code == 200 and "<form method=\"post\" action=\"/submit\"" not in r.text
     assert 'action="/submit"' not in r.text
-    assert "Only marketers submit copy" in r.text and "Switch to Marketer" in r.text
+    assert "Only marketers and affiliate partners submit copy" in r.text and "Switch to Marketer" in r.text and "Switch to Affiliate" in r.text
 
 
 def test_every_control_has_a_label_and_nothing_is_inline(mclient):
@@ -182,7 +182,7 @@ def test_extra_fields_are_ignored(mclient):
 def test_reviewer_role_is_refused_and_nothing_is_written(client):
     client.cookies.set("role", "reviewer")
     r = post(client)
-    assert r.status_code == 403 and "Only marketers can submit." in r.text and count() == 14
+    assert r.status_code == 403 and "Only marketers and affiliate partners can submit." in r.text and count() == 14
 
 
 def test_a_missing_or_forged_role_cookie_counts_as_reviewer(client):

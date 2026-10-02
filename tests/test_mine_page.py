@@ -33,9 +33,9 @@ def text(fragment):
 def test_mayas_page_has_group_headings_with_counts(mclient):
     html = mclient.get("/mine").text
     assert headings(html, "h1") == ["My submissions"]
-    assert headings(html, "h2") == ["In progress (7)", "Done (2)"]      # nothing needs her action: no empty group
+    assert headings(html, "h2") == ["In progress (5)", "Done (2)"]      # nothing needs her action: no empty group
     assert "Needs your action" not in html
-    assert len(items(html)) == 9
+    assert len(items(html)) == 7
 
 
 def test_jordans_item_14_needs_action_with_the_seed_reason_and_an_edit_action(mclient):
@@ -71,7 +71,7 @@ def test_in_progress_items_show_view_not_resubmit(mclient):
 
 def test_item_without_a_decision_has_no_feedback_block(mclient):
     html = mclient.get("/mine").text
-    assert "mine-feedback" not in item(html, 'href="/review/3"')
+    assert "mine-feedback" not in item(html, 'href="/review/9"')
 
 
 def test_an_old_decision_is_not_shown_as_current_feedback(mclient):
@@ -145,7 +145,7 @@ def test_reviewer_looking_at_an_empty_marketer(client):
 
 def test_the_page_is_not_affected_by_query_values(mclient):
     html = mclient.get("/mine?name=Jordan+Lee&role=reviewer&x=<script>").text
-    assert len(items(html)) == 9 and "<script>" not in html
+    assert len(items(html)) == 7 and "<script>" not in html
 
 
 def test_post_is_not_allowed(mclient):
@@ -176,7 +176,7 @@ def test_a_new_submission_appears_in_progress(mclient):
     from tests.test_submit_route import good, post
     post(mclient, good(title="Brand new thing"))
     html = mclient.get("/mine").text
-    assert "In progress (8)" in text(html) and "Brand new thing" in html
+    assert "In progress (6)" in text(html) and "Brand new thing" in html
 
 
 def test_role_switch_lands_on_mine_for_a_marketer(client):

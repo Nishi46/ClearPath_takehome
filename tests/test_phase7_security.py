@@ -31,6 +31,7 @@ def route_set():
 
 PHASE_6_ROUTES = {
     ("/", ("GET",)), ("/healthz", ("GET",)), ("/role", ("POST",)), ("/marketer", ("POST",)),
+    ("/affiliate", ("POST",)),
     ("/reset/confirm", ("GET",)), ("/reset", ("POST",)), ("/mine", ("GET",)),
     ("/submit", ("GET",)), ("/submit", ("POST",)), ("/submit/check", ("POST",)),
     ("/resubmit/{submission_id}", ("GET",)), ("/resubmit/{submission_id}", ("POST",)),

@@ -4,6 +4,7 @@ import unicodedata
 
 from app.notes import (COMMENT_MESSAGES, MAX_COMMENT_CHARS, MAX_NOTE_CHARS, MESSAGES as NOTE_MESSAGES,
                        validate_comment, validate_note)
+from app.roles import is_partner
 from app.textclean import clean_text, has_bidi_control
 
 # Review screen logic. Routes only parse input, call these functions and render.
@@ -112,6 +113,7 @@ def header_view(data, back="/"):
         "status_label": _label("status", s["status"]),
         "launch_text": launch_text,
         "submitted_by": s["submitted_by"],
+        "is_partner": is_partner(s["submitted_by"]),
         "version_text": "v%d" % number,
         "is_current": number == s["current_version"],
         "back_href": back,

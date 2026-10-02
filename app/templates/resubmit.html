@@ -10,9 +10,10 @@
 {% if block %}
 <div class="notice" role="status">
   <p>{{ block }}</p>
-  {%- if role != "marketer" %}
+  {%- if role not in ("marketer", "affiliate") %}
   <form method="post" action="/role" class="role-form">
     <button type="submit" name="role" value="marketer" class="role-option">Switch to Marketer</button>
+    <button type="submit" name="role" value="affiliate" class="role-option">Switch to Affiliate</button>
   </form>
   {%- endif %}
   <p><a href="/review/{{ sub.id }}?back=/mine">Open the item</a> &middot; <a href="/mine">Back to my submissions</a></p>

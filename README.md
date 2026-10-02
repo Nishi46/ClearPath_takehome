@@ -53,6 +53,14 @@ Rules the server enforces:
 "Who I am" as a marketer is a demo label (Maya Chen, Jordan Lee or Sam Patel), not a login. Try Jordan Lee:
 #14 (changes requested) and #8 (rejected) can be resubmitted, and #5 shows a v1 to v2 diff.
 
+**Affiliate partners.** Switch Role to **Affiliate** to act as a partner (Northwind Referrals, BlueLeaf Media
+or Summit Savers). Partners submit and resubmit their own assets directly, under the same rules as a marketer,
+but only for the **Affiliate page** channel: the server sets the channel, whatever the form says. The queue
+shows a **Partner** badge on their items and has a **Submitted by** filter (affiliate partners or internal
+marketers). Like marketers, partners are demo labels, not logins. Try Northwind Referrals: switch to Reviewer,
+request changes on #3, then switch back to Affiliate and resubmit it. BlueLeaf Media owns #12, and Summit
+Savers owns nothing, so it shows the empty state.
+
 Run the tests (from the project root, with the venv active):
 
 ```bash

@@ -57,7 +57,8 @@ def test_the_route_table_is_exactly_the_documented_one():
     seen = {(r.path, tuple(sorted(r.methods))) for r in routes if hasattr(r, "methods")}
     new = {("/submit", ("GET",)), ("/submit", ("POST",)), ("/submit/check", ("POST",)),
            ("/mine", ("GET",)), ("/resubmit/{submission_id}", ("GET",)),
-           ("/resubmit/{submission_id}", ("POST",)), ("/marketer", ("POST",))}
+           ("/resubmit/{submission_id}", ("POST",)), ("/marketer", ("POST",)),
+           ("/affiliate", ("POST",))}
     assert new <= seen
     old = {("/healthz", ("GET",)), ("/", ("GET",)), ("/role", ("POST",)),
            ("/reset/confirm", ("GET",)), ("/reset", ("POST",)), ("/review/{submission_id}", ("GET",)),

@@ -17,7 +17,7 @@
     <a class="brand" href="/">ClearPath Review</a>
     <nav class="site-nav" aria-label="Main">
       <a href="/">Queue</a>
-      {%- if role == "marketer" %}
+      {%- if role in ("marketer", "affiliate") %}
       <a href="/mine">My submissions</a>
       {%- endif %}
       <a href="/submit">Submit</a>

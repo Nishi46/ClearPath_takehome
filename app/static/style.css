@@ -187,6 +187,12 @@ table.queue .flags { white-space: nowrap; }
 .sev-low { color: var(--text-muted); border-style: dashed; }
 .table-note { margin: 0.5rem 0 0; font-size: 0.875rem; color: var(--text-muted); }
 
+/* Partner badge: the word is the signal; the dashed border is extra. */
+.partner-badge {
+  display: inline-block; padding: 0 0.4rem; border: 1px dashed currentColor; border-radius: 4px;
+  font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); white-space: nowrap;
+}
+
 /* Status chips: the text is the status; the color and border are extra. */
 .status {
   display: inline-block; padding: 0 0.5rem; border: 1px solid currentColor;
@@ -452,3 +458,7 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
   a:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible,
   summary:focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
 }
+
+/* The channel is fixed for affiliate partners: plain text in place of the select. */
+.field-label { margin: 0 0 0.25rem; font-weight: 600; }
+.field-fixed { margin: 0; padding: 0.5rem 0; }

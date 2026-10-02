@@ -189,7 +189,7 @@ def test_names_ids_statuses_and_rules_are_unchanged(client):
             names |= set(re.findall(r'<(?:input|select|textarea|button)[^>]*\bname="([^"]+)"', html))
             ids |= set(re.findall(r'\bid="([^"]+)"', html))
     assert names == {"action", "base_version", "channel", "confirm", "copy", "launch_date", "name", "note", "notes",
-                     "outcome", "product", "reason", "role", "rule_id", "status", "text", "title", "version"}
+                     "outcome", "product", "reason", "role", "rule_id", "source", "status", "text", "title", "version"}
     assert {"comment-form", "comment-text", "copy-count", "snippet-note"} <= ids
     js = "".join(p.read_text() for p in (ROOT / "app" / "static").glob("*.js") if "htmx" not in p.name)
     for used in set(re.findall(r"getElementById\(['\"]([^'\"]+)", js)):

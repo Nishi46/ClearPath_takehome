@@ -24,10 +24,11 @@ Assumptions fall into five groups: users and process, assets, rules and flags, w
 - **Tradeoff:** The marketer view is extra build time. In exchange, the demo shows the full loop and addresses the cause of rework, not just the symptom.
 - **Revisit if:** Marketers already have a separate intake tool, or the compliance team wants a reviewer-only system.
 
-### A3. Affiliates are out of scope; marketing submits on their behalf
-- **Why:** Affiliates are mentioned as a channel, but a partner-facing portal adds identity, trust, and access questions that don't fit in 24 hours. Treating affiliate assets as a channel type captures most of the review need.
-- **Tradeoff:** Cuts a whole user class and a lot of risk. Gives up a real source of volume and compliance exposure, since affiliates often produce the riskiest copy.
-- **Revisit if:** Affiliate assets are a large share of volume, or affiliates submit directly today.
+### A3. Affiliates submit directly, as a third role on the same app
+- **Why:** Affiliates often produce the riskiest copy, so their assets should reach the reviewer without a marketer retyping them. A third role reuses the whole submit, flag, review and resubmit loop. Identity works as it does for marketers (A4): a demo label picked in the browser, never a login.
+- **Rules:** Partners can submit only for the `affiliate_page` channel, and the server enforces it. A partner can resubmit only their own items. Partner names never overlap marketer names, because the submitter name is what marks an item as a partner item (no schema change). Reviewers see a Partner badge and a Submitted by filter in the queue.
+- **Tradeoff:** No partner onboarding, per-partner reporting or access control, and a partner can switch to any other partner or marketer in the demo, like any role. Keeps the build small and the review loop identical for everyone.
+- **Revisit if:** Partners need real accounts, or the volume needs per-partner views, SLAs or contracts.
 
 ### A4. No authentication; all users are trusted internal users
 - **Why:** Login is not what is being evaluated. The prompt says reviewers are judged on product intuition and detail, not architecture. A role switcher in the header demonstrates both views.

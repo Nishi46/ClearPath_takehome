@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from app import clock, flags
 from app.choices import CHANNELS, PRODUCTS
-from app.roles import MARKETERS
+from app.roles import ALL_SUBMITTERS, SUBMITTING_ROLES
 
 # Submitting a piece of copy for review. Pure checks first (normalize and validate), then the
 # read-only pre-check, then create_submission, the only code that creates a submission. Every
@@ -237,7 +237,7 @@ def create_submission(conn, fields, submitted_by, now):
     clean, errors, _ = validate_submission(fields, now.date())
     if errors:
         raise ValueError("fields did not validate")
-    if not isinstance(submitted_by, str) or submitted_by not in MARKETERS:
+    if not isinstance(submitted_by, str) or submitted_by not in ALL_SUBMITTERS:
         raise SubmitError("bad_marketer")
     if conn.in_transaction:
         raise RuntimeError("create_submission needs a connection with no open transaction")
@@ -351,14 +351,14 @@ def resubmit_block(data, marketer, role):
     create_version, so this decides what the page shows, not what is allowed.
     """
     sub = data["submission"]
-    if role != "marketer":
-        return "Only marketers resubmit copy. You are viewing the demo as a reviewer."
+    if role not in SUBMITTING_ROLES:
+        return "Only marketers and affiliate partners resubmit copy. You are viewing the demo as a reviewer."
     if sub["status"] == "approved":
         return "This item is approved and locked. It can't be changed or resubmitted."
     if sub["status"] not in RESUBMITTABLE_STATUSES or data["decision"] is None:
         return "This item is still in review. You can resubmit once a reviewer has replied."
     if sub["submitted_by"] != marketer:
-        return "This item belongs to %s. Switch marketer to edit it." % sub["submitted_by"]
+        return "This item belongs to %s. Switch to them to edit it." % sub["submitted_by"]
     if sub["current_version"] >= MAX_VERSIONS:
         return "This item has reached the limit of %d versions for the demo. Reset the demo to start again." % MAX_VERSIONS
     return None

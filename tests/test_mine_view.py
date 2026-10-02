@@ -21,7 +21,10 @@ def ids(rows):
 
 
 def test_each_marketer_sees_only_their_own_items(seeded):
-    assert ids(list_mine(seeded, "Maya Chen", TODAY)) == [1, 2, 3, 5, 6, 9, 11, 12, 13]
+    assert ids(list_mine(seeded, "Maya Chen", TODAY)) == [1, 2, 5, 6, 9, 11, 13]
+    assert ids(list_mine(seeded, "Northwind Referrals", TODAY)) == [3]
+    assert ids(list_mine(seeded, "BlueLeaf Media", TODAY)) == [12]
+    assert list_mine(seeded, "Summit Savers", TODAY) == []
     assert ids(list_mine(seeded, "Jordan Lee", TODAY)) == [4, 7, 8, 10, 14]
     assert list_mine(seeded, "Sam Patel", TODAY) == []
 
@@ -50,7 +53,7 @@ def test_item_14_feedback_is_its_seed_decision(seeded):
 def test_a_decision_on_an_older_version_is_not_current_feedback(seeded):
     rows = {r["id"]: r for r in list_mine(seeded, "Maya Chen", TODAY)}
     assert rows[5]["version_number"] == 2 and rows[5]["feedback"] is None   # v1 was changes requested; v2 is waiting
-    assert rows[3]["feedback"] is None                                      # never decided
+    assert rows[9]["feedback"] is None                                      # never decided
     assert rows[6]["feedback"]["outcome"] == "approved"
 
 
@@ -81,11 +84,11 @@ def test_dismissed_rules_are_not_counted(seeded):
 
 
 def test_urgency_only_for_open_items(seeded):
-    seeded.execute("UPDATE submission SET launch_date = '2026-10-01' WHERE id IN (6, 14, 8, 3)")
+    seeded.execute("UPDATE submission SET launch_date = '2026-10-01' WHERE id IN (6, 14, 8, 9)")
     seeded.commit()
     rows = {r["id"]: r for r in list_mine(seeded, "Maya Chen", TODAY) + list_mine(seeded, "Jordan Lee", TODAY)}
     assert rows[6]["urgency"] is None and rows[8]["urgency"] is None        # approved and rejected are never urgent
-    assert rows[3]["urgency"] == "overdue" and rows[14]["urgency"] == "overdue"
+    assert rows[9]["urgency"] == "overdue" and rows[14]["urgency"] == "overdue"
 
 
 def test_default_today_comes_from_the_clock(seeded, monkeypatch):
@@ -96,11 +99,11 @@ def test_default_today_comes_from_the_clock(seeded, monkeypatch):
 
 
 def test_malformed_stored_values_never_raise(seeded):
-    seeded.execute("UPDATE submission SET launch_date = 'not a date' WHERE id = 3")
+    seeded.execute("UPDATE submission SET launch_date = 'not a date' WHERE id = 9")
     tamper(seeded, "UPDATE decision SET created_at = 'garbage' WHERE submission_id = 6")
     seeded.commit()
     rows = {r["id"]: r for r in list_mine(seeded, "Maya Chen", TODAY)}
-    assert rows[3]["urgency"] is None and rows[6]["feedback"]["when"] == "unknown date"
+    assert rows[9]["urgency"] is None and rows[6]["feedback"]["when"] == "unknown date"
     group_mine(list(rows.values()))            # and grouping copes too
 
 
@@ -134,7 +137,7 @@ def test_mayas_groups(seeded):
     g = groups(seeded, "Maya Chen")
     assert g["needs_action"] == []
     assert sorted(g["done"]) == [6, 13]
-    assert sorted(g["in_progress"]) == [1, 2, 3, 5, 9, 11, 12]
+    assert sorted(g["in_progress"]) == [1, 2, 5, 9, 11]
 
 
 def test_groups_come_in_a_fixed_order_and_empty_ones_are_still_returned(seeded):
@@ -147,11 +150,11 @@ def test_groups_come_in_a_fixed_order_and_empty_ones_are_still_returned(seeded):
 def test_in_progress_is_soonest_launch_first_with_ties_by_id(seeded):
     # Seed launch dates are relative to the real today, so set every in-progress item explicitly.
     seeded.execute("UPDATE submission SET launch_date = '2027-06-01' WHERE id IN (5, 9, 11)")
-    seeded.execute("UPDATE submission SET launch_date = '2026-12-01' WHERE id IN (1, 2, 3)")
-    seeded.execute("UPDATE submission SET launch_date = '2026-11-01' WHERE id = 12")
+    seeded.execute("UPDATE submission SET launch_date = '2026-12-01' WHERE id IN (1, 2)")
+    seeded.execute("UPDATE submission SET launch_date = '2026-11-01' WHERE id = 9")
     seeded.commit()
     order = groups(seeded, "Maya Chen")["in_progress"]
-    assert order == [12, 1, 2, 3, 5, 9, 11]
+    assert order == [9, 1, 2, 5, 11]
     launches = [r["launch_date"] for g in group_mine(list_mine(seeded, "Maya Chen", TODAY)) if g["key"] == "in_progress"
                 for r in g["rows"]]
     assert launches == sorted(launches)

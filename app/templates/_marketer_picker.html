@@ -1,3 +1,13 @@
+{# Partners pick from their own list; everyone else picks a marketer. Affiliates are not in the marketer list. #}
+{% if role == "affiliate" %}
+<form method="post" action="/affiliate" class="marketer-picker">
+  <span class="role-label">Viewing as:</span>
+  {% for a in affiliates %}
+  <button type="submit" name="name" value="{{ a }}" class="role-option"
+          {% if a == affiliate %}aria-current="true"{% endif %}>{{ a }}{% if a == affiliate %} (current){% endif %}</button>
+  {% endfor %}
+</form>
+{% else %}
 <form method="post" action="/marketer" class="marketer-picker">
   <span class="role-label">Viewing as:</span>
   {% for m in marketers %}
@@ -5,3 +15,4 @@
           {% if m == marketer %}aria-current="true"{% endif %}>{{ m }}{% if m == marketer %} (current){% endif %}</button>
   {% endfor %}
 </form>
+{% endif %}

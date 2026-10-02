@@ -74,7 +74,7 @@ def set_role(request: Request, role: str = Form("")):
         # Do not echo the submitted value back.
         return error_response(request, 400, "Unknown role. Use the Role buttons above.")
     # A marketer lands on their own submissions, a reviewer on the queue.
-    response = RedirectResponse("/mine" if role == "marketer" else "/", status_code=303)
+    response = RedirectResponse("/mine" if role in ("marketer", "affiliate") else "/", status_code=303)
     response.set_cookie(
         COOKIE_NAME, role, max_age=COOKIE_MAX_AGE, path="/",
         httponly=True, samesite="lax", secure=_is_https(request),
@@ -154,7 +154,7 @@ def review_page(request: Request, submission_id: str):
             raise HTTPException(status_code=404)
     backs = request.query_params.getlist("back")
     back = review.safe_back(backs[0]) if len(backs) == 1 else "/"
-    if back == "/" and get_role(request) == "marketer":
+    if back == "/" and get_role(request) in ("marketer", "affiliate"):
         back = review.MINE_URL  # a marketer goes back to their own list unless they came from a filtered queue
     with db.connect() as conn:
         data = review.load_review(conn, sid, number)

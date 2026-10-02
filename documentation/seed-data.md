@@ -8,6 +8,7 @@
 - Flags are computed by the rules engine at seed time, not hardcoded, so seed data and live behavior cannot drift.
 - One submission holds many versions (a resubmission is a new version, not a new submission).
 - Fixed demo names: marketer **Maya Chen** (most items), **Jordan Lee** (a few), reviewer **Alex Rivera**.
+- Affiliate partners own two items: **Northwind Referrals** owns #3 and **BlueLeaf Media** owns #12. **Summit Savers** owns none (empty state).
 
 ---
 

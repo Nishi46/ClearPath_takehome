@@ -55,7 +55,7 @@ Each pain point maps to a specific feature and to one of the two levers (**T** =
 | **Compliance reviewer** (primary) | Reviews submissions, decides, gives feedback | Fast triage, issues surfaced in context, reusable feedback, a defensible record |
 | **Marketer** (secondary) | Submits assets, responds to feedback | Easy structured submission, clear status, clear feedback, fast resubmission |
 
-Affiliate partners are a likely third user but are **out of scope** for this version.
+Affiliate partners are a third user. They submit their own `affiliate_page` assets directly and follow them on My submissions (see assumption A3).
 
 ### Decision: one app, two views (no login)
 
@@ -98,7 +98,7 @@ A role switcher in the header toggles between **Reviewer** and **Marketer** view
 - Email/Slack/Jira integrations and notifications
 - Video or rich-media review
 - A full legal rules engine or real regulatory advice
-- Affiliate partner portal
+- A separate affiliate partner portal (partners use the same app as a third role; there is no login, partner onboarding or per-partner reporting)
 - Real ClearPath data
 - Multi-reviewer assignment workflows, escalation rules, SLAs by contract
 
@@ -315,7 +315,7 @@ Not measurable in a take-home, but part of the presentation:
 1. Image and creative review
 2. Real roles, assignment, and notifications (Slack/email)
 3. Rules managed by compliance, not hardcoded
-4. Affiliate partner submission portal
+4. A real partner portal: login, onboarding, per-partner reporting
 5. Smarter flagging (context-aware, learned from past decisions)
 6. Reviewer workload balancing and SLA alerts
 7. Export of audit records for regulators
@@ -325,7 +325,7 @@ Not measurable in a take-home, but part of the presentation:
 ## 14. Open Questions
 
 - Who owns the rule set at a real company, and how often does it change?
-- Do affiliates submit directly, or does marketing submit on their behalf?
+- Do affiliates submit directly, or does marketing submit on their behalf? (Assumed directly; see A3.)
 - Is there a service-level target for review turnaround today?
 - Which assets are highest volume, and should the product optimize for them first?
 

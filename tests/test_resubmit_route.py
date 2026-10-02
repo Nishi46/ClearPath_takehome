@@ -98,7 +98,7 @@ def test_no_form_when_not_resubmittable(client, sid, who, text):
 
 def test_reviewer_gets_an_explanation(client):
     r = client.get("/resubmit/14")
-    assert r.status_code == 200 and "Only marketers resubmit" in r.text and not tags(r.text, "textarea")
+    assert r.status_code == 200 and "Only marketers and affiliate partners resubmit" in r.text and not tags(r.text, "textarea")
 
 
 @pytest.mark.parametrize("bad", ["abc", "-1", "0", "9999", "1.5", "%E2%80%AE3", "1234567890"])
@@ -226,9 +226,9 @@ def test_a_matching_origin_works(jordan):
     assert post(jordan, headers={"Origin": "http://testserver"}).status_code == 303
 
 
-@pytest.mark.parametrize("sid", [6, 7, 3, 1])
+@pytest.mark.parametrize("sid", [6, 7, 9, 1])
 def test_locked_and_in_review_items_are_409(client, sid):
-    as_marketer(client, "Maya Chen" if sid in (6, 3, 1) else "Jordan Lee")
+    as_marketer(client, "Maya Chen" if sid in (6, 9, 1) else "Jordan Lee")
     before = dump()
     for over in ({}, {"copy": ""}.copy(), {"base_version": "9"}):
         r = post(client, sid, form(**over))

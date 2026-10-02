@@ -22,6 +22,11 @@ def as_reviewer(client):
 
 
 def as_marketer(client, name):
+    # Seed #12 belongs to the affiliate partner BlueLeaf Media; any other name is a marketer.
+    if name == "BlueLeaf Media":
+        client.cookies.set("role", "affiliate")
+        client.cookies.set("affiliate", name)
+        return client
     client.cookies.set("role", "marketer")
     client.cookies.set("marketer", name)
     return client
@@ -79,15 +84,15 @@ def test_dismissing_one_of_several_drops_the_count_by_one_and_updates_the_letter
 
 def test_my_submissions_counts_only_open_flags(client):
     as_reviewer(client)
-    as_marketer(client, "Maya Chen")
+    as_marketer(client, "BlueLeaf Media")
     with db.connect() as c:
-        before = {r["id"]: r["flag_count"] for r in mine.list_mine(c, "Maya Chen")}
+        before = {r["id"]: r["flag_count"] for r in mine.list_mine(c, "BlueLeaf Media")}
     assert before[12] == 1
     as_reviewer(client)
     dismiss(client, 12, "R4")
-    as_marketer(client, "Maya Chen")
+    as_marketer(client, "BlueLeaf Media")
     with db.connect() as c:
-        after = {r["id"]: r["flag_count"] for r in mine.list_mine(c, "Maya Chen")}
+        after = {r["id"]: r["flag_count"] for r in mine.list_mine(c, "BlueLeaf Media")}
     assert after[12] == 0 and {k: v for k, v in after.items() if k != 12} == {k: v for k, v in before.items() if k != 12}
     assert "0 open flags" in client.get("/mine").text
 
@@ -121,7 +126,7 @@ def test_a_dismissal_stays_with_v1_and_v2_flags_are_computed_fresh(client):
         copy = c.execute("SELECT copy FROM version WHERE submission_id = 12 AND version_number = 1").fetchone()[0]
     with db.connect() as c:
         launch = c.execute("SELECT launch_date FROM submission WHERE id = 12").fetchone()[0]
-    as_marketer(client, "Maya Chen")
+    as_marketer(client, "BlueLeaf Media")
     r = client.post("/resubmit/12", data={"copy": copy + "\n\nThanks for reading.", "notes": "",
                                           "base_version": "1", "launch_date": launch}, follow_redirects=False)
     assert r.status_code == 303
