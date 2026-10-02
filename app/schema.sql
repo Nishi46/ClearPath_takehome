@@ -87,4 +87,13 @@ CREATE INDEX IF NOT EXISTS idx_version_submission_id ON version(submission_id);
 CREATE INDEX IF NOT EXISTS idx_flag_version_id ON flag(version_id);
 CREATE INDEX IF NOT EXISTS idx_comment_submission_id ON comment(submission_id, version_number);
 
-PRAGMA user_version = 1;
+-- Immutable audit rows: a decision, comment or dismissal is never edited (D2, D4, C4). Reset and
+-- cascading deletes use DELETE and are unaffected. `flag` is not covered: store_flags replaces it.
+CREATE TRIGGER IF NOT EXISTS decision_no_update BEFORE UPDATE ON decision
+BEGIN SELECT RAISE(ABORT, 'decision rows cannot be changed'); END;
+CREATE TRIGGER IF NOT EXISTS comment_no_update BEFORE UPDATE ON comment
+BEGIN SELECT RAISE(ABORT, 'comment rows cannot be changed'); END;
+CREATE TRIGGER IF NOT EXISTS flag_dismissal_no_update BEFORE UPDATE ON flag_dismissal
+BEGIN SELECT RAISE(ABORT, 'flag dismissal rows cannot be changed'); END;
+
+PRAGMA user_version = 2;

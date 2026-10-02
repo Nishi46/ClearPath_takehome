@@ -4,6 +4,7 @@ import pytest
 
 from app import db, queue
 from app.review import dismissals_view, when_text
+from tests.helpers import tamper
 
 
 def section(html):
@@ -41,7 +42,7 @@ def test_item_13_shows_the_dismissal_not_an_open_flag(client):
 
 def test_dismissal_note_is_escaped(client):
     with db.connect() as c:
-        c.execute("UPDATE flag_dismissal SET note = ?, dismissed_by = ?",
+        tamper(c, "UPDATE flag_dismissal SET note = ?, dismissed_by = ?",
                   ("<script>alert(1)</script>\nline two <b>x</b>", "<i>Mallory</i>"))
     s = client.get("/review/13").text
     assert "<script>alert" not in s and "<b>x</b>" not in s and "<i>Mallory" not in s
@@ -63,14 +64,14 @@ def test_dismissing_a_rule_hides_all_its_occurrences(client):
 
 def test_dismissal_of_a_removed_rule_does_not_crash(client):
     with db.connect() as c:
-        c.execute("UPDATE flag_dismissal SET rule_id = 'R99'")
+        tamper(c, "UPDATE flag_dismissal SET rule_id = 'R99'")
     s = client.get("/review/13").text
     assert "Rule no longer available" in s
 
 
 def test_malformed_dismissal_time_falls_back(client):
     with db.connect() as c:
-        c.execute("UPDATE flag_dismissal SET created_at = 'not a time'")
+        tamper(c, "UPDATE flag_dismissal SET created_at = 'not a time'")
     assert "unknown time" in client.get("/review/13").text
 
 

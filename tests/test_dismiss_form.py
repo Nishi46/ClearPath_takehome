@@ -94,3 +94,18 @@ def test_precheck_cards_never_get_forms(client):
     r = client.post("/submit/check", data={"product": "loan", "channel": "email",
                                            "copy": "Guaranteed approval for everyone"})
     assert r.status_code == 200 and not forms(r.text) and "Dismiss flag" not in r.text
+
+
+def test_closed_dismiss_control_sits_on_the_severity_line_without_overlap(client):
+    from tests.chrome_layout import CHROME, measure
+
+    if not Path(CHROME).exists():
+        pytest.skip("Google Chrome is not installed here")
+    for width in (1366, 375):
+        m = measure(get(client, 3), width, 768)
+        sev, link, dismiss = m[".flag-severity"], m[".snippet-link"], m[".flag-dismiss summary"]
+        assert sev["top"] - 4 <= dismiss["top"] and dismiss["bottom"] <= sev["bottom"] + 4   # on the line
+        assert link["right"] <= dismiss["left"] + 1                                          # beside the link
+        assert dismiss["top"] >= m[".flag-card h3"]["bottom"] - 1                            # clear of the title
+        assert dismiss["bottom"] <= m[".flag-why"]["top"] + 1 and dismiss["right"] <= m[".flag-card"]["right"]
+        assert m["scrollWidth"] <= m["clientWidth"]

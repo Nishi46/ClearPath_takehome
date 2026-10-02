@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from app import db
+from tests.helpers import tamper
 
 
 def main(html):
@@ -48,7 +49,8 @@ def test_item_14_shows_the_reason_and_comments_to_its_marketer(jordan):
 def test_the_reason_is_shown_once_to_a_marketer_and_in_the_banner_for_a_reviewer(client, jordan):
     with db.connect() as c:
         reason = c.execute("SELECT reason FROM decision WHERE submission_id = 14").fetchone()[0]
-    assert jordan.get("/review/14").text.count(reason) == 1
+    # Above the audit trail, which repeats every reason on purpose.
+    assert jordan.get("/review/14").text.split('class="audit-trail"')[0].count(reason) == 1
     client.cookies.set("role", "reviewer")
     assert 'class="lock-reason"' in client.get("/review/14").text
 
@@ -62,7 +64,7 @@ def test_comments_show_their_rule_and_the_post_decision_label(mclient):
     block = feedback(mclient.get("/review/6").text)            # #6 has a comment dated after its decision
     assert "Post-decision" in block and "Approved" in block
     with db.connect() as c:
-        c.execute("UPDATE comment SET rule_id = 'R1' WHERE submission_id = 6")
+        tamper(c, "UPDATE comment SET rule_id = 'R1' WHERE submission_id = 6")
     assert "About R1: " in feedback(mclient.get("/review/6").text)
 
 
@@ -81,15 +83,15 @@ def test_item_5_shows_the_decision_of_the_version_being_viewed(mclient):
 def test_hostile_reasons_and_comments_are_escaped(mclient):
     evil = "<script>alert(1)</script><img src=x onerror=alert(1)>"
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = ? WHERE submission_id = 6", (evil,))
-        c.execute("UPDATE comment SET text = ?, author = ? WHERE submission_id = 6", (evil, evil))
+        tamper(c, "UPDATE decision SET reason = ? WHERE submission_id = 6", (evil,))
+        tamper(c, "UPDATE comment SET text = ?, author = ? WHERE submission_id = 6", (evil, evil))
     html = mclient.get("/review/6").text
     assert "<script>alert(1)" not in html and "<img src=x" not in html and "&lt;script&gt;" in feedback(html)
 
 
 def test_line_breaks_in_a_reason_survive(jordan):
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = ? WHERE submission_id = 14", ("Line one\nLine two",))
+        tamper(c, "UPDATE decision SET reason = ? WHERE submission_id = 14", ("Line one\nLine two",))
     assert "Line one\nLine two" in feedback(jordan.get("/review/14").text)
     css = (Path(__file__).resolve().parent.parent / "app" / "static" / "style.css").read_text()
     assert re.search(r"\.feedback-reason[^{]*{[^}]*white-space:\s*pre-wrap", css)
@@ -178,7 +180,7 @@ def test_the_queue_still_links_with_its_filters(client):
 def test_long_feedback_does_not_widen_the_page(jordan, size):
     from tests.chrome_layout import measure
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = ? WHERE submission_id = 14", ("Unbroken" * 625,))
-        c.execute("UPDATE comment SET text = ? WHERE submission_id = 14", ("Comment" * 700,))
+        tamper(c, "UPDATE decision SET reason = ? WHERE submission_id = 14", ("Unbroken" * 625,))
+        tamper(c, "UPDATE comment SET text = ? WHERE submission_id = 14", ("Comment" * 700,))
     m = measure(jordan.get("/review/14").text, *size)
     assert m["scrollWidth"] <= m["clientWidth"] + 1 and m["wide"] == [], m["wide"]

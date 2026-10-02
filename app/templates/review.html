@@ -185,5 +185,23 @@
     {%- endfor %}
   </ol>
 </section>
+<section class="audit-trail" aria-labelledby="trail-heading">
+  <h2 id="trail-heading">Audit trail ({{ trail|length }})</h2>
+  <p class="trail-note">Every version, dismissal, comment and decision on this item, oldest first. Entries are never edited.</p>
+  <div class="trail-scroll" role="region" aria-label="Audit trail entries" tabindex="0">
+    <ol class="trail-list">
+      {%- for e in trail %}
+      <li class="trail-item trail-{{ e.kind }}">
+        <p class="trail-head"><strong class="trail-kind">{{ e.kind_word }}</strong> &middot; {{ e.label }} &middot; {{ e.who }} &middot;
+          {% if e.exact %}<time datetime="{{ e.exact }}" title="{{ e.absolute }}">{{ e.when }}</time>{% else %}<span>{{ e.absolute }}</span>{% endif %}
+          &middot; {{ e.absolute }}</p>
+        {%- if e.detail %}
+        <p class="trail-detail">{{ e.detail }}</p>
+        {%- endif %}
+      </li>
+      {%- endfor %}
+    </ol>
+  </div>
+</section>
 {% endblock %}
 {% block scripts %}{% if (decision_form or comment_form or dismiss_form) and role == "reviewer" %}<script src="{{ asset_url('review.js') }}" defer></script>{% endif %}{% endblock %}

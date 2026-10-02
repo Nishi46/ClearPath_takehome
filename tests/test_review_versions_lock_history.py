@@ -4,6 +4,7 @@ import pytest
 
 from app import db
 from app.review import day_text
+from tests.helpers import tamper
 
 
 def meta_between(html, start_cls, end_cls=None):
@@ -84,7 +85,7 @@ def test_history_is_the_same_for_every_version_viewed(client):
 def test_reason_and_names_are_escaped(client):
     evil = "<script>alert(1)</script> <b>x</b>"
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = ?, reviewer = ? WHERE submission_id = 6", (evil, "<i>M</i>"))
+        tamper(c, "UPDATE decision SET reason = ?, reviewer = ? WHERE submission_id = 6", (evil, "<i>M</i>"))
     html = client.get("/review/6").text
     assert "<script>alert" not in html and "<b>x</b>" not in html and "<i>M</i>" not in html
     assert "&lt;script&gt;" in html and "&lt;i&gt;M&lt;/i&gt;" in html
@@ -92,14 +93,14 @@ def test_reason_and_names_are_escaped(client):
 
 def test_approval_without_a_reason_shows_no_reason_line(client):
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = NULL WHERE submission_id = 6")
+        tamper(c, "UPDATE decision SET reason = NULL WHERE submission_id = 6")
     html = client.get("/review/6").text
     assert "Locked: Approved" in html and "Reason:" not in html
 
 
 def test_long_reason_renders_and_css_wraps(client):
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = ? WHERE submission_id = 6", ("w" * 2000,))
+        tamper(c, "UPDATE decision SET reason = ? WHERE submission_id = 6", ("w" * 2000,))
     assert "w" * 2000 in client.get("/review/6").text
     css = open("app/static/style.css").read()
     assert ".lock-reason { white-space: pre-wrap; }" in css and "overflow-wrap: anywhere" in css
@@ -107,7 +108,7 @@ def test_long_reason_renders_and_css_wraps(client):
 
 def test_bad_stored_timestamps_do_not_break_the_page(client):
     with db.connect() as c:
-        c.execute("UPDATE decision SET created_at = 'garbage'")
+        tamper(c, "UPDATE decision SET created_at = 'garbage'")
         c.execute("UPDATE version SET created_at = ''")
     for sid in range(1, 15):
         r = client.get(f"/review/{sid}")
@@ -118,7 +119,7 @@ def test_bad_stored_timestamps_do_not_break_the_page(client):
 def test_unknown_outcome_does_not_crash(client):
     with db.connect() as c:
         c.execute("PRAGMA ignore_check_constraints = ON")
-        c.execute("UPDATE decision SET outcome = '<b>x</b>' WHERE submission_id = 6")
+        tamper(c, "UPDATE decision SET outcome = '<b>x</b>' WHERE submission_id = 6")
     html = client.get("/review/6").text
     assert "<b>x</b>" not in html and "Decided by Alex Rivera" in html
 

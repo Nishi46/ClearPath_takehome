@@ -5,6 +5,7 @@ import pytest
 
 from app import db, mine, seed
 from app.mine import group_mine, list_mine
+from tests.helpers import tamper
 
 TODAY = date(2026, 10, 7)
 
@@ -96,7 +97,7 @@ def test_default_today_comes_from_the_clock(seeded, monkeypatch):
 
 def test_malformed_stored_values_never_raise(seeded):
     seeded.execute("UPDATE submission SET launch_date = 'not a date' WHERE id = 3")
-    seeded.execute("UPDATE decision SET created_at = 'garbage' WHERE submission_id = 6")
+    tamper(seeded, "UPDATE decision SET created_at = 'garbage' WHERE submission_id = 6")
     seeded.commit()
     rows = {r["id"]: r for r in list_mine(seeded, "Maya Chen", TODAY)}
     assert rows[3]["urgency"] is None and rows[6]["feedback"]["when"] == "unknown date"
@@ -160,11 +161,11 @@ def test_needs_action_is_newest_decision_first_within_each_status(seeded):
     # Make #14 and a copy-like second changes-requested item, and two rejections, with known times.
     seeded.execute("UPDATE submission SET submitted_by = 'Jordan Lee' WHERE id = 6")
     seeded.execute("UPDATE submission SET status = 'changes_requested' WHERE id = 6")
-    seeded.execute("UPDATE decision SET outcome = 'changes_requested', reason = 'Fix it.', created_at = '2026-10-06T10:00:00Z' WHERE submission_id = 6")
-    seeded.execute("UPDATE decision SET created_at = '2026-10-05T10:00:00Z' WHERE submission_id = 14")
-    seeded.execute("UPDATE decision SET created_at = '2026-10-01T10:00:00Z' WHERE submission_id = 8")
+    tamper(seeded, "UPDATE decision SET outcome = 'changes_requested', reason = 'Fix it.', created_at = '2026-10-06T10:00:00Z' WHERE submission_id = 6")
+    tamper(seeded, "UPDATE decision SET created_at = '2026-10-05T10:00:00Z' WHERE submission_id = 14")
+    tamper(seeded, "UPDATE decision SET created_at = '2026-10-01T10:00:00Z' WHERE submission_id = 8")
     seeded.execute("UPDATE submission SET status = 'rejected' WHERE id = 7")
-    seeded.execute("UPDATE decision SET outcome = 'rejected', created_at = '2026-10-04T10:00:00Z' WHERE submission_id = 7 AND version_number = 2")
+    tamper(seeded, "UPDATE decision SET outcome = 'rejected', created_at = '2026-10-04T10:00:00Z' WHERE submission_id = 7 AND version_number = 2")
     seeded.execute("UPDATE submission SET submitted_by = 'Jordan Lee' WHERE id = 7")
     seeded.commit()
     # changes requested: #6 (Oct 6) before #14 (Oct 5); then rejected: #7 (Oct 4) before #8 (Oct 1).
@@ -172,14 +173,14 @@ def test_needs_action_is_newest_decision_first_within_each_status(seeded):
 
 
 def test_done_is_newest_decision_first(seeded):
-    seeded.execute("UPDATE decision SET created_at = '2026-10-01T00:00:00Z' WHERE submission_id = 6")
-    seeded.execute("UPDATE decision SET created_at = '2026-10-03T00:00:00Z' WHERE submission_id = 13")
+    tamper(seeded, "UPDATE decision SET created_at = '2026-10-01T00:00:00Z' WHERE submission_id = 6")
+    tamper(seeded, "UPDATE decision SET created_at = '2026-10-03T00:00:00Z' WHERE submission_id = 13")
     seeded.commit()
     assert groups(seeded, "Maya Chen")["done"] == [13, 6]
 
 
 def test_ties_break_on_id_and_the_order_is_stable(seeded):
-    seeded.execute("UPDATE decision SET created_at = '2026-10-01T00:00:00Z' WHERE submission_id IN (6, 13)")
+    tamper(seeded, "UPDATE decision SET created_at = '2026-10-01T00:00:00Z' WHERE submission_id IN (6, 13)")
     seeded.commit()
     first = groups(seeded, "Maya Chen")
     assert first["done"] == [13, 6]                       # same time: higher id first, every time

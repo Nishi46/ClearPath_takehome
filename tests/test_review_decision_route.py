@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 
 from app import db
+from tests.helpers import tamper
 
 
 def snapshot():
@@ -229,7 +230,7 @@ def test_locked_status_without_a_decision_row(client):
 def test_conflict_banner_is_escaped(client):
     post(client, sid=3)
     with db.connect() as c:
-        c.execute("UPDATE decision SET reviewer = ? WHERE submission_id = 3", ("<script>alert(1)</script>",))
+        tamper(c, "UPDATE decision SET reviewer = ? WHERE submission_id = 3", ("<script>alert(1)</script>",))
     r = post(client, sid=3)
     assert "<script>alert" not in r.text and "&lt;script&gt;" in banner(r.text)
 

@@ -4,23 +4,6 @@
       <h3><span class="sev sev-{{ c.severity }}" aria-hidden="true">{{ c.letter }}</span> {{ c.rule_id }}: {{ c.name }}</h3>
       <p class="flag-severity">Severity: {{ c.severity_label }}
         {%- if c.snippet_href and role == "reviewer" %} &middot; <a class="snippet-link" href="{{ c.snippet_href }}" data-snippet="{{ c.snippet }}" data-rule="{{ c.rule_id }}">Use snippet</a>{% endif %}</p>
-      <p class="flag-why"><strong>Why it fired:</strong> {{ c.explanation }}</p>
-      {%- if c.kind == "missing" %}
-      <div class="flag-missing">
-        <p class="flag-missing-label"><strong>Missing: add this</strong></p>
-        {%- if c.snippet %}
-        <p class="flag-snippet">{{ c.snippet }}</p>
-        {%- endif %}
-        <p class="flag-note">Nothing to highlight in the copy.</p>
-      </div>
-      {%- endif %}
-      {%- if c.occurrences %}
-      <ul class="flag-occurrences">
-        {%- for o in c.occurrences %}
-        <li>{% if o.anchor %}<a href="#flag-{{ o.anchor }}" title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</a>{% else %}<span title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</span>{% endif %}</li>
-        {%- endfor %}
-      </ul>
-      {%- endif %}
       {%- if dismiss_form and role == "reviewer" %}
       {%- set mine = dismiss_state and dismiss_state.rule_id == c.rule_id %}
       <details class="flag-dismiss"{% if mine %} open{% endif %}>
@@ -41,6 +24,23 @@
           <button type="submit">Dismiss flag</button>
         </form>
       </details>
+      {%- endif %}
+      <p class="flag-why"><strong>Why it fired:</strong> {{ c.explanation }}</p>
+      {%- if c.kind == "missing" %}
+      <div class="flag-missing">
+        <p class="flag-missing-label"><strong>Missing: add this</strong></p>
+        {%- if c.snippet %}
+        <p class="flag-snippet">{{ c.snippet }}</p>
+        {%- endif %}
+        <p class="flag-note">Nothing to highlight in the copy.</p>
+      </div>
+      {%- endif %}
+      {%- if c.occurrences %}
+      <ul class="flag-occurrences">
+        {%- for o in c.occurrences %}
+        <li>{% if o.anchor %}<a href="#flag-{{ o.anchor }}" title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</a>{% else %}<span title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</span>{% endif %}</li>
+        {%- endfor %}
+      </ul>
       {%- endif %}
     </li>
     {%- endfor %}

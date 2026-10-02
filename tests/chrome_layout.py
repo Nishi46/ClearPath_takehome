@@ -25,7 +25,8 @@ f.addEventListener('load', function () {
   var res = {innerWidth: w.innerWidth, innerHeight: w.innerHeight, scrollWidth: de.scrollWidth,
              clientWidth: de.clientWidth, scrollHeight: de.scrollHeight};
   ['.review-head h1', '.copy-pane h2', '.copy-text', '.flags-pane h2', '.flag-card', '.decision-buttons',
-   '.decision-approve', '.review-main', '.review-side-scroll', '.decision-pane', '.history-strip'].forEach(function (s) { res[s] = box(d, s); });
+   '.decision-approve', '.review-main', '.review-side-scroll', '.decision-pane', '.history-strip', '.flag-card h3',
+   '.flag-severity', '.snippet-link', '.flag-dismiss summary', '.flag-why'].forEach(function (s) { res[s] = box(d, s); });
   var wide = [];
   d.querySelectorAll('body *').forEach(function (e) { if (e.getBoundingClientRect().right > w.innerWidth + 1) wide.push(e.tagName + '.' + e.className); });
   res.wide = wide.slice(0, 10);

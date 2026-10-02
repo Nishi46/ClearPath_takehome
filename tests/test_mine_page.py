@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from app import db
+from tests.helpers import tamper
 
 
 def headings(html, tag):
@@ -102,14 +103,14 @@ def test_hostile_titles_and_reasons_are_escaped(mclient):
     evil = "<script>alert(1)</script><img src=x onerror=alert(1)>"
     with db.connect() as c:
         c.execute("UPDATE submission SET title = ? WHERE id = 6", (evil,))
-        c.execute("UPDATE decision SET reason = ? WHERE submission_id = 6", (evil,))
+        tamper(c, "UPDATE decision SET reason = ? WHERE submission_id = 6", (evil,))
     html = mclient.get("/mine").text
     assert "<script>alert(1)" not in html and "<img src=x" not in html and "&lt;script&gt;" in html
 
 
 def test_a_long_unbroken_reason_is_wrapped_by_the_stylesheet(mclient):
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = ? WHERE submission_id = 6", ("x" * 2000,))
+        tamper(c, "UPDATE decision SET reason = ? WHERE submission_id = 6", ("x" * 2000,))
     assert "x" * 2000 in mclient.get("/mine").text
     css = (Path(__file__).resolve().parent.parent / "app" / "static" / "style.css").read_text()
     assert re.search(r"\.mine-item\s*{[^}]*overflow-wrap:\s*anywhere", css)
@@ -166,7 +167,7 @@ def test_security_headers(mclient):
 def test_malformed_stored_dates_do_not_break_the_page(mclient):
     with db.connect() as c:
         c.execute("UPDATE submission SET launch_date = 'garbage' WHERE id = 3")
-        c.execute("UPDATE decision SET created_at = 'garbage' WHERE submission_id = 6")
+        tamper(c, "UPDATE decision SET created_at = 'garbage' WHERE submission_id = 6")
     r = mclient.get("/mine")
     assert r.status_code == 200 and "unknown date" in r.text
 
@@ -190,7 +191,7 @@ def test_role_switch_lands_on_mine_for_a_marketer(client):
 def test_no_horizontal_scroll_with_long_unbroken_text(mclient, size):
     from tests.chrome_layout import measure
     with db.connect() as c:
-        c.execute("UPDATE decision SET reason = ? WHERE submission_id = 6", ("Unbroken" * 625,))
+        tamper(c, "UPDATE decision SET reason = ? WHERE submission_id = 6", ("Unbroken" * 625,))
         c.execute("UPDATE submission SET title = ? WHERE id = 3", ("T" * 120,))
     m = measure(mclient.get("/mine").text, *size)
     assert m["scrollWidth"] <= m["clientWidth"] + 1 and m["wide"] == [], m["wide"]

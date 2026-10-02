@@ -53,7 +53,7 @@ def test_user_version_marker_and_wal(db_path):
     db.init_schema()
     db.init_schema()
     with db.connect() as conn:
-        assert conn.execute("PRAGMA user_version").fetchone()[0] == 1
+        assert conn.execute("PRAGMA user_version").fetchone()[0] == 2
         assert conn.execute("PRAGMA journal_mode").fetchone()[0] == "wal"
 
 

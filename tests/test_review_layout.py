@@ -5,6 +5,7 @@ import pytest
 
 from app import db
 from tests.chrome_layout import CHROME, measure
+from tests.helpers import tamper
 
 needs_chrome = pytest.mark.skipif(not Path(CHROME).exists(), reason="Google Chrome is not installed here")
 CSS = Path("app/static/style.css").read_text()
@@ -123,8 +124,8 @@ def test_long_unbroken_strings_do_not_widen_the_page(client):
     with db.connect() as c:
         c.execute("UPDATE version SET copy = ?, notes = ? WHERE submission_id = 6", (long, long))
         c.execute("UPDATE submission SET title = ? WHERE id = 6", ("T" * 300,))
-        c.execute("UPDATE decision SET reason = ?, reviewer = ? WHERE submission_id = 6", (long, "R" * 300))
-        c.execute("UPDATE comment SET text = ? WHERE submission_id = 6", (long,))
+        tamper(c, "UPDATE decision SET reason = ?, reviewer = ? WHERE submission_id = 6", (long, "R" * 300))
+        tamper(c, "UPDATE comment SET text = ? WHERE submission_id = 6", (long,))
     for w, h in ((390, 844), (1366, 768)):
         m = measure(page(client, 6), w, h)
         assert m["scrollWidth"] <= m["clientWidth"] and m["wide"] == [], (w, m["wide"])

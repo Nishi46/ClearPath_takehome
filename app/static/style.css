@@ -401,10 +401,10 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 .diff-marker { font-weight: 700; margin-right: 0.125rem; }
 
 .flag-card { position: relative; }
-.flag-card h3 { padding-right: 5.5rem; }
-/* Closed, the control sits in the card's corner and adds no height (the first card must stay
-   above the decision buttons on a laptop). Open, it is an ordinary block under the card text. */
-.flag-dismiss:not([open]) { position: absolute; top: 0.6rem; right: 0.75rem; }
+/* The control follows the severity line. Closed, it is pulled up onto that line at the card's
+   right edge and adds no height (the first card must stay above the decision buttons on a
+   laptop, and it had half a pixel to spare). Open, it is an ordinary block under the line. */
+.flag-dismiss:not([open]) { position: absolute; right: 0.75rem; margin-top: -1.75rem; }
 .flag-dismiss[open] { margin-top: 0.5rem; }
 .flag-dismiss summary { cursor: pointer; font-weight: 700; }
 .flag-dismiss summary:focus-visible, .dismiss-form textarea:focus-visible, .dismiss-form button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
@@ -419,3 +419,12 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 .comment-form .field-error { margin: 0; font-weight: 700; color: var(--overdue-text); }
 .snippet-note { margin: 0; min-height: 1.2em; font-size: 0.9rem; }
 .comment-readonly { margin: 0.5rem 0 0; }
+
+.audit-trail { margin-top: 1.5rem; }
+.trail-note { margin: 0.25rem 0 0.5rem; }
+.trail-scroll { max-height: 24rem; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 1rem; }
+.trail-scroll:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.trail-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
+.trail-item { border-left: 4px solid var(--border); padding-left: 0.75rem; }
+.trail-item p { margin: 0.15rem 0; overflow-wrap: anywhere; }
+.trail-detail { white-space: pre-wrap; }

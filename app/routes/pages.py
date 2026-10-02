@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 
-from app import clock, db, review, seed
+from app import audit, clock, db, review, seed
 from app.queue import FILTER_FIELDS, FILTER_OPTIONS, empty_kind, filters_from_query, list_queue, row_view, summary_text
 from app.cooldown import Cooldown
 from app.roles import COOKIE_MAX_AGE, COOKIE_NAME, REVIEWER_NAME, ROLES, get_role
@@ -113,6 +113,9 @@ def _render_review(request, data, status_code=200, error=None, reason="", back="
     # In diff mode nothing is highlighted, so no flag card links to a highlight that is not there.
     pieces = [] if diff_data and diff_data.get("pieces") else review.copy_view(data)
     cards, dismissed = review.cards_view(data, pieces), review.dismissals_view(data)
+    with db.connect() as conn:
+        events = audit.load_trail(conn, data["submission"]["id"]) or []
+    trail = audit.trail_view(events, clock.now())
     comment_form = review.comment_form_view(data, back)
     if comment_form:  # "Use snippet" links only where a comment can be posted
         sid = data["submission"]["id"]
@@ -127,7 +130,7 @@ def _render_review(request, data, status_code=200, error=None, reason="", back="
                       notes=(data["version"]["notes"] or "").strip(), error=error, reason=reason,
                       decision_form=review.decision_form_view(data, back), feedback=review.feedback_view(data),
                       dismiss_form=review.dismiss_form_view(data, back), dismiss_state=dismiss_state,
-                      comment_form=comment_form, comment_state=comment_state)
+                      comment_form=comment_form, comment_state=comment_state, trail=trail)
     response.headers["Cache-Control"] = "no-store"  # the decision form depends on current state
     return response
 
