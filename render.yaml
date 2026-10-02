@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: clearpath-review
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      # Free-tier disks are wiped on every restart or deploy; the schema is recreated at startup.
+      - key: CLEARPATH_DB
+        value: /tmp/clearpath.db
