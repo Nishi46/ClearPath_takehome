@@ -360,3 +360,24 @@ def resubmit_block(data, marketer, role):
     if sub["submitted_by"] != marketer:
         return "This item belongs to %s. Switch marketer to edit it." % sub["submitted_by"]
     return None
+
+
+def compare_copy(previous, typed):
+    """The marketer's "your changes so far": the typed copy against the previous version's copy.
+
+    Both sides are normalized the same way create_version does, so "unchanged" here is exactly the
+    server's `unchanged` refusal. Returns {"state": "unchanged"} or {"state": "too_long"} or
+    {"state": "changed", "pieces": [(kind, text), ...], "added": n, "removed": n} (word counts).
+    Pure: nothing is read or written. A non-string `typed` counts as empty.
+    """
+    from app import diff
+
+    old = normalize_copy(previous)
+    new = normalize_copy(typed) if isinstance(typed, str) else ""
+    if old == new:
+        return {"state": "unchanged"}
+    pieces = diff.diff_text(old, new)
+    if pieces is None:
+        return {"state": "too_long"}
+    return {"state": "changed", "pieces": pieces, "added": diff.count_words(pieces, "added"),
+            "removed": diff.count_words(pieces, "removed")}

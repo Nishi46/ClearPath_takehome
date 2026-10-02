@@ -71,15 +71,31 @@
   </div>
   <div class="form-actions">
     <a href="/mine">Cancel</a>
+    <button type="submit" name="action" value="check" class="check-flags">Check flags and changes</button>
     <button type="submit" class="submit-button">Resubmit for review</button>
   </div>
 </form>
+<div class="submit-side">
+{%- if compare %}
+<section class="diff-panel" aria-labelledby="diff-heading">
+  <h2 id="diff-heading">Your changes so far</h2>
+  {%- if compare.state == "unchanged" %}
+  <p class="diff-summary" role="status">No changes to the copy yet. The copy is the same as the previous version, so it can't be resubmitted as it is.</p>
+  {%- elif compare.state == "too_long" %}
+  <p class="diff-summary" role="status">Too long to compare.</p>
+  {%- else %}
+  <p class="diff-summary" role="status">{{ compare.added }} word{{ "" if compare.added == 1 else "s" }} added, {{ compare.removed }} removed.</p>
+  <p class="diff-copy">{% for kind, text in compare.pieces %}{% if kind == "added" %}<ins class="diff-added"><span class="visually-hidden">added: </span><span aria-hidden="true" class="diff-marker">+</span>{{ text }}</ins>{% elif kind == "removed" %}<del class="diff-removed"><span class="visually-hidden">removed: </span><span aria-hidden="true" class="diff-marker">&minus;</span>{{ text }}</del>{% else %}{{ text }}{% endif %}{% endfor %}</p>
+  {%- endif %}
+</section>
+{%- endif %}
 <section class="precheck" aria-labelledby="precheck-heading">
   <h2 id="precheck-heading">Pre-check</h2>
   <div id="precheck-body">
     {% include "_precheck.html" %}
   </div>
 </section>
+</div>
 </div>
 {% endif %}
 {% endblock %}

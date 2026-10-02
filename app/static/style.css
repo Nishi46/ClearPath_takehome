@@ -391,3 +391,11 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 .feedback-changes_requested { color: var(--status-changes_requested-text); }
 .feedback-rejected { color: var(--status-rejected-text); }
 .feedback-approved { color: var(--status-approved-text); }
+
+/* Diff of the typed copy against the previous version (neither color nor position alone carries the meaning) */
+.submit-side { min-width: 0; }
+.diff-panel { margin: 0 0 var(--space); }
+.diff-copy { white-space: pre-wrap; overflow-wrap: anywhere; }
+.diff-added { background: var(--diff-add-bg, #e6f4ea); text-decoration: underline; }
+.diff-removed { background: var(--diff-del-bg, #fce8e6); text-decoration: line-through; }
+.diff-marker { font-weight: 700; margin-right: 0.125rem; }

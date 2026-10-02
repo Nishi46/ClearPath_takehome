@@ -292,3 +292,80 @@ def test_banner_only_says_resubmitted_for_later_versions(mclient):
     with db.connect() as c:
         sid = c.execute("SELECT max(id) FROM submission").fetchone()[0]
     assert "Submitted." in mclient.get("/mine?submitted=%d" % sid).text
+
+
+# ---- step 18: your changes so far ----
+
+def check(client, sid=14, **over):
+    return client.post("/resubmit/%d" % sid, data=dict(form(**over), action="check"), follow_redirects=False)
+
+
+def panel(html):
+    m = re.search(r'<section class="diff-panel".*?</section>', html, re.S)
+    return m.group(0) if m else None
+
+
+def test_one_edited_word_shows_as_removed_and_added(jordan):
+    copy = stored_copy(14, 1)
+    word = copy.split()[2]
+    r = check(jordan, copy=copy.replace(word, "ZEBRA", 1))
+    assert r.status_code == 200
+    p = panel(r.text)
+    assert "1 word added, 1 removed." in p
+    assert re.search(r"<ins[^>]*>.*?ZEBRA</ins>", p, re.S) and re.search(r"<del[^>]*>.*?%s</del>" % re.escape(word), p, re.S)
+    assert "added: " in p and "removed: " in p  # words, not color alone
+
+
+def test_unchanged_message_matches_the_servers_rule(jordan):
+    copy = stored_copy(14, 1)
+    for variant in (copy, "\n" + copy.replace("\n", "\r\n") + "  \n"):
+        assert "No changes to the copy yet" in panel(check(jordan, copy=variant).text)
+        assert post(jordan, data=form(copy=variant)).status_code == 422
+    assert "No changes to the copy yet" not in (panel(check(jordan, copy=copy + " x").text) or "")
+
+
+def test_the_panel_appears_after_a_failed_submit_and_an_unchanged_one(jordan):
+    assert panel(post(jordan, data=form(launch_date="bad")).text)
+    assert panel(post(jordan, data=form(copy=stored_copy(14, 1))).text)
+
+
+def test_no_panel_on_a_fresh_page(jordan):
+    assert panel(jordan.get("/resubmit/14").text) is None
+
+
+def test_check_writes_nothing_and_keeps_input(jordan):
+    before = dump()
+    r = check(jordan, copy="my draft KEEPME")
+    assert r.status_code == 200 and "KEEPME" in r.text
+    assert dump() == before
+
+
+def test_hostile_text_is_escaped_in_the_panel(jordan):
+    p = panel(check(jordan, copy=HOSTILE).text)
+    assert "<script>" not in p and "<img" not in p
+    assert len(tags(p, "ins")) == 1
+
+
+def test_a_long_copy_still_compares_or_falls_back(jordan):
+    r = check(jordan, copy=" ".join("w%d" % i for i in range(1700)))  # under 10,000 characters
+    assert r.status_code == 200 and panel(r.text)
+    r = check(jordan, copy="a " * 4999)
+    assert r.status_code == 200 and panel(r.text)
+
+
+def test_check_is_blocked_for_reviewer_other_marketer_and_cross_origin(client):
+    before = dump()
+    assert check(client).status_code == 403
+    as_marketer(client, "Maya Chen")
+    assert check(client).status_code == 403
+    as_marketer(client, "Jordan Lee")
+    assert client.post("/resubmit/14", data=dict(form(), action="check"),
+                       headers={"Origin": "https://evil.example"}).status_code == 403
+    assert dump() == before
+
+
+def test_compare_copy_is_pure_and_total():
+    from app import submit
+    assert submit.compare_copy("a b", None) == {"state": "changed", "pieces": [("removed", "a b")], "added": 0, "removed": 2}
+    assert submit.compare_copy("a b", "a b") == {"state": "unchanged"}
+    assert submit.compare_copy("w " * 7000, "x") == {"state": "too_long"}

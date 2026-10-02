@@ -162,7 +162,8 @@ def _load(sid):
         return review.load_review(conn, sid)
 
 
-def _render_resubmit(request, data, values=None, errors=None, warnings=(), banner=None, status_code=200):
+def _render_resubmit(request, data, values=None, errors=None, warnings=(), banner=None, status_code=200,
+                     show_diff=False):
     """The resubmit page: the form when this marketer may resubmit, else a sentence saying why (no form)."""
     sub, version = data["submission"], data["version"]
     block = submit.resubmit_block(data, get_marketer(request), get_role(request))
@@ -172,7 +173,8 @@ def _render_resubmit(request, data, values=None, errors=None, warnings=(), banne
     response = render(
         request, "resubmit.html", status_code=status_code, sub=sub, block=block, values=values,
         errors=errors or {}, warnings=_warning_texts(warnings, {"launch_date": values["launch_date"]}, today),
-        banner=banner, feedback=review.feedback_view(data), base_version=sub["current_version"],
+        banner=banner,
+        compare=submit.compare_copy(version["copy"], values["copy"]) if show_diff and block is None else None, feedback=review.feedback_view(data), base_version=sub["current_version"],
         check=submit.precheck(sub["product"], sub["channel"], values["copy"]) if block is None else None,
         copy_count="{:,}".format(len(values["copy"])), max_copy="{:,}".format(submit.MAX_COPY_CHARS),
         max_notes=submit.MAX_NOTES_CHARS,
@@ -222,7 +224,10 @@ async def resubmit_post(request: Request, submission_id: str):
     clean, errors, warnings = submit.validate_submission(checked, today)
     errors = {k: v for k, v in errors.items() if k in RESUBMIT_FIELDS}
     if errors:
-        return _render_resubmit(request, data, values, errors, warnings, status_code=422)
+        return _render_resubmit(request, data, values, errors, warnings, status_code=422, show_diff=True)
+    if _single(form, "action") == "check":
+        # "Check flags": show the flags and the changes so far for what is typed. Nothing is written.
+        return _render_resubmit(request, data, values, {}, warnings, show_diff=True)
     try:
         with db.connect() as conn:
             submit.create_version(conn, sid, base_version, clean, marketer, clock.now())
@@ -232,7 +237,8 @@ async def resubmit_post(request: Request, submission_id: str):
         if exc.code == "not_owner":
             return PlainTextResponse("This item belongs to another marketer.", status_code=403, headers=NO_STORE)
         if exc.code == "unchanged":
-            return _render_resubmit(request, data, values, {"copy": UNCHANGED_TEXT}, warnings, status_code=422)
+            return _render_resubmit(request, data, values, {"copy": UNCHANGED_TEXT}, warnings, status_code=422,
+                                show_diff=True)
         # Stale, locked or full: show the item as it really is now, keeping what was typed if a form remains.
         data = _load(sid)
         if data is None:
