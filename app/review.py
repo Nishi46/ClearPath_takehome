@@ -98,3 +98,46 @@ def header_view(data):
         "version_text": "v%d" % number,
         "is_current": number == s["current_version"],
     }
+
+
+def _span(flag, length):
+    """(start, end) of a usable phrase flag, else None. Bad or stale rows are skipped, never raised on."""
+    try:
+        if flag["kind"] != "phrase":
+            return None
+        start, end = flag["start_index"], flag["end_index"]
+        flag["id"]
+    except (KeyError, TypeError, IndexError):
+        return None
+    if not (_is_int(start) and _is_int(end)) or not 0 <= start < end <= length:
+        return None
+    return start, end
+
+
+def segments(copy, flags):
+    """Split `copy` into ordered (text, flag_ids) pieces that join back to exactly `copy`.
+
+    A piece covered by no flag has an empty tuple. Overlapping flags split the text so each
+    piece lists every flag covering it; adjacent flags stay in separate pieces. Offsets are
+    code-point indices into the original copy. Callers pass only the flags to highlight
+    (dismissed rules are excluded by the caller). One sweep over sorted cut points.
+    """
+    spans = []
+    for index, flag in enumerate(flags):
+        span = _span(flag, len(copy))
+        if span is not None:
+            spans.append((span[0], span[1], index, flag["id"]))
+    if not spans:
+        return [(copy, ())] if copy else []
+
+    starts = sorted(spans)
+    cuts = sorted({0, len(copy)} | {s[0] for s in spans} | {s[1] for s in spans})
+    pieces, active, next_span = [], {}, 0
+    for left, right in zip(cuts, cuts[1:]):
+        while next_span < len(starts) and starts[next_span][0] <= left:
+            start, end, order, flag_id = starts[next_span]
+            active[order] = (end, flag_id)
+            next_span += 1
+        active = {o: v for o, v in active.items() if v[0] > left}
+        pieces.append((copy[left:right], tuple(v[1] for _, v in sorted(active.items()))))
+    return pieces
