@@ -1,16 +1,23 @@
 :root {
-  --bg: #f7f8fa;
+  --bg: #f4f6f9;
   --surface: #ffffff;
-  --text: #1c2430;
-  --text-muted: #5a6575;
-  --border: #d5dae1;
+  --text: #101828;
+  --text-muted: #4a5565;
+  --border: #dde2ea;
   /* The edge of a button or field, as a graphic that must reach 3:1 against its background. */
-  --control-border: #6b7686;
-  --accent: #1d4ed8;
+  --control-border: #667085;
+  --accent: #2f4ec7;
+  --accent-strong: #243ea8;
+  --approve: #146c43;
+  --approve-strong: #0f5535;
   --accent-text: #ffffff;
-  --focus: #b45309;
+  --focus: #4a5fd6;
   --space: 1rem;
-  --radius: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --diff-add-bg: #e6f4ea;
+  --diff-del-bg: #fce8e6;
   /* Urgency and status colors. Every one is paired with words on the page, never used alone. */
   --overdue-text: #8f1d1d;
   --overdue-bg: #fdecec;
@@ -412,7 +419,7 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 /* The control follows the severity line. Closed, it is pulled up onto that line at the card's
    right edge and adds no height (the first card must stay above the decision buttons on a
    laptop, and it had half a pixel to spare). Open, it is an ordinary block under the line. */
-.flag-dismiss:not([open]) { position: absolute; right: 0.75rem; margin-top: -1.75rem; }
+.flag-dismiss:not([open]) { position: absolute; right: 0.75rem; margin-top: -1.4rem; }
 .flag-dismiss[open] { margin-top: 0.5rem; }
 .flag-dismiss summary { cursor: pointer; font-weight: 700; }
 .flag-dismiss summary:focus-visible, .dismiss-form textarea:focus-visible, .dismiss-form button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
@@ -473,3 +480,307 @@ a:focus-visible, button:focus-visible, textarea:focus-visible, [tabindex]:focus-
 .import-errors, .import-flags { margin: 0; padding-left: 1rem; }
 .import-confirm, .import-sample { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin: 0.75rem 0; }
 .import-upload { margin: 0.5rem 0 1rem; }
+
+/* ==========================================================================
+   Design layer (ui-redesign.md). Calmer surfaces, one button hierarchy, clearer hierarchy per screen.
+   It only restyles: every status, severity and urgency still says its meaning in words.
+   ========================================================================== */
+
+body { font-size: 0.9375rem; line-height: 1.55; -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums; }
+h1 { font-size: 1.625rem; font-weight: 650; letter-spacing: -0.01em; margin-bottom: 0.75rem; }
+h2 { font-weight: 650; letter-spacing: -0.005em; }
+main { padding: 1.25rem var(--space) 2.5rem; }
+a { text-underline-offset: 0.15em; }
+
+/* Header: brand, tabs, then who is viewing. */
+.site-header { box-shadow: var(--shadow); border-bottom-color: var(--border); gap: 0.5rem 1.25rem; }
+.brand { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; letter-spacing: -0.01em; }
+.brand-mark { order: -1; width: 1.5rem; height: 1.5rem; color: var(--accent); flex: none; }
+.site-nav { gap: 0.25rem; }
+.site-nav a { padding: 0.375rem 0.75rem; border-radius: var(--radius); color: var(--text-muted); text-decoration: none; font-weight: 600; }
+.site-nav a:hover { background: var(--bg); color: var(--text); }
+body[data-page="queue"] .site-nav a[href="/"], body[data-page="mine"] .site-nav a[href="/mine"],
+body[data-page="submit"] .site-nav a[href="/submit"], body[data-page="import"] .site-nav a[href="/import"] { background: var(--accent); color: var(--accent-text); }
+.role-label { font-size: 0.8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.role-form { gap: 0; }
+.role-form .role-option { border-radius: 0; margin-left: -1px; background: var(--surface); }
+.role-form .role-option:first-child { border-radius: var(--radius) 0 0 var(--radius); margin-left: 0; }
+.role-form .role-option:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
+.role-option[aria-current="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); position: relative; }
+.marketer-picker { gap: 0.5rem; }
+.marketer-picker .role-option { border-radius: 999px; }
+.marketer-picker .role-option[aria-current="true"] { background: var(--accent); color: var(--accent-text); }
+.reset-demo { border-color: var(--border); background: transparent; color: var(--text-muted); font-size: 0.8125rem; padding: 0.1875rem 0.625rem; }
+.reset-demo:hover { color: var(--overdue-text); border-color: var(--overdue-border); }
+
+/* Buttons: primary (filled), secondary (outline), danger (red outline). */
+.form-actions button, .button-link, .filter-apply, .decision-buttons button, .comment-form button, .dismiss-form button,
+.check-flags, .role-option, .reset-confirm-button { border-radius: var(--radius); font-weight: 600; }
+.filter-apply, .form-actions button, .button-link, .comment-form button, .dismiss-form button, .check-flags { background: var(--surface); color: var(--text); border: 1px solid var(--control-border); padding: 0.4375rem 0.9375rem; }
+.submit-button, .form-actions .submit-button, .reset-confirm-button, .mine-actions a.button-link[href^="/resubmit/"], .page-actions .button-link {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 650; }
+.submit-button:hover, .form-actions .submit-button:hover, .reset-confirm-button:hover, .mine-actions a.button-link[href^="/resubmit/"]:hover, .page-actions .button-link:hover {
+  background: var(--accent-strong); border-color: var(--accent-strong); }
+.filter-apply:hover, .form-actions button:hover, .button-link:hover, .comment-form button:hover, .check-flags:hover, .role-option:hover { border-color: var(--accent); }
+.reset-confirm-button { background: var(--overdue-border); border-color: var(--overdue-border); }
+.reset-confirm-button:hover { background: var(--overdue-text); border-color: var(--overdue-text); }
+
+/* Cards */
+.banner, .notice { border-radius: var(--radius); box-shadow: var(--shadow); }
+.notice-error { box-shadow: none; }
+.empty-state { border-radius: var(--radius-lg); padding: 2rem 1rem; color: var(--text-muted); background: var(--surface); }
+.empty-state a { font-weight: 600; }
+
+/* Queue */
+.filters { padding: 0.75rem 1rem; margin: 0 0 0.75rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.filter label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.filter select { min-width: 9rem; }
+.filter-clear { font-size: 0.875rem; align-self: center; }
+.summary { font-weight: 600; color: var(--text); margin: 0 0 0.5rem; }
+table.queue { border-collapse: separate; border-spacing: 0; border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+table.queue th { background: var(--bg); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.625rem 0.75rem; }
+table.queue td { padding: 0.75rem; }
+table.queue tbody tr:last-child td { border-bottom: 0; }
+table.queue tbody tr:hover { background: var(--bg); }
+table.queue td:nth-child(1) a { font-weight: 650; color: var(--text); text-decoration: none; }
+table.queue td:nth-child(1) a:hover { color: var(--accent); text-decoration: underline; }
+table.queue td:nth-child(2), table.queue td:nth-child(3), table.queue td:nth-child(6), table.queue td:nth-child(8) { color: var(--text-muted); }
+table.queue tr.urgency-rush { background: var(--surface); }
+table.queue tr.urgency-overdue { background: var(--surface); }
+table.queue tr.urgency-rush:hover, table.queue tr.urgency-overdue:hover { background: var(--bg); }
+table.queue tr.urgency-overdue td:first-child { border-left-width: 6px; }
+table.queue tr.urgency-rush td:first-child { border-left-width: 6px; }
+table.queue .urgency { display: inline-block; margin-top: 0.125rem; padding: 0 0.5rem; border-radius: 999px; font-size: 0.8125rem; }
+table.queue tr.urgency-overdue .urgency { background: var(--overdue-bg); }
+table.queue tr.urgency-rush .urgency { background: var(--rush-bg); }
+.table-note { margin-top: 0.75rem; }
+.status { border-color: transparent; border: 1px solid transparent; padding: 0.0625rem 0.625rem; }
+.sev { border-radius: 999px; padding: 0 0.4375rem; }
+.partner-badge { border-radius: 999px; padding: 0 0.5rem; background: var(--bg); }
+
+/* Review: header, copy card, flag cards, decision */
+.review-head h1 { margin-bottom: 0.375rem; }
+.review-meta { font-size: 0.875rem; }
+.review-back a { font-weight: 600; text-decoration: none; }
+.review-back a:hover { text-decoration: underline; }
+.version-link { background: var(--surface); font-size: 0.875rem; padding: 0.125rem 0.75rem; }
+.version-link.is-selected { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.copy-text { font-size: 1.0625rem; line-height: 1.7; border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; box-shadow: var(--shadow); }
+.review-layout h2 { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.notes-heading { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 1rem 0 0.25rem; }
+.flag-card, .comment, .mine-item, .precheck, .decision-pane, .marketer-feedback, .flag-dismissal { border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.flag-card { padding: 0.875rem 1.125rem; }
+.flag-card h3 { font-size: 0.9375rem; font-weight: 650; }
+.flag-severity { margin: 0; font-size: 0.8125rem; color: var(--text-muted); font-weight: 600; }
+.flag-why { color: var(--text-muted); font-size: 0.875rem; }
+.flag-missing { border-left-style: dashed; border-radius: 0 var(--radius) var(--radius) 0; background: var(--bg); padding: 0.5rem 0.75rem; }
+.snippet-link { font-weight: 650; }
+.flag-dismiss summary { color: var(--text-muted); font-weight: 600; font-size: 0.875rem; list-style: none; }
+.flag-dismiss summary::-webkit-details-marker { visibility: hidden; font-size: 0; }
+.flag-dismiss summary:hover { color: var(--overdue-text); text-decoration: underline; }
+.flag-assist-note, .flag-empty { font-size: 0.8125rem; }
+.decision-pane { padding: 1rem 1.125rem; box-shadow: 0 -2px 8px rgba(16, 24, 40, 0.06), var(--shadow); }
+.decision-pane h2 { margin-bottom: 0.5rem; }
+.decision-form label, .comment-form label, .dismiss-form label { font-weight: 600; font-size: 0.875rem; }
+.decision-form textarea, .comment-form textarea, .dismiss-form textarea, .submit-form textarea, .submit-form input[type=text],
+.submit-form input[type=date], .submit-form select, .filter select { border: 1px solid var(--control-border); border-radius: var(--radius); background: var(--surface); color: var(--text); }
+.decision-buttons { gap: 0.5rem; }
+.decision-buttons button { padding: 0.4375rem 1rem; font-weight: 650; }
+.decision-buttons .decision-approve { background: var(--approve); border-color: var(--approve); color: var(--accent-text); }
+.decision-buttons .decision-approve:hover { background: var(--approve-strong); border-color: var(--approve-strong); }
+.decision-buttons .decision-changes { border: 2px solid var(--rush-border); color: var(--rush-text); background: var(--rush-bg); }
+.decision-buttons .decision-reject { background: var(--surface); }
+.decision-hint { margin: 0; font-size: 0.8125rem; color: var(--text-muted); }
+.notice.lock-banner { border-radius: var(--radius-lg); }
+.history-strip h2, .audit-trail h2, .mine-group h2 { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.history-list { padding-left: 1.25rem; }
+.trail-item { border-left-width: 3px; }
+.trail-kind { text-transform: capitalize; }
+.marketer-feedback { padding: 0.875rem 1.125rem; }
+.marketer-feedback h2 { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.feedback-decision { font-size: 1.0625rem; }
+.feedback-reason { padding-left: 0.75rem; border-left: 3px solid var(--border); }
+
+/* Marketer and partner: my submissions, submit */
+.mine-group h2 { margin: 1.5rem 0 0.5rem; }
+.mine-list { gap: 0.75rem; }
+.mine-item { padding: 1rem 1.125rem; }
+.mine-title { font-size: 1.0625rem; font-weight: 650; }
+.mine-title a { color: var(--text); text-decoration: none; }
+.mine-title a:hover { color: var(--accent); text-decoration: underline; }
+.mine-meta { font-size: 0.875rem; margin-top: 0.375rem; }
+.mine-feedback { margin: 0.625rem 0 0; padding: 0.5rem 0.75rem; border-left: 4px solid var(--rush-border); background: var(--bg); border-radius: 0 var(--radius) var(--radius) 0; }
+.mine-feedback-reason { margin-top: 0.125rem; }
+.mine-actions { margin-top: 0.75rem; }
+.submitting-as { color: var(--text-muted); }
+.submit-form { gap: 1rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.field label, .field-label { font-weight: 650; font-size: 0.875rem; }
+.submit-form textarea { line-height: 1.6; }
+.precheck { padding: 1rem 1.125rem; }
+.precheck h2, .precheck h3 { font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 0.5rem; }
+.field-warning { border-radius: 0 var(--radius) var(--radius) 0; }
+.diff-panel { border-radius: var(--radius-lg); }
+
+/* Import */
+.import-steps { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; margin: 0 0 1rem; padding: 0; color: var(--text-muted); }
+.import-step { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; }
+.step-number { display: inline-grid; place-items: center; min-width: 1.5rem; height: 1.5rem; border: 2px solid var(--control-border); border-radius: 999px; font-size: 0.8125rem; }
+.import-step.is-current { color: var(--text); }
+.import-step.is-current .step-number { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.import-sources, .import-preview { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 1.25rem; }
+.import-sources h2, .import-preview h2 { font-size: 1.125rem; margin-top: 0; text-transform: none; letter-spacing: 0; color: var(--text); }
+.import-counts { padding: 0.625rem 0.875rem; background: var(--bg); border-radius: var(--radius); }
+.import-ok td:nth-child(2) .import-status { color: var(--status-approved-text); }
+.import-preview table.queue { box-shadow: none; }
+input[type="file"] { max-width: 100%; padding: 0.5rem; border: 1px dashed var(--control-border); border-radius: var(--radius); background: var(--bg); color: var(--text); }
+
+/* Plain pages */
+.error-heading { margin-top: 1rem; }
+.reset-confirm-form { margin-top: 1rem; }
+.skip-link { border-radius: var(--radius); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-nav a, .role-option, .button-link, .form-actions button, .filter-apply, .decision-buttons button, table.queue tbody tr, .snippet-link {
+    transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+  }
+}
+
+/* Dark mode: the same tokens, re-picked so every text pair keeps WCAG AA (tests/test_styles.py checks them). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --bg: #0e1320;
+    --surface: #161c2b;
+    --text: #e7eaf2;
+    --text-muted: #a9b2c3;
+    --border: #2a3347;
+    --control-border: #8a94a8;
+    --accent: #93a6ff;
+    --accent-strong: #b3c0ff;
+    --accent-text: #0b1020;
+    --approve: #6fd09a;
+    --approve-strong: #8fe0b2;
+    --focus: #a9b8ff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --diff-add-bg: #17351f;
+    --diff-del-bg: #3d1a1c;
+    --overdue-text: #ffb4b4;
+    --overdue-bg: #3a1618;
+    --overdue-border: #f07272;
+    --rush-text: #ffd08a;
+    --rush-bg: #3a2a10;
+    --rush-border: #f0a04b;
+    --status-new-text: #bccaff;
+    --status-new-bg: #1c2650;
+    --status-in_review-text: #dccbff;
+    --status-in_review-bg: #2b1f4d;
+    --status-changes_requested-text: #ffd08a;
+    --status-changes_requested-bg: #3a2a10;
+    --status-approved-text: #9be3b5;
+    --status-approved-bg: #14341f;
+    --status-rejected-text: #ffb4b4;
+    --status-rejected-bg: #3a1618;
+  }
+  .decision-buttons .decision-approve { color: #05140c; }
+  .reset-confirm-button { color: #1b0606; }
+  .brand-mark { color: var(--accent); }
+}
+
+/* Laptop budget: the copy, the first flag and the decision buttons must share a 1366x768 screen
+   (tests/test_audit_page.py), so the decision pane and flag cards stay compact. */
+.decision-pane { padding: 0.625rem 1rem 0.75rem; }
+.decision-pane h2 { margin: 0 0 0.25rem; }
+.decision-form { gap: 0.375rem; }
+.decision-form textarea { height: 3.25rem; min-height: 0; padding: 0.375rem 0.5rem; resize: vertical; }
+.decision-hint { font-size: 0.75rem; line-height: 1.3; }
+.flag-card { padding: 0.625rem 1rem; }
+.flag-card p { margin: 0.125rem 0; }
+.flag-assist-note { margin: 0 0 0.5rem; }
+.review-head { margin-bottom: 0.25rem; }
+.dismiss-form textarea { min-width: 0; padding: 0.375rem 0.5rem; }
+.dismiss-form button { padding-left: 0.5rem; padding-right: 0.5rem; }
+.dismiss-form p, .dismiss-form label { overflow-wrap: anywhere; }
+.site-nav { flex-wrap: wrap; }
+main > p > a.button-link[href="/submit"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 650; }
+main > p > a.button-link[href="/submit"]:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+.submit-button, .reset-confirm-button { font: inherit; font-weight: 650; padding: 0.4375rem 0.9375rem; border: 1px solid var(--accent); border-radius: var(--radius); cursor: pointer; }
+.import-sample, .import-confirm { margin: 1rem 0; }
+.import-upload .check-flags { margin-top: 0.5rem; }
+
+
+/* Theme toggle (theme.js sets data-theme on <html>). Without a choice the system setting decides, as above. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --text: #101828;
+  --text-muted: #4a5565;
+  --border: #dde2ea;
+  --control-border: #667085;
+  --accent: #2f4ec7;
+  --accent-strong: #243ea8;
+  --approve: #146c43;
+  --approve-strong: #0f5535;
+  --accent-text: #ffffff;
+  --focus: #4a5fd6;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --diff-add-bg: #e6f4ea;
+  --diff-del-bg: #fce8e6;
+  --overdue-text: #8f1d1d;
+  --overdue-bg: #fdecec;
+  --overdue-border: #b42323;
+  --rush-text: #7a3e00;
+  --rush-bg: #fff3dc;
+  --rush-border: #b45309;
+  --status-new-text: #1e3a8a;
+  --status-new-bg: #e6edff;
+  --status-in_review-text: #4a1d96;
+  --status-in_review-bg: #f0e9ff;
+  --status-changes_requested-text: #7a3e00;
+  --status-changes_requested-bg: #fff3dc;
+  --status-approved-text: #14532d;
+  --status-approved-bg: #e3f6e9;
+  --status-rejected-text: #8f1d1d;
+  --status-rejected-bg: #fdecec;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1320;
+  --surface: #161c2b;
+  --text: #e7eaf2;
+  --text-muted: #a9b2c3;
+  --border: #2a3347;
+  --control-border: #8a94a8;
+  --accent: #93a6ff;
+  --accent-strong: #b3c0ff;
+  --accent-text: #0b1020;
+  --approve: #6fd09a;
+  --approve-strong: #8fe0b2;
+  --focus: #a9b8ff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --diff-add-bg: #17351f;
+  --diff-del-bg: #3d1a1c;
+  --overdue-text: #ffb4b4;
+  --overdue-bg: #3a1618;
+  --overdue-border: #f07272;
+  --rush-text: #ffd08a;
+  --rush-bg: #3a2a10;
+  --rush-border: #f0a04b;
+  --status-new-text: #bccaff;
+  --status-new-bg: #1c2650;
+  --status-in_review-text: #dccbff;
+  --status-in_review-bg: #2b1f4d;
+  --status-changes_requested-text: #ffd08a;
+  --status-changes_requested-bg: #3a2a10;
+  --status-approved-text: #9be3b5;
+  --status-approved-bg: #14341f;
+  --status-rejected-text: #ffb4b4;
+  --status-rejected-bg: #3a1618;
+}
+:root[data-theme="light"] .decision-buttons .decision-approve, :root[data-theme="light"] .reset-confirm-button { color: var(--accent-text); }
+:root[data-theme="dark"] .decision-buttons .decision-approve { color: #05140c; }
+:root[data-theme="dark"] .reset-confirm-button { color: #1b0606; }
+.theme-toggle { font: inherit; font-size: 0.8125rem; font-weight: 600; padding: 0.1875rem 0.625rem;
+  border: 1px solid var(--border); border-radius: var(--radius); background: transparent; color: var(--text-muted); cursor: pointer; }
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+.theme-toggle[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }

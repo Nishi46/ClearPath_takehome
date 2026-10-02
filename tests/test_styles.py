@@ -139,3 +139,55 @@ def test_urgency_and_status_are_in_the_markup_as_words(client):
 def test_launch_wrapper_keeps_date_and_label_together(client):
     row = re.search(r'<tr class="urgency-overdue">.*?</tr>', client.get("/").text, re.S).group(0)
     assert re.search(r'<div class="launch">\s*<time[^>]*>[^<]+</time>\s*<span class="urgency">Overdue', row)
+
+
+# ---- dark mode: the same text pairs must still reach AA with the dark tokens ----
+
+def dark_tokens():
+    block = re.search(r"@media \(prefers-color-scheme: dark\) \{\s*:root \{(.*?)\n  \}", CSS, re.S).group(1)
+    merged = dict(T)
+    merged.update(dict(re.findall(r"--([\w-]+)\s*:\s*(#[0-9a-fA-F]{6})\s*;", block)))
+    return merged
+
+
+DARK = dark_tokens()
+
+
+@pytest.mark.parametrize("fg,bg", PAIRS)
+def test_dark_text_contrast_meets_aa(fg, bg):
+    assert contrast(DARK[fg], DARK[bg]) >= 4.5, (fg, bg, round(contrast(DARK[fg], DARK[bg]), 2))
+
+
+def test_dark_focus_and_control_edges_are_visible():
+    for bg in ("bg", "surface"):
+        assert contrast(DARK["focus"], DARK[bg]) >= 3.0 and contrast(DARK["control-border"], DARK[bg]) >= 3.0
+    for name in ("overdue-border", "rush-border"):
+        assert contrast(DARK[name], DARK["surface"]) >= 3.0
+
+
+@pytest.mark.parametrize("fg,bg", [("accent-text", "approve"), ("overdue-text", "diff-del-bg"), ("text", "diff-add-bg"), ("text", "diff-del-bg")])
+def test_new_design_pairs_meet_aa_in_both_themes(fg, bg):
+    for tokens in (T, DARK):
+        assert contrast(tokens[fg], tokens[bg]) >= 4.5, (fg, bg)
+
+
+# ---- the light/dark toggle ----
+
+def test_forced_themes_use_the_same_tokens_as_the_system_dark_theme():
+    block = re.search(r':root\[data-theme="dark"\] \{(.*?)\n\}', CSS, re.S).group(1)
+    forced = dict(re.findall(r"--([\w-]+)\s*:\s*(#[0-9a-fA-F]{6})\s*;", block))
+    assert {k: v for k, v in forced.items()} == {k: v for k, v in DARK.items() if k in forced and DARK[k] == v} and forced
+    for name, value in forced.items():
+        assert DARK[name] == value, name
+    light = re.search(r':root\[data-theme="light"\] \{(.*?)\n\}', CSS, re.S).group(1)
+    for name, value in re.findall(r"--([\w-]+)\s*:\s*(#[0-9a-fA-F]{6})\s*;", light):
+        assert T[name] == value, name
+
+
+def test_toggle_is_a_hidden_until_scripted_button_and_the_script_loads_in_head(client):
+    html = client.get("/").text
+    assert re.search(r'<button type="button" id="theme-toggle"[^>]*aria-pressed="false" hidden>Dark mode</button>', html)
+    head = html.split("</head>")[0]
+    assert re.search(r'<script src="/static/theme\.js\?v=\w+"></script>', head)      # no defer: applied before paint
+    js = client.get("/static/theme.js")
+    assert js.status_code == 200 and "localStorage" in js.text and "data-theme" in js.text

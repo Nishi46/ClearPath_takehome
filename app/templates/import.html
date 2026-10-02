@@ -11,6 +11,11 @@
   </form>
 </div>
 {% else %}
+<ol class="import-steps" aria-label="Import steps">
+  <li class="import-step{% if not preview %} is-current{% endif %}"{% if not preview %} aria-current="step"{% endif %}><span class="step-number" aria-hidden="true">1</span> Choose a file</li>
+  <li class="import-step{% if preview %} is-current{% endif %}"{% if preview %} aria-current="step"{% endif %}><span class="step-number" aria-hidden="true">2</span> Preview</li>
+  <li class="import-step"><span class="step-number" aria-hidden="true">3</span> Import</li>
+</ol>
 <p class="submitting-as">Importing as <strong>{{ submitter }}</strong>. <a href="/mine">Change</a></p>
 {% if error %}
 <div class="notice notice-error" role="alert" tabindex="-1" autofocus>
