@@ -174,3 +174,9 @@ def test_view_does_not_modify_the_row():
 def test_version_and_ids_pass_through(views):
     assert views[5]["version_number"] == 2 and views[5]["id"] == 5
     assert views[5]["submitted_by"] == "Maya Chen" and views[5]["status_label"] == "In review"
+
+
+def test_version_text(views):
+    assert views[5]["version_text"] == "v2" and views[7]["version_text"] == "v2"
+    assert views[1]["version_text"] == "v1"
+    assert row_view(make(version_number=12), THU)["version_text"] == "v12"

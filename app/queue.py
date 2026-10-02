@@ -136,6 +136,7 @@ def row_view(row, today=None):
         "status_label": _label("status", row["status"]),
         "submitted_by": row["submitted_by"],
         "version_number": row["version_number"],
+        "version_text": "v%d" % row["version_number"],
         "launch_date": row["launch_date"],
         "launch_text": launch_text,
         "urgency": kind,

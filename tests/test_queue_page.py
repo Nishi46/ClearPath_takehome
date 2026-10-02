@@ -6,7 +6,7 @@ import pytest
 from app.security import CSP
 
 EXPECTED_ORDER = [11, 1, 2, 14, 3, 4, 5, 13, 6, 7, 8, 9, 10, 12]
-HEADERS = ["Title", "Product", "Channel", "Launch date (earliest first)", "Status", "Submitter", "Flags"]
+HEADERS = ["Title", "Product", "Channel", "Launch date (earliest first)", "Status", "Submitter", "Flags", "Version"]
 
 
 def body_rows(html):
@@ -43,7 +43,7 @@ def test_rows_are_in_launch_order(client):
     assert ids == EXPECTED_ORDER
 
 
-def test_seven_column_headers_with_scope(client):
+def test_eight_column_headers_with_scope(client):
     html = client.get("/").text
     heads = re.findall(r'<th scope="col"[^>]*>(.*?)</th>', html)
     assert heads == HEADERS
@@ -59,7 +59,7 @@ def test_table_has_a_caption_and_real_table_markup(client):
 def test_every_cell_has_a_label_for_the_narrow_layout(client):
     row = body_rows(client.get("/").text)[0]
     labels = re.findall(r'<td data-label="([^"]+)"', row)
-    assert labels == ["Title", "Product", "Channel", "Launch date", "Status", "Submitter", "Flags"]
+    assert labels == ["Title", "Product", "Channel", "Launch date", "Status", "Submitter", "Flags", "Version"]
 
 
 # ---- content ----

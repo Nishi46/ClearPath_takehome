@@ -37,6 +37,7 @@
       <th scope="col">Status</th>
       <th scope="col">Submitter</th>
       <th scope="col">Flags</th>
+      <th scope="col">Version</th>
     </tr>
   </thead>
   <tbody>
@@ -54,9 +55,13 @@
       <td data-label="Status"><span class="status status-{{ r.status }}">{{ r.status_label }}</span></td>
       <td data-label="Submitter">{{ r.submitted_by }}</td>
       <td data-label="Flags"><span{% if r.flags_title %} title="{{ r.flags_title }}"{% endif %}>{{ r.flags_text }}</span></td>
+      <td data-label="Version">{{ r.version_text }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 {% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ asset_url('queue.js') }}" defer></script>
 {% endblock %}

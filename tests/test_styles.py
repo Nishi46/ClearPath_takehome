@@ -105,7 +105,7 @@ def test_narrow_layout_stacks_rows_and_labels_values():
 def test_every_cell_label_in_the_markup_matches_the_columns(client):
     row = re.search(r"<tbody>.*?</tr>", client.get("/").text, re.S).group(0)
     assert re.findall(r'data-label="([^"]+)"', row) == [
-        "Title", "Product", "Channel", "Launch date", "Status", "Submitter", "Flags"]
+        "Title", "Product", "Channel", "Launch date", "Status", "Submitter", "Flags", "Version"]
 
 
 def test_free_text_columns_can_break_long_words():

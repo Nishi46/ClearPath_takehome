@@ -206,3 +206,6 @@ select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   table.queue tr.urgency-overdue { border-left: 4px solid var(--overdue-border); }
   table.queue tr.urgency-rush { border-left: 4px solid var(--rush-border); }
 }
+
+/* Set by queue.js: the whole row follows the title link, so show it is clickable. */
+table.queue.row-clickable tbody tr { cursor: pointer; }
