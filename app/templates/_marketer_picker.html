@@ -1,0 +1,7 @@
+<form method="post" action="/marketer" class="marketer-picker">
+  <span class="role-label">Viewing as:</span>
+  {% for m in marketers %}
+  <button type="submit" name="name" value="{{ m }}" class="role-option"
+          {% if m == marketer %}aria-current="true"{% endif %}>{{ m }}{% if m == marketer %} (current){% endif %}</button>
+  {% endfor %}
+</form>

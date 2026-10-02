@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import db, seed
 from app.errors import not_found, server_error
-from app.routes import pages
+from app.routes import pages, submit_pages
 from app.security import BodyLimitMiddleware, SecurityHeadersMiddleware
 from app.templating import APP_DIR
 
@@ -41,6 +41,7 @@ app = FastAPI(
 )
 
 app.include_router(pages.router)
+app.include_router(submit_pages.router)
 app.mount("/static", StaticFiles(directory=str(APP_DIR / "static")), name="static")
 
 # Added last means outermost: headers are applied to everything, including the 413 from the body limit.

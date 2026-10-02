@@ -48,3 +48,10 @@ def live_client(db_path):
 
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
+
+
+@pytest.fixture
+def mclient(client):
+    """The seeded client acting as a marketer (the default marketer is Maya Chen)."""
+    client.cookies.set("role", "marketer")
+    return client

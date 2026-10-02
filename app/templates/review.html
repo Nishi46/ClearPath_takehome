@@ -56,31 +56,7 @@
   <p class="flag-empty" role="status">{% if dismissed %}No open flags. Every flag on this version was dismissed.{% else %}No flags detected.{% endif %}
     This is not a guarantee of compliance. A reviewer still reads the copy.</p>
   {%- endif %}
-  <ul class="flag-cards">
-    {%- for c in cards %}
-    <li class="flag-card">
-      <h3><span class="sev sev-{{ c.severity }}" aria-hidden="true">{{ c.letter }}</span> {{ c.rule_id }}: {{ c.name }}</h3>
-      <p class="flag-severity">Severity: {{ c.severity_label }}</p>
-      <p class="flag-why"><strong>Why it fired:</strong> {{ c.explanation }}</p>
-      {%- if c.kind == "missing" %}
-      <div class="flag-missing">
-        <p class="flag-missing-label"><strong>Missing: add this</strong></p>
-        {%- if c.snippet %}
-        <p class="flag-snippet">{{ c.snippet }}</p>
-        {%- endif %}
-        <p class="flag-note">Nothing to highlight in the copy.</p>
-      </div>
-      {%- endif %}
-      {%- if c.occurrences %}
-      <ul class="flag-occurrences">
-        {%- for o in c.occurrences %}
-        <li>{% if o.anchor %}<a href="#flag-{{ o.anchor }}" title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</a>{% else %}<span title="{{ o.full }}">&ldquo;{{ o.text }}&rdquo;</span>{% endif %}</li>
-        {%- endfor %}
-      </ul>
-      {%- endif %}
-    </li>
-    {%- endfor %}
-  </ul>
+  {% include "_flag_cards.html" %}
   {%- if dismissed %}
   <h3 class="dismissed-heading">Dismissed ({{ dismissed|length }})</h3>
   <ul class="flag-dismissed">

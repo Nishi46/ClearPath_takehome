@@ -1,0 +1,5 @@
+<div id="launch-warning" class="launch-warning" aria-live="polite"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {%- for w in warnings %}
+  <p class="field-warning"><span aria-hidden="true">&#9888;</span> <strong>Warning:</strong> {{ w }}</p>
+  {%- endfor %}
+</div>

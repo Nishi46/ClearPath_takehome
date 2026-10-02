@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}My submissions - ClearPath Review{% endblock %}
+{% block content %}
+<h1>My submissions</h1>
+{% if banner %}
+<div class="notice banner-submitted" role="status">
+  <p><strong>Submitted.</strong> &ldquo;{{ banner.title }}&rdquo; is in the review queue.
+    <a href="/review/{{ banner.id }}">Open it</a></p>
+  {%- for w in banner.warnings %}
+  <p class="field-warning"><span aria-hidden="true">&#9888;</span> <strong>Warning:</strong> {{ w }}</p>
+  {%- endfor %}
+</div>
+{% endif %}
+{% if role == "marketer" %}{% include "_marketer_picker.html" %}{% endif %}
+<p><a class="button-link" href="/submit">+ Submit</a></p>
+{% endblock %}

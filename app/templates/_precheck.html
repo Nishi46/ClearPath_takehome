@@ -1,0 +1,13 @@
+{% if check and check.state == "ok" %}
+<h3>Flags ({{ check.cards|length }})</h3>
+{%- if not check.cards %}
+<p class="flag-empty">No flags detected. This is not a guarantee of compliance. A reviewer still reads the copy.</p>
+{%- else %}
+{%- set cards = check.cards %}
+{% include "_flag_cards.html" %}
+{%- endif %}
+{% else %}
+<p class="flag-empty">{{ check.message if check else "Choose a product, channel and add copy to see flags." }}</p>
+{% endif %}
+<p class="flag-assist-note">Flags assist the reviewer. They never decide.<br>Rules are illustrative, not legal advice.</p>
+<p class="flag-assist-note">Flags don't block submitting. Reviewers will see them.</p>
